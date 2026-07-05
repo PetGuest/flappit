@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLAPS — Panel de control</title>
+<style>
+  :root{
+    --bg:#070804; --panel:#101208; --line:#2a2e1c;
+    --accent:#d7e021; --accent-ink:#1c2101;
+    --text:#f1f3e6; --muted:#8d9478; --brand:#d7e021;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; color:var(--text);
+    background:var(--bg);
+    background-image:linear-gradient(rgba(215,224,33,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(215,224,33,0.025) 1px, transparent 1px);
+    background-size:34px 34px;
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
+  header{display:flex; align-items:center; gap:14px; padding:10px 18px; border-bottom:1px solid var(--line);}
+  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
+    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace;}
+  .logo span{color:var(--brand); font-size:.6em;}
+  header small{color:var(--muted);}
+  #userBox{margin-left:auto; font-size:13px; color:var(--muted); display:flex; gap:12px; align-items:center;}
+  #userBox button{background:none; border:1px solid var(--line); color:var(--muted);
+    border-radius:8px; padding:5px 12px; cursor:pointer; font-size:12px;}
+
+  #layout{display:grid; grid-template-columns:290px minmax(0,1fr); gap:14px;
+    padding:8px 16px; height:calc(100vh - 57px);}
+  aside{overflow-y:auto; display:flex; flex-direction:column; gap:7px; min-height:0; padding-right:2px;}
+  #workArea{display:flex; flex-direction:column; gap:8px; min-height:0;}
+  @media(max-width:980px){
+    #layout{grid-template-columns:1fr; height:auto;}
+    aside{overflow:visible;}
+  }
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:9px 14px;
+    box-shadow:0 0 24px rgba(215,224,33,0.04), inset 0 1px 0 rgba(255,255,255,0.03);}
+  .card h3{margin:0 0 7px; font-size:12px; letter-spacing:2px; text-transform:uppercase; font-weight:700;
+    font-family:ui-monospace,monospace; color:var(--accent);}
+  aside .row{gap:8px; margin-bottom:5px;}
+  aside .row label{min-width:0; font-size:12px;}
+  aside .chip{padding:5px 10px; font-size:12px;}
+
+  /* pantallas físicas */
+  .scrPh{display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line);
+    border-radius:10px; margin-bottom:8px; cursor:pointer; font-size:13px;}
+  .scrPh.on{border-color:var(--accent); box-shadow:0 0 10px rgba(215,224,33,0.2);}
+  .scrPh .dot{width:8px; height:8px; border-radius:50%; background:#c33;}
+  .scrPh .dot.online{background:#2c2;}
+  .scrPh .nm{flex:1;}
+  .scrPh button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px;}
+  #connectTvBtn{width:100%; padding:11px; border:none; border-radius:10px; background:var(--accent);
+    color:var(--accent-ink); font-size:13.5px; font-weight:800; cursor:pointer; letter-spacing:1px;
+    font-family:ui-monospace,monospace; box-shadow:0 0 16px rgba(215,224,33,0.3); margin-bottom:10px;}
+  #pairBox{display:none;}
+  #pairBox a{color:var(--accent);}
+  #pairRow{display:flex; gap:8px;}
+  #pairRow input{flex:1; background:#0a0c05; color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; font-size:14px; text-transform:uppercase;
+    font-family:ui-monospace,monospace; letter-spacing:3px;}
+  #pairRow button{background:var(--accent); color:var(--accent-ink); border:none; border-radius:8px;
+    padding:8px 14px; font-weight:800; cursor:pointer;}
+  .cap{font-size:12px; color:var(--muted); margin-top:2px;}
+
+  #scrTabs{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+  .tab{border:1px solid var(--line); background:#14170c; color:var(--text);
+    border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer;
+    font-family:ui-monospace,monospace;}
+  .tab.on{background:var(--accent); color:var(--accent-ink); font-weight:700;
+    box-shadow:0 0 10px rgba(215,224,33,0.35);}
+  .tab.addT{border-style:dashed; color:var(--muted);}
+  #scrMeta{display:flex; gap:10px; align-items:center; margin-left:auto;}
+  #scrMeta span{font-size:12px; color:var(--muted);}
+  #scrMeta input{width:60px; background:#0a0c05; color:var(--text);
+    border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:13px;}
+  #delScr{background:#14170c; border:1px solid var(--line); color:#ff5c5c;
+    border-radius:8px; width:32px; height:30px; cursor:pointer;}
+
+  #toolbar{display:flex; align-items:center; gap:10px; min-height:32px; flex-wrap:wrap;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px 12px;}
+  #lineInfo{font-size:13px; color:var(--accent); font-family:ui-monospace,monospace;}
+  #lineInfo .free{color:var(--muted);}
+  #lineInfo .free.warn{color:#ffb020;}
+  #lineInfo .free.full{color:#ff5c5c; font-weight:700;}
+  .alnBtn{background:#14170c; border:1px solid var(--line); color:var(--muted);
+    border-radius:8px; padding:5px 12px; cursor:pointer; font-size:13px;}
+  .alnBtn.on{border-color:var(--accent); color:var(--accent); box-shadow:0 0 8px rgba(215,224,33,0.25);}
+  #toolbar .hint{font-size:11px; color:var(--muted); margin-left:auto;}
+  #saveDot{font-size:11px; color:var(--muted);}
+  #saveDot.saving{color:#ffb020;}
+  #saveDot.saved{color:#3DFF6E;}
+
+  #boardWrap{flex:1; min-height:280px; display:flex; align-items:center; justify-content:center;}
+  #board{position:relative; border-radius:10px; overflow:hidden;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 14px 40px rgba(0,0,0,0.55);}
+  .bRow{display:flex; position:relative;}
+  .bRow.editable{cursor:text;}
+  .bRow.selected{outline:1px solid var(--accent); outline-offset:-1px; z-index:2;}
+  .bCell{display:flex; align-items:center; justify-content:center;
+    font-family:'Helvetica Neue',Arial,sans-serif; font-weight:400;
+    position:relative; user-select:none;}
+  .bCell .ch{display:inline-block; transform:scaleX(0.74); transform-origin:center; position:relative; z-index:1;}
+  .bCell.caret{box-shadow:inset 0 0 0 2px var(--accent);}
+  /* media sombra en la mitad superior (más oscura) + filete negro central que parte la
+     letra, igual que en la TV, para que el editor se parezca al resultado real */
+  .bCell::before{content:""; position:absolute; left:0; top:0; right:0; height:70%; z-index:2;
+    border-radius:inherit; pointer-events:none;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.12); /* filete claro en el canto superior */
+    background:linear-gradient(180deg, rgba(0,0,0,0.74) 0%, rgba(0,0,0,0.44) 66%, rgba(0,0,0,0.14) 100%);}
+  .bCell::after{content:""; position:absolute; left:0; right:0; top:48.5%; height:3%; z-index:3;
+    pointer-events:none; background:rgba(0,0,0,0.92); box-shadow:0 1px 0 rgba(255,255,255,0.045);}
+  #board.noCellShadow .bCell::before, #board.noCellShadow .bCell::after{display:none;} /* la foto flapizada ya trae su sombra y su corte */
+  #hiddenInput{position:absolute; opacity:0; border:none; padding:0; margin:0;
+    background:transparent; color:transparent; caret-color:transparent;
+    pointer-events:none; z-index:3; width:100%;}
+  #bandDiv{display:flex; align-items:center; justify-content:center;
+    font-weight:800; letter-spacing:3px;
+    font-family:'Arial Narrow','Helvetica Neue',Arial,sans-serif;}
+
+  .row{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
+  .row label{font-size:14px; color:var(--muted); min-width:130px;}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--line); background:#14170c; color:var(--text);
+    border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer;}
+  .chip.on{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:700;
+    box-shadow:0 0 10px rgba(215,224,33,0.35);}
+  .sw{width:26px; height:26px; border-radius:7px; cursor:pointer; border:2px solid transparent; outline:1px solid #3c4228;}
+  .sw.on{border-color:var(--accent);}
+  input[type=range]{flex:1;}
+  input[type=text].wide{background:#0a0c05; color:var(--text); border:1px solid var(--line);
+    border-radius:10px; padding:9px 12px; font-size:14px; flex:1;}
+  .toggle{display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; user-select:none;}
+  .val{font-size:13px; color:var(--accent); min-width:56px; text-align:right; font-family:ui-monospace,monospace;}
+
+  /* look & feel: iconos y micro-interacciones */
+  button svg{vertical-align:-2.5px; margin-right:6px;}
+  .alnBtn svg, .scrPh svg, .tab svg{margin-right:4px;}
+  input[type=range]{accent-color:var(--accent); height:4px;}
+  input[type=checkbox]{accent-color:var(--accent); width:15px; height:15px;}
+  .tab, .alnBtn, .chip, .scrPh, #connectTvBtn, #previewBtn, #pairRow button, #delScr{
+    transition:border-color .18s, box-shadow .18s, transform .12s, background .18s;}
+  .tab:hover:not(.on), .alnBtn:hover:not(.on), .chip:hover:not(.on), .scrPh:hover:not(.on){
+    border-color:#5a6138;}
+  .tab:active, .chip:active, #connectTvBtn:active, #previewBtn:active, #pairRow button:active{
+    transform:scale(0.96);}
+  input[type=text]:focus, input[type=email]:focus, input[type=password]:focus, input[type=number]:focus{
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 1px var(--accent), 0 0 12px rgba(215,224,33,0.2);}
+
+  /* acceso */
+  #authWrap{position:fixed; inset:0; background:rgba(2,4,8,0.92); z-index:100;
+    display:flex; align-items:center; justify-content:center;}
+  #authBox{width:100%; max-width:380px; background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:28px;}
+  #authBox h1{font-size:20px; margin:0 0 4px;}
+  #authBox p{color:var(--muted); font-size:13px; margin:0 0 18px;}
+  #authBox label{display:block; font-size:12px; color:var(--muted); margin:12px 0 5px;}
+  #authBox input{width:100%; background:#0a0c05; color:var(--text); border:1px solid var(--line);
+    border-radius:10px; padding:11px 13px; font-size:15px;}
+  #authBox input:focus{outline:1px solid var(--accent);}
+  #authBox .go{width:100%; margin-top:18px; background:var(--accent); color:var(--accent-ink);
+    font-weight:800; border:none; border-radius:10px; padding:13px; font-size:15px; cursor:pointer;}
+  #authBox .alt{text-align:center; font-size:13px; color:var(--muted); margin-top:14px;}
+  #authBox .alt a{color:var(--accent); cursor:pointer;}
+  #authErr{color:#ff5c5c; font-size:13px; margin-top:10px; min-height:16px;}
+
+  /* menú "Añadir contenido" */
+  #addBackdrop{position:fixed; inset:0; z-index:199;}
+  #addMenu{position:fixed; z-index:200; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:6px; min-width:250px;
+    box-shadow:0 14px 44px rgba(0,0,0,0.62), inset 0 1px 0 rgba(255,255,255,0.03);}
+  #addMenu .it{display:flex; gap:11px; align-items:flex-start; width:100%; text-align:left;
+    background:none; border:none; color:var(--text); border-radius:9px; padding:9px 10px;
+    cursor:pointer; transition:background .14s;}
+  #addMenu .it:hover{background:#191c0f;}
+  #addMenu .it svg{margin-top:1px; color:var(--accent); flex:none;}
+  #addMenu .it b{display:block; font-size:13.5px; font-weight:700; line-height:1.2;}
+  #addMenu .it small{display:block; font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.3;}
+  #addMenu .sep{height:1px; background:var(--line); margin:5px 6px;}
+  #toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:300;
+    background:#14170c; border:1px solid var(--accent); color:var(--text);
+    padding:10px 18px; border-radius:10px; font-size:13px; display:none;
+    box-shadow:0 8px 30px rgba(0,0,0,0.55);}
+
+  /* suscripción */
+  #subBtn{display:none; background:var(--accent); color:var(--accent-ink); border:none;
+    border-radius:8px; padding:6px 14px; cursor:pointer; font-size:12.5px; font-weight:800;
+    letter-spacing:.3px; box-shadow:0 0 12px rgba(215,224,33,0.28);}
+  #subBtn.ghost{background:transparent; color:var(--accent); border:1px solid var(--accent); box-shadow:none;}
+  #planInfo.warn{color:#ffb020;}
+  #payWrap{position:fixed; inset:0; background:rgba(2,4,8,0.94); z-index:150;
+    display:none; align-items:center; justify-content:center;}
+  #payBox{width:100%; max-width:420px; background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:30px; text-align:center;}
+  #payBox h1{font-size:21px; margin:0 0 8px;}
+  #payBox p{color:var(--muted); font-size:14px; margin:0 0 22px; line-height:1.5;}
+  #payBox .go{width:100%; background:var(--accent); color:var(--accent-ink); font-weight:800;
+    border:none; border-radius:10px; padding:14px; font-size:15px; cursor:pointer;
+    box-shadow:0 0 16px rgba(215,224,33,0.3);}
+  #payBox .alt{margin-top:14px; font-size:13px;}
+  #payBox .alt a{color:var(--muted); cursor:pointer;}
+
+  /* modal de vista previa (así se verá en la TV) */
+  #previewModal{position:fixed; inset:0; background:rgba(2,4,8,0.86); z-index:250;
+    display:none; align-items:center; justify-content:center; padding:20px;}
+  #previewModal .pv{width:min(94vw,1120px); height:min(82vh,680px); background:#000;
+    border:1px solid var(--line); border-radius:14px; overflow:hidden; position:relative;
+    box-shadow:0 24px 70px rgba(0,0,0,0.65);}
+  #previewModal iframe{width:100%; height:100%; border:0; display:block; background:#000;}
+  #previewModal .pvbar{position:absolute; top:0; left:0; right:0; display:flex; align-items:center;
+    gap:10px; padding:9px 12px; z-index:2; pointer-events:none;
+    background:linear-gradient(180deg, rgba(0,0,0,0.65), rgba(0,0,0,0));}
+  #previewModal .pvbar b{font-size:11.5px; color:#fff; letter-spacing:1.5px;
+    font-family:ui-monospace,monospace; opacity:.9;}
+  #previewClose{margin-left:auto; pointer-events:auto; background:rgba(0,0,0,0.55);
+    border:1px solid #555; color:#fff; border-radius:8px; width:30px; height:28px; cursor:pointer; font-size:13px;}
+
+  /* aviso "haz clic para escribir" sobre el tablero */
+  #editHint{display:none; align-self:center; margin:0 auto 2px; font-size:12.5px; font-weight:600;
+    color:var(--accent); background:rgba(215,224,33,0.08); border:1px solid rgba(215,224,33,0.35);
+    border-radius:999px; padding:5px 16px;}
+  #editHint svg{vertical-align:-2px; margin-right:6px;}
+
+  /* pestañas con X de borrar integrada */
+  #scrTabs .tab{display:inline-flex; align-items:center; gap:7px;}
+  .tab .tabx{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px;
+    border-radius:5px; color:var(--muted); opacity:.6; margin-left:2px;}
+  .tab .tabx:hover{background:rgba(255,92,92,0.16); color:#ff5c5c; opacity:1;}
+  .tab.on .tabx{color:var(--accent-ink); opacity:.75;}
+  .tab.on .tabx:hover{background:rgba(0,0,0,0.18); color:#8a1010;}
+
+  /* caja de duración de la pantalla */
+  #scrMeta{display:flex; gap:8px; align-items:center; margin-left:auto;
+    background:#14170c; border:1px solid var(--line); border-radius:10px; padding:6px 11px;}
+  #scrMeta .durLbl{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.2px;}
+  #scrMeta input{width:46px; background:#0a0c05; color:var(--accent); border:1px solid var(--line);
+    border-radius:7px; padding:4px 6px; font-size:13px; text-align:center; font-weight:700;}
+  #scrMeta input::-webkit-outer-spin-button, #scrMeta input::-webkit-inner-spin-button{margin-left:2px;}
+  #scrMeta span{font-size:12px; color:var(--muted);}
+</style>
+</head>
+<body>
+
+<div id="authWrap" style="display:none;">
+  <div id="authBox">
+    <h1 id="authTitle">Entrar en su panel</h1>
+    <p>El panel controla sus pantallas en tiempo real.</p>
+    <div id="fBizRow" style="display:none;">
+      <label>Nombre del negocio</label>
+      <input type="text" id="aBiz" maxlength="60" placeholder="Hotel Miramar">
+    </div>
+    <label>Correo electrónico</label>
+    <input type="email" id="aMail" placeholder="recepcion@sunegocio.com">
+    <label>Contraseña</label>
+    <input type="password" id="aPass" placeholder="Mínimo 8 caracteres">
+    <div id="authErr"></div>
+    <button class="go" id="authGo">Entrar</button>
+    <div class="alt" id="authAlt">¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a></div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">FLAPS <span>SIGNAGE</span></div>
+  <small id="bizName">Panel de control</small>
+  <div id="userBox">
+    <span id="planInfo"></span>
+    <button id="subBtn"></button>
+    <button id="logoutBtn">Salir</button>
+  </div>
+</header>
+
+<div id="payWrap">
+  <div id="payBox">
+    <h1 id="payTitle">Tu prueba ha terminado</h1>
+    <p id="payMsg">Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.</p>
+    <button class="go" id="payGo">Suscribirme</button>
+    <div class="alt"><a id="payLogout">Salir</a></div>
+  </div>
+</div>
+
+<div id="previewModal">
+  <div class="pv">
+    <div class="pvbar">
+      <b>VISTA PREVIA — ASÍ SE VERÁ EN LA TV</b>
+      <button id="previewClose" title="Cerrar">✕</button>
+    </div>
+    <iframe id="previewFrame" title="Vista previa de la TV" allow="autoplay"></iframe>
+  </div>
+</div>
+
+<div id="layout">
+  <aside>
+    <div class="card">
+      <h3>Sus pantallas</h3>
+      <div id="phList"></div>
+      <button id="previewBtn" style="width:100%;padding:11px;border:1px solid var(--accent);border-radius:10px;
+        background:transparent;color:var(--accent);font-size:13.5px;font-weight:800;cursor:pointer;
+        letter-spacing:1px;font-family:ui-monospace,monospace;margin-bottom:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg>PREVISUALIZAR AQUÍ</button>
+      <button id="connectTvBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>CONECTAR MI TV REAL</button>
+      <div id="pairBox">
+        <p class="cap" style="margin:0 0 8px;">
+          1 · En el televisor, abra esta misma web acabada en <b>/tv</b>
+          (¿sin TV a mano? <a href="/tv" target="_blank">ábrala en otra pestaña</a>).<br>
+          2 · Mostrará un código de 4 letras. Escríbalo aquí:
+        </p>
+        <div id="pairRow">
+          <input id="pairCode" maxlength="4" placeholder="CÓDIGO">
+          <button id="pairBtn">Vincular</button>
+        </div>
+      </div>
+      <p class="cap" id="noTvHint" style="margin-top:8px;">Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.</p>
+    </div>
+
+    <div class="card">
+      <h3>Configura el panel</h3>
+      <div class="row">
+        <div class="chips" id="format">
+          <button class="chip on" data-v="16:9">TV 16:9</button>
+          <button class="chip" data-v="9:16">Tótem 9:16</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>Líneas</label>
+        <input type="range" id="rows" min="3" max="14" step="1" value="11">
+        <span class="val" id="rowsVal">11</span>
+      </div>
+      <div class="row">
+        <label>Letras/línea</label>
+        <input type="range" id="cols" min="10" max="36" step="1" value="31">
+        <span class="val" id="colsVal">31</span>
+      </div>
+      <div class="row">
+        <label class="toggle"><input type="checkbox" id="clock" checked> Reloj (franja inferior)</label>
+      </div>
+      <div class="row">
+        <label class="toggle"><input type="checkbox" id="logoOn" checked> Logo</label>
+        <input type="text" class="wide" id="logoTxt" value="" maxlength="40" placeholder="Texto del logo">
+      </div>
+      <div class="row" id="logoImgRow">
+        <button class="chip" id="logoUpload">Subir logo (PNG)</button>
+        <button class="chip" id="logoClear" style="display:none;">Quitar logo</button>
+        <span class="cap" id="logoImgHint" style="min-width:0;"></span>
+      </div>
+      <div class="row"><label>Letras</label><div class="chips" id="txtCol"></div></div>
+      <div class="row"><label>Flaps</label><div class="chips" id="flapCol"></div></div>
+      <div class="cap" id="capInfo"></div>
+    </div>
+
+    <div class="card">
+      <h3>Reproducción</h3>
+      <div class="row">
+        <label>Transición</label>
+        <input type="range" id="trans" min="1" max="12" step="1" value="5">
+        <span class="val" id="transVal">5 s</span>
+      </div>
+      <div class="cap">Larga = más vueltas y espectáculo</div>
+      <div class="row" style="margin-top:8px;">
+        <label class="toggle"><input type="checkbox" id="sound"> Sonido de flaps</label>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <label class="toggle"><input type="checkbox" id="loop" checked> Loop infinito</label>
+      </div>
+      <div class="cap">Si lo apagas, reproduce la secuencia una vez y se queda en la pantalla 1.</div>
+    </div>
+  </aside>
+
+  <section id="workArea">
+    <div id="scrTabs"></div>
+    <div id="editHint"></div>
+    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"></div></div>
+    <div id="toolbar">
+      <span id="lineInfo">Haz clic en una línea del tablero</span>
+      <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Izq</button>
+      <button class="alnBtn" data-a="center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M6 18h12"/></svg>Centro</button>
+      <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg>Der</button>
+      <span id="saveDot"></span>
+      <span class="hint">Escribe directamente en el panel · Enter = línea siguiente</span>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ================= constantes compartidas ================= */
+const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
+const LEN = CHARSET.length;
+const CELL_AR = 0.70;
+
+const TEXT_COLORS = ["#FFFFFF","#FFD400","#FF7A00","#00E5FF","#3DFF6E","#FF4FD8"];
+const FLAP_COLORS = ["#1c1c1f","#2e2e34","#0d2f6e","#7a0e0e","#c400b8","#0f4a24"];
+
+/* tipos de contenido que NO se escriben (foto flapizada, foto plena, vídeo) */
+function isMedia(m){ return !!m && (m.type==="image" || m.type==="photo" || m.type==="video"); }
+
+function defaultState(biz){
+  return {
+    messages: [
+      {secs:15, lines:[
+        {text:"", align:"center"},
+        {text:"BIENVENIDOS", align:"center"},
+        {text:"A", align:"center"},
+        {text:(biz||"SU NEGOCIO").toUpperCase().slice(0,24), align:"center"},
+        {text:"", align:"center"},
+        {text:"", align:"center"},
+        {text:"", align:"center"}
+      ]}
+    ],
+    trans: 5, cols: 31, rows: 11, align: "center", format: "16:9",
+    textColor: TEXT_COLORS[0], flapColor: FLAP_COLORS[0],
+    clock: true, sound: false, loop: true,
+    logoOn: true, logoTxt: (biz||"").toUpperCase().slice(0,40)
+  };
+}
+
+function normalize(s){
+  return s.toUpperCase()
+    .replace(/\u00d1/g,"\u0001")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\u0001/g,"\u00d1")
+    .replace(/[^\x20-\x7E\u00d1\u00a1\u00bf\u20ac]/g," ");
+}
+function shade(hex, f){
+  const n = parseInt(hex.slice(1),16);
+  const r=Math.min(255,Math.round(((n>>16)&255)*f)),
+        g=Math.min(255,Math.round(((n>>8)&255)*f)),
+        b=Math.min(255,Math.round((n&255)*f));
+  return `rgb(${r},${g},${b})`;
+}
+function linesPer(S){ return S.rows; }
+function clockLine(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function lineStart(text, align, cols){
+  const L = text.length;
+  if(align==="left") return 0;
+  if(align==="right") return Math.max(0, cols-L);
+  return Math.max(0, Math.floor((cols-L)/2));
+}
+
+/* ================= sesión ================= */
+let ME = null;
+async function api(method, url, body){
+  const r = await fetch(url, {
+    method,
+    headers: body ? {"Content-Type":"application/json"} : undefined,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(r.status===401){ showAuth(); throw new Error("401"); }
+  if(r.status===402){ if(ME) ME.entitled = false; showPaywall(ME && ME.sub_status); throw Object.assign(new Error("402"), {status:402}); }
+  if(!r.ok) throw Object.assign(new Error("api"), {status:r.status, data:await r.json().catch(()=>null)});
+  return r.json();
+}
+
+let authMode = "login";
+function showAuth(){
+  document.getElementById("authWrap").style.display = "flex";
+}
+function setAuthMode(m){
+  authMode = m;
+  document.getElementById("authTitle").textContent = m==="login" ? "Entrar en su panel" : "Cree su cuenta";
+  document.getElementById("fBizRow").style.display = m==="login" ? "none" : "block";
+  document.getElementById("authGo").textContent = m==="login" ? "Entrar" : "Crear cuenta y empezar";
+  document.getElementById("authAlt").innerHTML = m==="login"
+    ? '¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a>'
+    : '¿Ya tiene cuenta? <a id="authSwitch">Entre aquí</a>';
+  document.getElementById("authSwitch").addEventListener("click",
+    ()=>setAuthMode(authMode==="login"?"register":"login"));
+}
+document.getElementById("authSwitch").addEventListener("click", ()=>setAuthMode("register"));
+document.getElementById("authGo").addEventListener("click", async ()=>{
+  const email = document.getElementById("aMail").value.trim();
+  const pass = document.getElementById("aPass").value;
+  const biz = document.getElementById("aBiz").value.trim();
+  const err = document.getElementById("authErr");
+  err.textContent = "";
+  try{
+    if(authMode==="login") await api("POST","/api/login",{email,password:pass});
+    else await api("POST","/api/register",{email,password:pass,business:biz});
+    location.reload();
+  }catch(e){
+    err.textContent = authMode==="login"
+      ? "Correo o contraseña incorrectos."
+      : (e.data && e.data.error==="email-existe" ? "Ese correo ya tiene cuenta." : "Revise los datos (contraseña: mínimo 8).");
+  }
+});
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  try{ await api("POST","/api/logout"); }catch(e){}
+  location.reload();
+});
+
+/* ================= pantallas físicas ================= */
+let SCREENS = [], curScreen = null;
+
+/* iconos SVG del panel */
+const IC = {
+  pencil:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1L20 7.5 16.5 4 5 15.5 4 20z"/></svg>',
+  x:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  photo:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg>',
+  flap:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18"/><path d="M8 5v14M16 5v14"/></svg>',
+  video:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="14" height="12" rx="2"/><path d="M16.5 10l5-2.5v9l-5-2.5z"/></svg>',
+  text:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M5 6V5M12 6v13M9 19h6"/></svg>'
+};
+
+async function loadScreens(){
+  SCREENS = await api("GET","/api/screens");
+  renderPh();
+  if(SCREENS.length && !curScreen) selectScreen(SCREENS[0].id);
+  if(!SCREENS.length && !S){
+    // modo borrador: se puede montar y editar el panel antes de vincular la TV
+    let draft = null;
+    try{ draft = JSON.parse(localStorage.getItem("flapsDraft")||"null"); }catch(e){}
+    S = migrate(draft || defaultState(ME.business));
+    selScr = 0; selLine = -1;
+    syncControls();
+    S.messages.forEach(ensureLines);
+    buildBoard();
+    document.getElementById("capInfo").textContent =
+      "Borrador — vincule una pantalla y se emitirá lo que ve aquí";
+  }
+}
+function renderPh(){
+  const box = document.getElementById("phList");
+  box.innerHTML = "";
+  const btn = document.getElementById("connectTvBtn");
+  const tvIc = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>';
+  if(btn) btn.innerHTML = SCREENS.length ? tvIc+"CONECTAR OTRA TV" : tvIc+"CONECTAR MI TV REAL";
+  const hint = document.getElementById("noTvHint");
+  if(hint) hint.style.display = SCREENS.length ? "none" : "block";
+  SCREENS.forEach(s=>{
+    const d = document.createElement("div");
+    d.className = "scrPh"+(curScreen===s.id?" on":"");
+    const dot = document.createElement("span");
+    dot.className = "dot"+(s.online?" online":"");
+    dot.title = s.online ? "en línea" : "sin conexión";
+    const nm = document.createElement("span"); nm.className="nm"; nm.textContent = s.name;
+    const ren = document.createElement("button"); ren.innerHTML=IC.pencil; ren.title="Renombrar";
+    ren.addEventListener("click", async ev=>{
+      ev.stopPropagation();
+      const n = prompt("Nombre de la pantalla:", s.name);
+      if(n){ await api("PUT","/api/screens/"+s.id,{name:n}); loadScreens(); }
+    });
+    const del = document.createElement("button"); del.innerHTML=IC.x; del.title="Desvincular";
+    del.addEventListener("click", async ev=>{
+      ev.stopPropagation();
+      if(confirm("¿Desvincular \""+s.name+"\"? La pantalla volverá a mostrar un código.")){
+        await api("DELETE","/api/screens/"+s.id);
+        if(curScreen===s.id) curScreen=null;
+        loadScreens();
+      }
+    });
+    d.appendChild(dot); d.appendChild(nm); d.appendChild(ren); d.appendChild(del);
+    d.addEventListener("click", ()=>selectScreen(s.id));
+    box.appendChild(d);
+  });
+}
+/* previsualización: un modal DENTRO del panel con la página de la TV embebida
+   (misma que verá el televisor), alimentada en vivo. No abre ventanas nuevas,
+   así funciona igual desplegado que en la demo local. */
+let TV_PREVIEW_URL = "/tv?preview=1";   // la demo sin servidor lo reapunta al tv.html local
+const previewFrame = document.getElementById("previewFrame");
+function pushPreview(){
+  if(!S) return;
+  const w = previewFrame && previewFrame.contentWindow;
+  if(w){ try{ w.postMessage({type:"state", state:S}, "*"); }catch(e){} }
+}
+function openPreview(){
+  document.getElementById("previewModal").style.display = "flex";
+  if(previewFrame.getAttribute("data-src") !== TV_PREVIEW_URL){
+    previewFrame.setAttribute("data-src", TV_PREVIEW_URL);
+    previewFrame.src = TV_PREVIEW_URL;   // al cargar, se empuja el estado (onload + previewReady)
+  } else {
+    pushPreview();
+  }
+}
+function closePreview(){ document.getElementById("previewModal").style.display = "none"; }
+previewFrame.addEventListener("load", ()=> setTimeout(pushPreview, 60));
+document.getElementById("previewBtn").addEventListener("click", openPreview);
+document.getElementById("previewClose").addEventListener("click", closePreview);
+document.getElementById("previewModal").addEventListener("click", e=>{
+  if(e.target.id==="previewModal") closePreview();
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closePreview(); });
+window.addEventListener("message", e=>{
+  if(e.data && e.data.type==="previewReady") pushPreview();
+});
+
+document.getElementById("connectTvBtn").addEventListener("click", ()=>{
+  const box = document.getElementById("pairBox");
+  box.style.display = box.style.display==="block" ? "none" : "block";
+  if(box.style.display==="block") document.getElementById("pairCode").focus();
+});
+
+document.getElementById("pairBtn").addEventListener("click", async ()=>{
+  const code = document.getElementById("pairCode").value.trim().toUpperCase();
+  if(code.length!==4) return alert("El código tiene 4 letras.");
+  try{
+    const name = prompt("Nombre para esta pantalla:", "Lobby") || "Pantalla";
+    const r = await api("POST","/api/pair",{code, name});
+    document.getElementById("pairCode").value = "";
+    await loadScreens();
+    selectScreen(r.id);
+  }catch(e){
+    if(e.data && e.data.error==="limite-plan")
+      alert("Su plan permite "+e.data.limit+" pantalla(s). Amplíe el plan para vincular más.");
+    else alert("Código no encontrado. ¿La pantalla muestra ese código ahora mismo?");
+  }
+});
+setInterval(()=>{ if(ME) loadScreens().catch(()=>{}); }, 20000);
+
+async function selectScreen(id){
+  curScreen = id;
+  renderPh();
+  const r = await api("GET","/api/screens/"+id+"/state");
+  // si la pantalla es nueva, hereda el borrador que se estaba editando
+  S = migrate(r.state || S || defaultState(ME.business));
+  selScr = 0; selLine = -1;
+  syncControls();
+  S.messages.forEach(ensureLines);
+  buildBoard();
+  if(!r.state) push(); // emite el estado inicial a la pantalla
+}
+
+/* ================= estado del panel ================= */
+let S = null, pushT = null;
+let selScr = 0, selLine = -1;
+
+function migrate(S){
+  if(!S.align) S.align = "center";
+  if(!S.cols) S.cols = 31;
+  if(!S.rows) S.rows = 11;
+  if(!S.trans) S.trans = 5;
+  if(!S.format) S.format = "16:9";
+  if(S.loop===undefined) S.loop = true;
+  const n = linesPer(S);
+  S.messages = (S.messages||[]).map(m=>{
+    if(isMedia(m)){ if(m.secs==null) m.secs = (m.type==="video" ? 0 : 12); return m; }
+    m.lines = (m.lines||[]).map(ln =>
+      typeof ln === "string" ? {text:ln, align:S.align||"center"} : ln);
+    m.lines = m.lines.slice(0,n);
+    while(m.lines.length<n) m.lines.push({text:"", align:S.align||"center"});
+    if(!m.secs) m.secs = 20;
+    return m;
+  });
+  if(!S.messages.length) S.messages.push({secs:20, lines:[]});
+  return S;
+}
+function cur(){ return S.messages[selScr]; }
+function ensureLines(m){
+  if(isMedia(m)) return;
+  const n = linesPer(S);
+  m.lines = (m.lines||[]).slice(0,n);
+  while(m.lines.length<n) m.lines.push({text:"", align:S.align||"center"});
+}
+
+/* comprime una imagen a JPEG dataURL con un lado máximo dado */
+function loadPhotoData(file, max, quality, cb){
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    const im = new Image();
+    im.onload = ()=>{
+      const sc = Math.min(1, max/Math.max(im.width, im.height));
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(im.width*sc);
+      cv.height = Math.round(im.height*sc);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+      cb(cv.toDataURL("image/jpeg", quality));
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+/* foto flapizada: pequeña, se reconstruye flap a flap (no hace falta resolución) */
+function loadPhoto(file, cb){ loadPhotoData(file, 1100, 0.72, cb); }
+
+/* logo: se guarda como PNG (conserva la transparencia), reescalado para que pese poco */
+function loadLogo(file, cb){
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    const im = new Image();
+    im.onload = ()=>{
+      const max = 400;
+      const sc = Math.min(1, max/Math.max(im.width, im.height));
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(im.width*sc);
+      cv.height = Math.round(im.height*sc);
+      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+      cb(cv.toDataURL("image/png"));   // PNG conserva el canal alfa (transparencia)
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+
+/* sube un fichero (vídeo) al servidor; devuelve {src} con su URL en /media */
+async function uploadMedia(file){
+  const r = await fetch("/api/media", {
+    method:"POST",
+    headers:{ "Content-Type": file.type || "application/octet-stream",
+              "X-Filename": encodeURIComponent(file.name || "media") },
+    body: file
+  });
+  if(r.status===401){ showAuth(); throw new Error("401"); }
+  if(!r.ok) throw Object.assign(new Error("upload"), {data: await r.json().catch(()=>null)});
+  return r.json();
+}
+
+const saveDot = document.getElementById("saveDot");
+function push(){
+  if(!S) return;
+  try{ localStorage.setItem("flapsDraft", JSON.stringify(S)); }catch(e){}
+  pushPreview();
+  if(!curScreen){
+    saveDot.textContent = "borrador guardado"; saveDot.className = "saved";
+    return;
+  }
+  saveDot.textContent = "guardando…"; saveDot.className = "saving";
+  clearTimeout(pushT);
+  pushT = setTimeout(async ()=>{
+    try{
+      await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
+      saveDot.textContent = "guardado ✓"; saveDot.className = "saved";
+      setTimeout(()=>{ saveDot.textContent=""; }, 2000);
+    }catch(e){
+      saveDot.textContent = "sin conexión"; saveDot.className = "saving";
+    }
+  }, 400);
+}
+
+/* ================= editor sobre el tablero ================= */
+const board = document.getElementById("board");
+const hiddenInput = document.getElementById("hiddenInput");
+let geom = null, rowEls = [], clockEl = null, bandEl = null;
+
+function cellStyle(el, w, h){
+  const f = S.flapColor;
+  el.style.width = w+"px";
+  el.style.height = h+"px";
+  el.style.fontSize = (h*0.66)+"px";
+  el.style.color = S.textColor;
+  el.style.borderRadius = Math.max(2, w*0.09)+"px";
+  el.style.margin = "0 "+Math.max(0.5, w*0.022)+"px";
+  el.style.background =
+    "linear-gradient(180deg,"+
+    shade(f,1.05)+" 0%,"+shade(f,1.05)+" 47%,"+        // mitad superior: color plano (+5% brillo)
+    "rgba(0,0,0,0.92) 47%, rgba(0,0,0,0.92) 53%,"+     // filete central
+    shade(f,1.2)+" 53%,"+shade(f,1.2)+" 100%)";        // mitad inferior: plano, 20% más clara
+  el.style.textShadow = "0 1px 1px rgba(0,0,0,0.4)";
+}
+
+function buildBoard(){
+  if(!S) return;
+  const wrap = board.parentElement;
+  const boxW = (wrap.clientWidth || 700) - 4;
+  const boxH = Math.max(280, (wrap.clientHeight || 460) - 4);
+  const aspect = S.format==="9:16" ? 9/16 : 16/9;
+  let W = Math.min(boxW, boxH*aspect), H = W/aspect;
+  if(H>boxH){ H = boxH; W = H*aspect; }
+  const bandH = (S.logoOn || S.clock) ? H*0.08 : 0;
+  // marco de carcasa: margen negro arriba y a los lados, y separación con la franja del reloj
+  const pad = Math.max(5, Math.round(Math.min(W, H)*0.022));
+  const gapBand = bandH>0 ? Math.round(pad*1.2) : pad;
+  const gridH = H - bandH;
+  const availW = W - 2*pad;
+  const availH = gridH - pad - gapBand;
+  let cellW = availW/S.cols, cellH = availH/S.rows;
+  if(cellW/cellH > CELL_AR) cellW = cellH*CELL_AR;
+  else cellH = cellW/CELL_AR;
+  geom = {W,H,cellW,cellH,bandH,r0:0};
+  board.style.width = W+"px";
+  board.style.height = H+"px";
+  board.style.background =
+    "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.008) 12%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.28) 100%), #000";
+  [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput") ch.remove(); });
+  rowEls = []; clockEl = null; bandEl = null;
+
+  const gridArea = document.createElement("div");
+  gridArea.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;"
+    +"height:"+gridH+"px;width:"+W+"px;box-sizing:border-box;"
+    +"padding:"+pad+"px "+pad+"px "+gapBand+"px;";
+  const innerW = S.cols*cellW;
+  for(let r=0;r<S.rows;r++){
+    const row = document.createElement("div");
+    row.className = "bRow";
+    row.style.cssText = "display:flex;align-items:center;justify-content:center;height:"+cellH+"px;width:"+innerW+"px;";
+    for(let c=0;c<S.cols;c++){
+      const cell = document.createElement("div");
+      cell.className = "bCell";
+      cellStyle(cell, cellW - Math.max(1, cellW*0.044), cellH - Math.max(1, cellH*0.06));
+      row.appendChild(cell);
+    }
+    const j = r;
+    row.classList.add("editable");
+    row.addEventListener("mousedown", e=>{ e.preventDefault(); selectLine(j); });
+    rowEls[j] = row;
+    gridArea.appendChild(row);
+  }
+  board.appendChild(gridArea);
+  // filete sutil que bordea las casillas, con holgura (igual que en la TV/landing)
+  { const gbW = innerW, gbH = S.rows*cellH, m2 = Math.max(3, Math.round(cellW*0.28));
+    const frame = document.createElement("div");
+    frame.style.cssText = "position:absolute;pointer-events:none;z-index:1;"
+      +"left:"+(pad + (availW-gbW)/2 - m2)+"px;top:"+(pad + (availH-gbH)/2 - m2)+"px;"
+      +"width:"+(gbW+2*m2)+"px;height:"+(gbH+2*m2)+"px;"
+      +"border:1px solid rgba(255,255,255,0.06);border-radius:"+Math.max(6,Math.round(cellW*0.5))+"px;";
+    board.appendChild(frame); }
+  if(bandH>0){
+    bandEl = document.createElement("div");
+    bandEl.id = "bandDiv";
+    // la franja es parte del marco negro (sin fondo propio)
+    bandEl.style.cssText = "position:relative;display:flex;align-items:center;justify-content:center;"
+      +"height:"+bandH+"px;width:"+W+"px;color:"+S.textColor+";"
+      +"font-size:"+(bandH*0.42)+"px;";
+    const vertical = (S.format==="9:16");
+    if(S.clock){
+      clockEl = document.createElement("span");
+      clockEl.style.cssText = "position:absolute;"
+        + (vertical ? "right:"+(bandH*0.45)+"px;" : "left:"+(bandH*0.45)+"px;")
+        +"font-family:ui-monospace,'Roboto Mono',monospace;letter-spacing:3px;"
+        +"font-size:"+(bandH*(vertical?0.38:0.48))+"px;font-weight:800;"
+        +"background:"+shade(S.flapColor,0.8)+";padding:2px 8px;border-radius:4px;";
+      clockEl.textContent = clockLine();
+      bandEl.appendChild(clockEl);
+    }
+    if(S.logoOn){
+      if(S.logoImg){
+        const lg = document.createElement("img");
+        lg.id = "bandLogo"; lg.src = S.logoImg;
+        lg.style.cssText = "height:"+(bandH*(vertical?0.7:0.8))+"px;width:auto;max-width:40%;object-fit:contain;"
+          + (vertical ? "position:absolute;left:"+(bandH*0.45)+"px;" : "");
+        bandEl.appendChild(lg);
+      } else {
+        const lg = document.createElement("span");
+        lg.id = "bandLogo";
+        lg.textContent = (S.logoTxt||"").toUpperCase();
+        if(vertical) lg.style.cssText = "position:absolute;left:"+(bandH*0.45)+"px;";
+        bandEl.appendChild(lg);
+      }
+    }
+    // marca flappit, discreta · derecha en horizontal, centro en vertical
+    const fp = document.createElement("span");
+    fp.textContent = "flappit.com";
+    fp.style.cssText = "position:absolute;"
+      + (vertical ? "left:50%;transform:translateX(-50%);" : "right:"+(bandH*0.45)+"px;")
+      +"font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;font-size:"+(bandH*0.34)+"px;color:rgba(255,255,255,0.3);";
+    bandEl.appendChild(fp);
+    board.appendChild(bandEl);
+  }
+  renderAll();
+}
+
+function renderRow(j){
+  const row = rowEls[j];
+  if(!row) return;
+  ensureLines(cur());
+  const ln = cur().lines[j];
+  const text = normalize(ln.text||"").slice(0,S.cols).replace(/\s+$/,"");
+  const st = lineStart(text, ln.align||"center", S.cols);
+  const caretPos = Math.min(S.cols-1, st+text.length);
+  [...row.children].forEach((cell,c)=>{
+    const ch = (c>=st && c<st+text.length) ? text[c-st] : " ";
+    let sp = cell.firstElementChild;
+    if(!sp || !sp.classList.contains("ch")){ cell.textContent = ""; sp = document.createElement("span"); sp.className = "ch"; cell.appendChild(sp); }
+    sp.textContent = ch===" " ? " " : ch;
+    cell.classList.toggle("caret",
+      j===selLine && document.activeElement===hiddenInput && c===caretPos && text.length<S.cols);
+  });
+  row.classList.toggle("selected", j===selLine);
+}
+
+/* pinta la foto flapizada en las celdas del editor (vista estática) */
+function renderImageBoard(){
+  const m = cur();
+  if(!m || !m.img || !geom) return;
+  const im = new Image();
+  im.onload = ()=>{
+    if(!S || cur()!==m) return;
+    const boardW = S.cols*geom.cellW, boardH = S.rows*geom.cellH;
+    const scale = Math.max(boardW/im.width, boardH/im.height);
+    const drawW = im.width*scale, drawH = im.height*scale;
+    const ox = (boardW-drawW)/2, oy = (boardH-drawH)/2;
+    rowEls.forEach((row,r)=>{
+      row.classList.remove("selected");
+      [...row.children].forEach((cell,c)=>{
+        cell.textContent = "";
+        cell.classList.remove("caret");
+        cell.style.background =
+          "linear-gradient(180deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.26) 30%, rgba(0,0,0,0.12) 46%,"+
+          " rgba(0,0,0,0.92) 46%, rgba(0,0,0,0.92) 52%,"+
+          " rgba(255,255,255,0.10) 52%, rgba(0,0,0,0.22) 100%), url("+m.img+")";
+        cell.style.backgroundSize = "100% 100%, "+drawW+"px "+drawH+"px";
+        cell.style.backgroundPosition = "0 0, "+(-(c*geom.cellW-ox))+"px "+(-(r*geom.cellH-oy))+"px";
+      });
+    });
+  };
+  im.src = m.img;
+}
+
+/* quita el overlay de foto plena / vídeo del tablero del editor */
+function removeMediaOverlay(){
+  const ov = document.getElementById("mediaOverlay");
+  if(ov) ov.remove();
+}
+/* pinta foto plena o vídeo cubriendo el tablero (vista tal cual, sin flapizar) */
+function renderPlainMedia(){
+  const m = cur();
+  removeMediaOverlay();
+  const ov = document.createElement("div");
+  ov.id = "mediaOverlay";
+  ov.style.cssText = "position:absolute;inset:0;background:#000;overflow:hidden;border-radius:inherit;";
+  if(m.type==="photo" && m.img){
+    ov.style.backgroundImage = "url('"+m.img+"')";
+    ov.style.backgroundSize = "cover";
+    ov.style.backgroundPosition = "center";
+  } else if(m.type==="video" && m.src){
+    const v = document.createElement("video");
+    v.src = m.src; v.muted = true; v.loop = true; v.autoplay = true;
+    v.playsInline = true; v.setAttribute("playsinline","");
+    v.style.cssText = "width:100%;height:100%;object-fit:cover;";
+    ov.appendChild(v);
+    v.play().catch(()=>{});
+  }
+  board.appendChild(ov);
+}
+
+function renderAll(){
+  if(!S) return;
+  ensureLines(cur());
+  if(clockEl) clockEl.textContent = clockLine();
+  const eh = document.getElementById("editHint");
+  if(eh){
+    if(cur().type){ eh.style.display = "none"; }
+    else{
+      eh.innerHTML = IC.pencil + "Haz clic en el panel para escribir tu texto";
+      eh.style.display = "block";
+    }
+  }
+  board.classList.toggle("noCellShadow", cur().type==="image");
+  if(cur().type==="image"){
+    removeMediaOverlay();
+    renderImageBoard();
+  } else if(cur().type==="photo" || cur().type==="video"){
+    renderPlainMedia();
+  } else {
+    removeMediaOverlay();
+    for(let j=0;j<linesPer(S);j++) renderRow(j);
+  }
+  const lg = document.getElementById("bandLogo");
+  if(lg && lg.tagName!=="IMG") lg.textContent = (S.logoTxt||"").toUpperCase();
+  renderTabs();
+  updateToolbar();
+  document.getElementById("capInfo").textContent =
+    S.format+" · "+linesPer(S)+" líneas de "+S.cols+" letras"+(S.clock?" — reloj en la franja inferior":"");
+}
+
+function selectLine(j){
+  if(!S || isMedia(cur()) || j<0 || j>=linesPer(S)) return;
+  selLine = j;
+  ensureLines(cur());
+  hiddenInput.value = cur().lines[j].text||"";
+  const row = rowEls[j];
+  hiddenInput.style.top = row.offsetTop+"px";
+  hiddenInput.style.left = "0px";
+  hiddenInput.style.height = geom.cellH+"px";
+  hiddenInput.focus();
+  for(let k=0;k<linesPer(S);k++) renderRow(k);
+  updateToolbar();
+}
+
+hiddenInput.addEventListener("input", ()=>{
+  if(selLine<0 || !S) return;
+  let v = hiddenInput.value;
+  if(normalize(v).length>S.cols){ v = v.slice(0,S.cols); hiddenInput.value = v; }
+  cur().lines[selLine].text = v;
+  renderRow(selLine);
+  updateToolbar();
+  push();
+});
+hiddenInput.addEventListener("keydown", e=>{
+  if(e.key==="Enter" || e.key==="ArrowDown"){ e.preventDefault(); selectLine(Math.min(linesPer(S)-1, selLine+1)); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); selectLine(Math.max(0, selLine-1)); }
+  else if(e.key==="Escape"){ hiddenInput.blur(); renderAll(); }
+});
+hiddenInput.addEventListener("blur", ()=>{ setTimeout(()=>{ if(selLine>=0) renderRow(selLine); }, 100); });
+
+function updateToolbar(){
+  const info = document.getElementById("lineInfo");
+  if(S && isMedia(cur())){
+    const t = cur().type;
+    info.textContent = t==="image" ? "Foto flapizada — se construye flap a flap en la TV"
+      : t==="photo" ? "Foto a pantalla completa"
+      : "Vídeo a pantalla completa — se reproduce en la TV";
+    document.querySelectorAll(".alnBtn").forEach(b=>b.classList.remove("on"));
+    return;
+  }
+  if(!S || selLine<0){
+    info.textContent = "Haz clic en una línea del tablero";
+    document.querySelectorAll(".alnBtn").forEach(b=>b.classList.remove("on"));
+    return;
+  }
+  ensureLines(cur());
+  const ln = cur().lines[selLine];
+  const used = normalize(ln.text||"").replace(/\s+$/,"").length;
+  const rest = S.cols - used;
+  info.innerHTML = "Línea "+(selLine+1)+" · <span class='free"+
+    (rest<=0?" full":(rest<=3?" warn":""))+"'>"+rest+" libres</span>";
+  document.querySelectorAll(".alnBtn").forEach(b=>
+    b.classList.toggle("on", b.dataset.a===(ln.align||"center")));
+}
+
+document.querySelectorAll(".alnBtn").forEach(b=>{
+  b.addEventListener("mousedown", e=>e.preventDefault());
+  b.addEventListener("click", ()=>{
+    if(selLine<0 || !S) return;
+    cur().lines[selLine].align = b.dataset.a;
+    renderRow(selLine); updateToolbar(); push();
+    hiddenInput.focus();
+  });
+});
+
+/* ---------- pestañas de contenido ---------- */
+function deleteMsg(i){
+  S.messages.splice(i,1);
+  if(!S.messages.length) S.messages.push({secs:20, lines:[]});
+  selScr = Math.max(0, Math.min(selScr, S.messages.length-1));
+  selLine = -1;
+  ensureLines(cur());
+  buildBoard(); push();
+}
+function renderTabs(){
+  const tabs = document.getElementById("scrTabs");
+  tabs.innerHTML = "";
+  if(!S) return;
+  S.messages.forEach((m,i)=>{
+    const t = document.createElement("button");
+    t.className = "tab"+(i===selScr?" on":"");
+    const lab = document.createElement("span");
+    if(m.type==="image")      lab.innerHTML = IC.flap+"Foto flap "+(i+1);
+    else if(m.type==="photo") lab.innerHTML = IC.photo+"Foto "+(i+1);
+    else if(m.type==="video") lab.innerHTML = IC.video+"Vídeo "+(i+1);
+    else                      lab.textContent = "Pantalla "+(i+1);
+    t.appendChild(lab);
+    t.addEventListener("click", ()=>{ selScr=i; selLine=-1; buildBoard(); });
+    // X de borrar, integrada en cada pestaña (así se entiende qué se elimina)
+    const x = document.createElement("span");
+    x.className = "tabx"; x.innerHTML = IC.x; x.title = "Eliminar esta pantalla";
+    x.addEventListener("click", ev=>{
+      ev.stopPropagation();
+      if(confirm("¿Eliminar esta pantalla de la secuencia?")) deleteMsg(i);
+    });
+    t.appendChild(x);
+    tabs.appendChild(t);
+  });
+
+  // un único botón "+ Añadir" con un menú claro de tipos de contenido
+  const add = document.createElement("button");
+  add.className = "tab addT"; add.innerHTML = IC.plus+"Añadir";
+  add.title = "Añadir contenido a la secuencia";
+  add.addEventListener("click", e=>{ e.stopPropagation(); openAddMenu(add); });
+  tabs.appendChild(add);
+
+  // duración de la pantalla actual
+  const meta = document.createElement("div");
+  meta.id = "scrMeta";
+  if(cur().type==="video"){
+    const vlbl = document.createElement("span"); vlbl.className = "durLbl"; vlbl.textContent = "Vídeo completo";
+    meta.appendChild(vlbl);
+  } else {
+    const lbl = document.createElement("span"); lbl.className = "durLbl"; lbl.textContent = "Duración de la pantalla";
+    const total = cur().secs || (cur().type==="photo" ? 12 : 20);
+    const mIn = document.createElement("input");
+    mIn.type = "number"; mIn.min = 0; mIn.max = 60; mIn.value = Math.floor(total/60);
+    const mLbl = document.createElement("span"); mLbl.textContent = "min";
+    const sIn = document.createElement("input");
+    sIn.type = "number"; sIn.min = 0; sIn.max = 59; sIn.value = total%60;
+    const sLbl = document.createElement("span"); sLbl.textContent = "s";
+    const applyDur = ()=>{
+      const mm = Math.max(0, Math.min(60, Math.floor(+mIn.value||0)));
+      const ss = Math.max(0, Math.min(59, Math.floor(+sIn.value||0)));
+      cur().secs = Math.max(5, mm*60 + ss);   // mínimo 5 s en total
+      push();
+    };
+    mIn.addEventListener("input", applyDur);
+    sIn.addEventListener("input", applyDur);
+    meta.appendChild(lbl);
+    meta.appendChild(mIn); meta.appendChild(mLbl);
+    meta.appendChild(sIn); meta.appendChild(sLbl);
+  }
+  tabs.appendChild(meta);
+}
+
+/* ---------- menú "Añadir contenido" ---------- */
+function gotoLast(){ selScr = S.messages.length-1; selLine = -1; ensureLines(cur()); buildBoard(); push(); }
+function pickFile(accept, cb){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = accept; inp.style.display = "none";
+  document.body.appendChild(inp);
+  inp.addEventListener("change", ()=>{ const f = inp.files[0]; inp.remove(); if(f) cb(f); });
+  inp.click();
+}
+function toast(msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = "block";
+  return ()=>{ t.style.display = "none"; };
+}
+function closeAddMenu(){
+  const m = document.getElementById("addMenu"); if(m) m.remove();
+  const b = document.getElementById("addBackdrop"); if(b) b.remove();
+}
+function openAddMenu(anchor){
+  closeAddMenu();
+  const back = document.createElement("div"); back.id = "addBackdrop";
+  back.addEventListener("click", closeAddMenu);
+  document.body.appendChild(back);
+  const menu = document.createElement("div"); menu.id = "addMenu";
+  const item = (icon,title,desc,fn)=>{
+    const b = document.createElement("button"); b.className = "it";
+    b.innerHTML = icon+"<span><b>"+title+"</b><small>"+desc+"</small></span>";
+    b.addEventListener("click", ()=>{ closeAddMenu(); fn(); });
+    menu.appendChild(b);
+  };
+  item(IC.text, "Mensaje", "Texto escrito en el panel split-flap", ()=>{
+    S.messages.push({secs:20, lines:[]}); gotoLast();
+  });
+  const sep = document.createElement("div"); sep.className = "sep"; menu.appendChild(sep);
+  item(IC.photo, "Foto", "Se muestra a pantalla completa, tal cual", ()=>{
+    pickFile("image/*", f=> loadPhotoData(f, 1920, 0.82, url=>{
+      S.messages.push({type:"photo", img:url, secs:12}); gotoLast();
+    }));
+  });
+  item(IC.flap, "Foto flapizada", "La foto se construye flap a flap (efecto FLAPS)", ()=>{
+    pickFile("image/*", f=> loadPhoto(f, url=>{
+      S.messages.push({type:"image", img:url, secs:20}); gotoLast();
+    }));
+  });
+  item(IC.video, "Vídeo", "Se reproduce a pantalla completa", ()=>{
+    pickFile("video/*", async f=>{
+      const done = toast("Subiendo vídeo…");
+      try{
+        const {src} = await uploadMedia(f);
+        S.messages.push({type:"video", src, secs:0}); gotoLast();
+      }catch(e){
+        alert("No se pudo subir el vídeo"+(e.data&&e.data.error?" ("+e.data.error+")":"")+".");
+      }finally{ done(); }
+    });
+  });
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  menu.style.left = Math.max(10, Math.min(r.left, window.innerWidth - mw - 10))+"px";
+  menu.style.top  = Math.min(r.bottom+6, window.innerHeight - mh - 10)+"px";
+}
+
+/* ---------- controles laterales ---------- */
+function syncControls(){
+  document.getElementById("rows").value = S.rows;
+  document.getElementById("rowsVal").textContent = S.rows;
+  document.getElementById("cols").value = S.cols;
+  document.getElementById("colsVal").textContent = S.cols;
+  document.getElementById("trans").value = S.trans;
+  document.getElementById("transVal").textContent = S.trans+" s";
+  document.getElementById("clock").checked = S.clock;
+  document.getElementById("sound").checked = S.sound;
+  document.getElementById("logoOn").checked = S.logoOn;
+  document.getElementById("loop").checked = S.loop !== false;
+  document.getElementById("logoTxt").value = S.logoTxt||"";
+  document.querySelectorAll("#format .chip").forEach(c=>
+    c.classList.toggle("on", c.dataset.v===S.format));
+  document.querySelectorAll("#txtCol .sw").forEach(sw=>
+    sw.classList.toggle("on", sw.dataset.c===S.textColor));
+  document.querySelectorAll("#flapCol .sw").forEach(sw=>
+    sw.classList.toggle("on", sw.dataset.c===S.flapColor));
+  syncLogoUI();
+}
+
+function bindRange(id, valId, key, suffix, structural){
+  const el = document.getElementById(id);
+  el.addEventListener("input", ()=>{
+    if(!S) return;
+    S[key] = +el.value;
+    document.getElementById(valId).textContent = S[key]+(suffix||"");
+    if(structural){ selLine=-1; S.messages.forEach(ensureLines); buildBoard(); }
+    push();
+  });
+}
+bindRange("rows","rowsVal","rows","",true);
+bindRange("cols","colsVal","cols","",true);
+bindRange("trans","transVal","trans"," s",false);
+
+document.getElementById("format").addEventListener("click", e=>{
+  const b = e.target.closest(".chip"); if(!b || !S) return;
+  document.querySelectorAll("#format .chip").forEach(c=>c.classList.remove("on"));
+  b.classList.add("on"); S.format=b.dataset.v;
+  // defaults por orientación al cambiar de formato
+  if(S.format==="9:16"){ S.cols=12; S.rows=14; } else { S.cols=31; S.rows=11; }
+  syncControls();
+  selLine=-1; buildBoard(); push();
+});
+
+function swatches(id, colors, key){
+  const el = document.getElementById(id);
+  colors.forEach(c=>{
+    const d = document.createElement("div");
+    d.className = "sw"; d.style.background=c; d.dataset.c = c;
+    d.addEventListener("click", ()=>{
+      if(!S) return;
+      el.querySelectorAll(".sw").forEach(s=>s.classList.remove("on"));
+      d.classList.add("on"); S[key]=c;
+      buildBoard(); push();
+    });
+    el.appendChild(d);
+  });
+}
+swatches("txtCol", TEXT_COLORS, "textColor");
+swatches("flapCol", FLAP_COLORS, "flapColor");
+
+function bindCheck(id, key, structural){
+  const el = document.getElementById(id);
+  el.addEventListener("change", ()=>{
+    if(!S) return;
+    S[key]=el.checked;
+    if(structural){ selLine=-1; S.messages.forEach(ensureLines); buildBoard(); }
+    push();
+  });
+}
+bindCheck("clock","clock",true);
+bindCheck("sound","sound",false);
+bindCheck("logoOn","logoOn",true);
+bindCheck("loop","loop",false);
+
+document.getElementById("logoTxt").addEventListener("input", function(){
+  if(!S) return;
+  S.logoTxt = this.value;
+  const lg = document.getElementById("bandLogo");
+  if(lg && lg.tagName!=="IMG") lg.textContent = (S.logoTxt||"").toUpperCase();
+  push();
+});
+
+/* logo por imagen (PNG con transparencia), centrado en la franja inferior */
+function syncLogoUI(){
+  const has = !!(S && S.logoImg);
+  const clr = document.getElementById("logoClear");
+  const hint = document.getElementById("logoImgHint");
+  const txt = document.getElementById("logoTxt");
+  if(clr) clr.style.display = has ? "inline-block" : "none";
+  if(hint) hint.textContent = has ? "Logo por imagen activo" : "";
+  if(txt) txt.style.opacity = has ? "0.4" : "1";
+}
+document.getElementById("logoUpload").addEventListener("click", ()=>{
+  if(!S) return;
+  pickFile("image/*", f=> loadLogo(f, url=>{
+    S.logoImg = url;
+    if(!S.logoOn){ S.logoOn = true; document.getElementById("logoOn").checked = true; }
+    syncLogoUI(); buildBoard(); push();
+  }));
+});
+document.getElementById("logoClear").addEventListener("click", ()=>{
+  if(!S) return;
+  S.logoImg = null;
+  syncLogoUI(); buildBoard(); push();
+});
+
+window.addEventListener("resize", ()=>{ if(S){ selLine=-1; buildBoard(); } });
+setInterval(()=>{ if(clockEl) clockEl.textContent = clockLine(); }, 30000);
+
+/* ================= suscripción ================= */
+const PLAN_LABEL = {uno:"1 pantalla", tres:"3 pantallas", cadena:"cadena"};
+function renderSub(){
+  if(!ME) return;
+  const info = document.getElementById("planInfo");
+  const btn = document.getElementById("subBtn");
+  info.className = ""; btn.className = ""; btn.style.display = "none"; btn.onclick = null;
+  const st = ME.sub_status;
+  if(st==="active" || st==="trialing"){
+    info.textContent = "Plan "+(PLAN_LABEL[ME.plan]||ME.plan);
+    if(ME.has_customer){
+      btn.textContent = "Gestionar suscripción"; btn.className = "ghost";
+      btn.style.display = "inline-block"; btn.onclick = openPortal;
+    }
+    hidePaywall();
+  } else if(ME.entitled){ // prueba vigente
+    const d = Math.max(0, Math.ceil((ME.trial_until - Date.now())/86400000));
+    info.textContent = "Prueba: "+d+(d===1?" día":" días")+" restantes";
+    if(d<=5) info.className = "warn";
+    btn.textContent = "Suscribirse"; btn.style.display = "inline-block"; btn.onclick = startCheckout;
+    hidePaywall();
+  } else { // sin acceso: prueba caducada, pago pendiente o cancelada
+    info.textContent = st==="past_due" ? "Pago pendiente" : "Prueba terminada";
+    info.className = "warn";
+    btn.textContent = "Suscribirse"; btn.style.display = "inline-block"; btn.onclick = startCheckout;
+    showPaywall(st);
+  }
+}
+async function startCheckout(){
+  try{
+    const r = await api("GET","/api/subscribe");
+    if(r.url){ location.href = r.url; return; }
+    alert(r.note==="precio-no-configurado"
+      ? "Faltan los precios de Stripe en el servidor."
+      : "Los pagos aún no están configurados en el servidor.");
+  }catch(e){}
+}
+async function openPortal(){
+  try{
+    const r = await api("GET","/api/portal");
+    if(r.url){ location.href = r.url; return; }
+    alert("No hay suscripción que gestionar todavía.");
+  }catch(e){ alert("No se pudo abrir el portal de suscripción."); }
+}
+function showPaywall(st){
+  document.getElementById("payTitle").textContent =
+    st==="past_due" ? "Hay un pago pendiente" : "Tu prueba ha terminado";
+  document.getElementById("payMsg").textContent = st==="past_due"
+    ? "No hemos podido cobrar tu suscripción. Actualiza el pago para seguir emitiendo. Tus contenidos y pantallas se conservan."
+    : "Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.";
+  document.getElementById("payGo").onclick =
+    (st==="past_due" && ME && ME.has_customer) ? openPortal : startCheckout;
+  document.getElementById("payWrap").style.display = "flex";
+}
+function hidePaywall(){ document.getElementById("payWrap").style.display = "none"; }
+document.getElementById("payLogout").addEventListener("click", async ()=>{
+  try{ await api("POST","/api/logout"); }catch(e){}
+  location.reload();
+});
+
+/* ================= arranque ================= */
+(async function init(){
+  try{
+    ME = await api("GET","/api/me");
+    document.getElementById("bizName").textContent = ME.business || ME.email;
+    renderSub();
+    await loadScreens();
+  }catch(e){ /* showAuth ya se ha lanzado */ }
+})();
+</script>
+</body>
+</html>

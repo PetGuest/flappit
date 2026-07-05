@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- pantalla completa al "Añadir a pantalla de inicio" en iOS/Android (para usar un móvil/tablet como pantalla) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FLAPS">
+<title>FLAPS TV</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0; background:#000; overflow:hidden; font-family:system-ui,sans-serif;}
+  #tv{display:block; width:100vw; height:100vh;}
+  #fsHint{position:absolute; top:18px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,.7); color:#ccc; font-size:13px; padding:8px 16px;
+    border-radius:999px; pointer-events:none; transition:opacity .5s;}
+  #sndBtn{position:absolute; bottom:14px; right:14px; z-index:5;
+    background:rgba(0,0,0,.55); color:#aaa; border:1px solid #333;
+    border-radius:999px; padding:6px 14px; font-size:12px; cursor:pointer; display:none;}
+  #net{position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%;
+    background:#c33; opacity:.7;}
+  #net.on{background:#2c2;}
+</style>
+</head>
+<body>
+<canvas id="tv"></canvas>
+<div id="fsHint">Haz clic para pantalla completa</div>
+<div id="net" title="conexión"></div>
+<button id="sndBtn">Activar sonido</button>
+
+<script>
+"use strict";
+/* FLAPS TV — página que convierte cualquier pantalla en un panel split-flap.
+   1) Pide identidad al servidor (o la recupera de localStorage)
+   2) Muestra el código de vinculación en flaps hasta que el panel la reclama
+   3) Recibe el estado por WebSocket y lo muestra; si cae la red, sigue con lo último */
+
+const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
+const LEN = CHARSET.length;
+const FLIP_ANIM = 65;
+const CELL_AR = 0.70;
+/* modo previsualización: misma página, pero alimentada por el panel del usuario
+   en su ordenador (sin servidor ni vinculación) — lo que se ve es EXACTAMENTE
+   lo que verá la TV real */
+const IS_PREVIEW = /\bpreview\b/.test(location.search);
+
+function normalize(s){
+  return s.toUpperCase()
+    .replace(/\u00d1/g,"\u0001")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\u0001/g,"\u00d1")
+    .replace(/[^\x20-\x7E\u00d1\u00a1\u00bf\u20ac]/g," ");
+}
+function shade(hex, f){
+  const n = parseInt(hex.slice(1),16);
+  const r=Math.min(255,Math.round(((n>>16)&255)*f)),
+        g=Math.min(255,Math.round(((n>>8)&255)*f)),
+        b=Math.min(255,Math.round((n&255)*f));
+  return `rgb(${r},${g},${b})`;
+}
+function linesPer(S){ return S.rows; }
+function clockLine(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function lineStart(text, align, cols){
+  const L = text.length;
+  if(align==="left") return 0;
+  if(align==="right") return Math.max(0, cols-L);
+  return Math.max(0, Math.floor((cols-L)/2));
+}
+function targetsFor(lines, S){
+  const cols = S.cols, rows = S.rows;
+  const t = Array.from({length:rows}, ()=>Array(cols).fill(0));
+  (lines||[]).forEach((ln,i)=>{
+    if(i>=rows) return;
+    const raw = typeof ln==="string" ? ln : (ln.text||"");
+    const align = (typeof ln==="object" && ln.align) || S.align || "center";
+    const line = normalize(raw||"").slice(0,cols).replace(/\s+$/,"");
+    if(!line) return;
+    const st = lineStart(line, align, cols);
+    [...line].forEach((ch,j)=>{
+      const k=CHARSET.indexOf(ch);
+      if(k>=0 && st+j<cols) t[i][st+j]=k;
+    });
+  });
+  return t;
+}
+
+function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor){
+  const gap = w*0.045;
+  const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
+  const half = fh/2, rad = Math.max(2, w*0.08);
+  const cx = x+w/2;
+  const font = `400 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+  function halfPath(top){
+    ctx.beginPath();
+    if(top){
+      ctx.moveTo(fx, fy+half); ctx.lineTo(fx, fy+rad);
+      ctx.arcTo(fx,fy,fx+rad,fy,rad); ctx.lineTo(fx+fw-rad,fy);
+      ctx.arcTo(fx+fw,fy,fx+fw,fy+rad,rad); ctx.lineTo(fx+fw,fy+half);
+    } else {
+      ctx.moveTo(fx+fw, fy+half+1); ctx.lineTo(fx+fw, fy+fh-rad);
+      ctx.arcTo(fx+fw,fy+fh,fx+fw-rad,fy+fh,rad); ctx.lineTo(fx+rad,fy+fh);
+      ctx.arcTo(fx,fy+fh,fx,fy+fh-rad,rad); ctx.lineTo(fx, fy+half+1);
+    }
+    ctx.closePath();
+  }
+  function drawHalf(top, ch, dim){
+    halfPath(top);
+    // relleno PLANO (sin degradado): la mitad inferior 20% más clara que la superior,
+    // para que la paleta se vea plana y no curva
+    ctx.fillStyle = shade(flap, (top ? 1.05 : 1.2) * dim);
+    ctx.fill();
+    ctx.save(); ctx.clip();
+    ctx.fillStyle = txtColor;
+    ctx.font = font; ctx.textAlign="center"; ctx.textBaseline="middle";
+    // condensado a mano: estrechamos la letra para que quede alta y vertical en cualquier
+    // dispositivo (sin depender de que exista una fuente condensada como 'Arial Narrow')
+    ctx.save();
+    ctx.translate(cx, fy+half+fh*0.02);
+    ctx.scale(0.74, 1);
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+    if(top){
+      // media sombra solo en la mitad superior (la inferior queda plana)
+      const sh = ctx.createLinearGradient(0,fy,0,fy+half);
+      sh.addColorStop(0,"rgba(0,0,0,0.66)");
+      sh.addColorStop(0.55,"rgba(0,0,0,0.32)");
+      sh.addColorStop(1,"rgba(0,0,0,0.12)");
+      ctx.fillStyle = sh;
+      ctx.fillRect(fx,fy,fw,half);
+    }
+    ctx.restore();
+    if(top){
+      // filete claro (10% blanco) siguiendo el canto redondeado del flap superior,
+      // para que cada paleta se lea como una pieza y no como una línea continua
+      halfPath(true);
+      ctx.lineWidth = Math.max(0.6, w*0.012);
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.stroke();
+    }
+  }
+  if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
+  else{
+    drawHalf(true,curC,1);
+    drawHalf(false,prevC,1);
+    // ángulo de la paleta: 1 = vertical (pegada), 0 = horizontal (de canto)
+    const ang = p<0.5 ? (1-2*p) : (2*p-1);
+    // sombra que la paleta proyecta sobre la mitad inferior al girar
+    const shH = half*(1-ang)*0.95;
+    if(shH>0.5){
+      ctx.save();
+      halfPath(false); ctx.clip();
+      const sg = ctx.createLinearGradient(0, fy+half, 0, fy+half+shH);
+      sg.addColorStop(0, "rgba(0,0,0,"+(0.55*(1-ang)).toFixed(3)+")");
+      sg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = sg;
+      ctx.fillRect(fx, fy+half, fw, shH);
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(cx, fy+half);
+    const syF = Math.max(0.03, ang);
+    ctx.scale(1 + (1-syF)*0.08, syF); // leve ensanche: perspectiva de la paleta
+    ctx.translate(-cx, -(fy+half));
+    if(p<0.5){
+      drawHalf(true, prevC, 1-p*0.6);
+    } else {
+      // destello al recibir la luz justo después de pasar la horizontal
+      const glint = (p>0.55 && p<0.82) ? 0.55*Math.sin((p-0.55)/0.27*Math.PI) : 0;
+      drawHalf(false, curC, 0.5+(p-0.5)*0.95 + glint);
+    }
+    ctx.restore();
+    // canto de la paleta: brilla cuanto más de canto está
+    const edgeY = p<0.5 ? fy+half - half*syF : fy+half + half*syF;
+    ctx.fillStyle = "rgba(255,255,255,"+(0.40*(1-ang)).toFixed(3)+")";
+    ctx.fillRect(fx+fw*0.04, edgeY-Math.max(1,h*0.005), fw*0.92, Math.max(1.5, h*0.012));
+  }
+  ctx.fillStyle = "rgba(0,0,0,0.75)";
+  ctx.fillRect(fx, fy+half-Math.max(1,h*0.008), fw, Math.max(2,h*0.016));
+  const pw = Math.max(2, w*0.045), ph = Math.max(6, h*0.14);
+  for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
+    ctx.fillStyle = "#0a0a0a";
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(px, fy+half-ph/2, pw, ph, pw*0.4);
+    else ctx.rect(px, fy+half-ph/2, pw, ph);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.fillRect(px+pw*0.25, fy+half-ph/2+1, pw*0.28, ph-2);
+  }
+}
+
+/* ---------- pantalla ---------- */
+const canvas = document.getElementById("tv");
+const ctx = canvas.getContext("2d");
+const sndBtn = document.getElementById("sndBtn");
+
+const PAIRING_STATE = (code)=>({
+  messages:[{secs:9999, lines:[
+    "", "FLAPS", "", "CODIGO DE VINCULACION", code.split("").join(" "), "",
+    "ESCRIBALO EN SU PANEL", ""
+  ]}],
+  trans:3, cols:26, rows:8, align:"center", format:"16:9",
+  textColor:"#FFD400", flapColor:"#1c1c1f",
+  clock:false, sound:false, logoOn:true, logoTxt:"FLAPS.TV"
+});
+
+let S = null;
+let grid = null, cells = [], msgIdx = 0, rotTimer = null, animOn = false;
+let flutters = []; // asentamientos: el flap se levanta sutilmente y vuelve a su sitio
+let imgCache = {};        // índice de pantalla -> Image
+let curImg = null;        // Image de la pantalla actual (null = texto)
+let prevImg = null;       // Image saliente: cada casilla la muestra hasta su primer flip
+let plainImg = null;      // foto a pantalla completa (SIN flapizar)
+let videoEl = null;       // <video> superpuesto para vídeo a pantalla completa
+let mediaMode = null;     // "photo" | "video" | null — con media plena el motor de flaps se pausa
+let mediaFadeT = 0;       // instante de arranque del fundido de la foto plena
+let hadContent = false;   // ¿ya se mostró contenido real? (la 1ª pantalla arranca en blanco)
+let logoImage = null;     // logo por imagen (PNG) precargado para la franja inferior
+
+function setup(){
+  if(!S) return;
+  const cssW = window.innerWidth, cssH = window.innerHeight;
+  // supersampling: dibujamos a ~2× (mínimo) para nitidez en teles; tope a 4K de lienzo.
+  let dpr = Math.max(2, window.devicePixelRatio || 1);
+  dpr = Math.min(dpr, 3840 / Math.max(cssW, cssH));
+  dpr = Math.max(1, dpr);
+  // CLAVE: fijamos el tamaño CSS del lienzo Y el de pintado a la MISMA proporción, para
+  // que el navegador no lo estire (en iOS a pantalla completa 100vw/vh no coincidía y
+  // deformaba las celdas). Así el escalado es uniforme y las casillas guardan su 0.74.
+  canvas.style.width = cssW + "px";
+  canvas.style.height = cssH + "px";
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  const W = canvas.width, H = canvas.height;
+  // la carcasa (panel negro) ocupa TODA la pantalla; la rejilla se escala y centra
+  // dentro, adaptándose automáticamente a cualquier resolución/tele (16:9, 21:9, móvil…)
+  const sx = 0, sy = 0, sw = W, sh = H;
+  const cols = S.cols, rows = S.rows;
+  const hasBand = (S.logoOn || S.clock);
+  // La rejilla + la franja forman UN bloque que se escala manteniendo la proporción
+  // de celda (0.74) y se centra en la pantalla; el resto es carcasa negra. La franja
+  // queda del ancho exacto de la rejilla (a caja) y pegada debajo.
+  const pad = Math.min(sw, sh) * 0.03;          // marco de carcasa
+  const bandF = hasBand ? 1.15 : 0;             // alto de franja ≈ 1.15 celdas
+  const gapF  = hasBand ? 0.4 : 0;              // separación rejilla–franja ≈ 0.4 celdas
+  const availW = sw - 2*pad, availH = sh - 2*pad;
+  const cellHByW = availW / (cols * CELL_AR);   // límite por ancho
+  const cellHByH = availH / (rows + gapF + bandF); // límite por alto
+  const cellH = Math.min(cellHByW, cellHByH);
+  const cellW = cellH * CELL_AR;
+  const gridW = cols * cellW, gridH = rows * cellH;
+  const bandH = bandF * cellH, gapBand = gapF * cellH;
+  const boardW = gridW, boardH = gridH + gapBand + bandH;
+  const offX = sx + (sw - boardW) / 2;
+  const offY = sy + (sh - boardH) / 2;
+  grid = {cols, rows, cellW, cellH, offX, offY, sx, sy, sw, sh, dpr,
+          bandH, bandX: offX, bandY: offY + gridH + gapBand, bandW: gridW};
+  if(mediaMode==="video") positionVideo();
+  const old = cells;
+  cells = [];
+  for(let i=0;i<cols*rows;i++){
+    cells.push({cur: old[i]?old[i].cur:0, from:0, steps:0, slowN:0, done:true, delay:0, base:50, t0:0});
+  }
+}
+
+function stepTime(cell, n){
+  const n0 = cell.steps - cell.slowN;
+  if(n<=n0) return n*cell.base;
+  const k = n - n0;
+  return n0*cell.base + cell.base*(k + 0.3*k*(k+1));
+}
+function stepAt(cell, e){
+  const n0 = cell.steps - cell.slowN;
+  if(e <= n0*cell.base) return Math.min(n0, Math.floor(e/cell.base));
+  let n = n0;
+  while(n < cell.steps && stepTime(cell, n+1) <= e) n++;
+  return n;
+}
+
+function transition(targets){
+  const now = performance.now();
+  const T = Math.max(800, (S.trans||3)*1000);
+  let any = false;
+  const letterCells = [];
+  cells.forEach((cell,i)=>{
+    const r = Math.floor(i/grid.cols), c = i%grid.cols;
+    const tgt = targets[r][c];
+    let d = (tgt - cell.cur + LEN) % LEN;
+    if(d===0){
+      // al salir de una foto TODAS las casillas deben girar para retirarla
+      if(prevImg) d = LEN;
+      else { cell.done=true; cell.slowN=0; return; }
+    }
+    cell.from = cell.cur;
+    cell._d = d;
+    cell.delay = Math.random()*Math.min(400, T*0.15) + r*20;
+    let k = Math.min(3, Math.max(0, Math.floor(((T-cell.delay)/55 - d)/LEN)));
+    if(Math.random()<0.07) k += 1;
+    cell.steps = d + k*LEN;
+    cell.slowN = 0;
+    cell._tail = 0;
+    cell.done = false;
+    cell.t0 = now;
+    any = true;
+    if(tgt!==0) letterCells.push(cell);
+  });
+  for(let i=letterCells.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [letterCells[i],letterCells[j]] = [letterCells[j],letterCells[i]];
+  }
+  // suspense final: las últimas letras caen escalonadas (una tras otra) y frenándose
+  const nFin = Math.min(10, Math.max(2, Math.ceil(letterCells.length*0.28)));
+  const finals = letterCells.slice(-nFin);
+  finals.forEach((cell, k)=>{
+    if(cell.steps < cell._d + LEN) cell.steps = cell._d + LEN; // al menos una vuelta visible
+    cell.slowN = Math.min(4 + Math.floor(Math.random()*4), Math.max(0, cell.steps-1));
+    cell._tail = T * (0.18 + 0.5*((k+1)/finals.length)); // reparte su caída hacia el final
+  });
+  cells.forEach(cell=>{
+    if(cell.done) return;
+    const avail = Math.max(500, T + (cell._tail||0) - cell.delay);
+    const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
+    cell.base = Math.min(200, Math.max(38, avail/(cell.steps + slowExtra)));
+  });
+  if(any && !animOn){ animOn=true; requestAnimationFrame(frame); }
+}
+
+let sumPrev = 0;
+function frame(now){
+  let active = false, sum = 0;
+  for(const cell of cells){
+    if(cell.done) continue;
+    const e = now - cell.t0 - cell.delay;
+    const step = e<=0 ? 0 : Math.min(stepAt(cell, e), cell.steps);
+    sum += step;
+    if(step>=cell.steps && e > stepTime(cell, cell.steps) + FLIP_ANIM){
+      cell.cur = (cell.from + cell.steps) % LEN;
+      cell.done = true;
+    } else active = true;
+  }
+  if(S && S.sound){
+    const d = sum - sumPrev; sumPrev = sum;
+    tickSound(d, now);
+  }
+  render(now);
+  if(active) requestAnimationFrame(frame);
+  else {
+    animOn = false; sumPrev = 0;
+    prevImg = null; // la foto saliente ya fue retirada por todas las paletas
+    render(now);
+    settleBurst(); // el panel "se asienta" tras el esfuerzo
+  }
+}
+
+function render(now){
+  if(!grid) return;
+  if(mediaMode==="video") return;                    // el <video> superpuesto pinta; el canvas queda en negro
+  if(mediaMode==="photo"){ drawPlainPhoto(now); return; } // foto a pantalla completa, sin flaps
+  flutters = flutters.filter(f => now - f.t0 < 520);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const {cols, rows, cellW, cellH, offX, offY, sx, sy, sw, sh, bandH} = grid;
+  // marco grande: negro 100% (ya está pintado) + reflejo cenital suave
+  const refl = ctx.createLinearGradient(0, sy, 0, sy+sh);
+  refl.addColorStop(0, "rgba(255,255,255,0.03)"); refl.addColorStop(0.12, "rgba(255,255,255,0.008)");
+  refl.addColorStop(0.6, "rgba(255,255,255,0)"); refl.addColorStop(1, "rgba(0,0,0,0.28)");
+  ctx.fillStyle = refl; ctx.fillRect(sx, sy, sw, sh);
+  // filete sutil que bordea las casillas, con una holgura por los lados
+  { const m = Math.max(4, cellW*0.30), rr = Math.max(8, cellW*0.5);
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(offX-m, offY-m, cols*cellW+2*m, rows*cellH+2*m, rr);
+    else ctx.rect(offX-m, offY-m, cols*cellW+2*m, rows*cellH+2*m);
+    ctx.lineWidth = Math.max(1, cellW*0.03); ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.stroke(); }
+  for(let i=0;i<cells.length;i++){
+    const cell = cells[i];
+    const r = Math.floor(i/cols), c = i%cols;
+    const x = offX+c*cellW, y = offY+r*cellH;
+    let prev = cell.cur, curc = cell.cur, p = 1, stepN = cell.done ? -1 : 0;
+    if(!cell.done){
+      const e = now - cell.t0 - cell.delay;
+      if(e>0){
+        const step = Math.min(stepAt(cell, e), cell.steps);
+        stepN = step;
+        curc = (cell.from + step) % LEN;
+        prev = step===0 ? cell.from : (curc-1+LEN)%LEN;
+        p = Math.min(1, (e - stepTime(cell, step))/FLIP_ANIM);
+      } else { curc = cell.from; prev = cell.from; }
+    }
+    for(const fl of flutters){
+      if(fl.i===i && cell.done){
+        const fe = (now-fl.t0)/500;
+        if(fe<1){ p = 1 - Math.sin(fe*Math.PI)*0.22; prev = curc; }
+      }
+    }
+    const notStarted = !cell.done && (now - cell.t0 - cell.delay) < 0;
+    if(curImg && notStarted && !prevImg){
+      // la foto se construye desde vacío: las casillas que aún no han arrancado
+      // se muestran como flap vacío (no con símbolos), y van entrando poco a poco
+      drawCellX(ctx, x, y, cellW, cellH, " ", " ", 1, S.flapColor, S.textColor);
+    } else if(curImg && (cell.done || curc===0)){
+      // la foto va montada en el rodillo: se ve su trozo al posarse
+      // Y TAMBIÉN cada vez que la rueda pasa por su posición (curc===0)
+      drawImgCell(ctx, x, y, cellW, cellH, curImg);
+    } else if(prevImg && !cell.done && stepN===0){
+      // continuidad: la foto saliente permanece en la casilla
+      // hasta el instante exacto en que su paleta se la lleva
+      drawImgCell(ctx, x, y, cellW, cellH, prevImg);
+    } else {
+      drawCellX(ctx, x, y, cellW, cellH, CHARSET[prev], CHARSET[curc], p, S.flapColor, S.textColor);
+    }
+  }
+  if(bandH>0){
+    // la franja es parte del marco negro (sin fondo propio): solo el contenido
+    const bx = grid.bandX, by = grid.bandY, bw = grid.bandW;
+    const vertical = (S.format === "9:16");
+    // RELOJ · izquierda en horizontal, derecha y más pequeño en vertical
+    if(S.clock){
+      const ch2 = bandH*(vertical ? 0.56 : 0.72), cw2 = ch2*CELL_AR;
+      const hhmm = clockLine();
+      const y = by + (bandH-ch2)/2;
+      let x = vertical ? (bx + bw - hhmm.length*cw2*1.04 - bandH*0.3) : (bx + bandH*0.35);
+      for(const ch of hhmm){
+        drawCellX(ctx, x, y, cw2, ch2, ch, ch, 1, S.flapColor, S.textColor);
+        x += cw2*1.04;
+      }
+    }
+    // LOGO DEL CLIENTE · centro en horizontal, izquierda en vertical
+    if(S.logoOn){
+      if(S.logoImg && logoImage && logoImage.complete && logoImage.naturalWidth){
+        const lh = bandH*(vertical ? 0.7 : 0.78);
+        const lw = lh * (logoImage.naturalWidth/logoImage.naturalHeight);
+        const lx = vertical ? (bx + bandH*0.4) : (bx + bw/2 - lw/2);
+        ctx.drawImage(logoImage, lx, by + (bandH-lh)/2, lw, lh);
+      } else if(!S.logoImg && (S.logoTxt||"").trim()){
+        ctx.fillStyle = S.textColor;
+        ctx.font = `700 ${bandH*0.4}px 'Helvetica Neue',Arial,sans-serif`;
+        ctx.textBaseline = "middle";
+        if(vertical){ ctx.textAlign = "left"; ctx.fillText((S.logoTxt||"").toUpperCase(), bx + bandH*0.4, by+bandH/2); }
+        else { ctx.textAlign = "center"; ctx.fillText((S.logoTxt||"").toUpperCase(), bx+bw/2, by+bandH/2); }
+      }
+    }
+    // MARCA flappit (nuestra), discreta · derecha en horizontal, centro en vertical
+    ctx.fillStyle = "rgba(255,255,255,0.30)";
+    ctx.font = `400 ${bandH*0.34}px 'Helvetica Neue',Arial,sans-serif`;
+    ctx.textBaseline = "middle";
+    if(vertical){ ctx.textAlign = "center"; ctx.fillText("flappit.com", bx + bw/2, by+bandH/2); }
+    else { ctx.textAlign = "right"; ctx.fillText("flappit.com", bx + bw - bandH*0.4, by+bandH/2); }
+  }
+}
+
+/* destino aleatorio para la fase de giro cuando se construye una foto */
+function randomTargets(){
+  const t = Array.from({length:grid.rows}, ()=>Array(grid.cols).fill(0));
+  for(let r=0;r<grid.rows;r++)
+    for(let c=0;c<grid.cols;c++)
+      t[r][c] = 1 + Math.floor(Math.random()*(LEN-1));
+  return t;
+}
+
+/* coreografía especial para fotos: la imagen emerge progresivamente
+   durante ~6,5 s y las últimas casillas caen una a una, cada vez más despacio */
+function transitionImage(targets){
+  const now = performance.now();
+  const T = 9000; // la foto se construye con calma: ~9 segundos
+  const list = [];
+  cells.forEach((cell,i)=>{
+    const r = Math.floor(i/grid.cols), c = i%grid.cols;
+    let d = (targets[r][c] - cell.cur + LEN) % LEN;
+    if(d===0) d = LEN; // todas las casillas giran: la foto se construye entera
+    cell.from = cell.cur;
+    cell._d = d;
+    cell.slowN = 0;
+    cell.done = false;
+    cell.t0 = now;
+    list.push(cell);
+  });
+  // barajar para que la foto aparezca salpicada, no por filas
+  for(let i=list.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [list[i],list[j]] = [list[j],list[i]];
+  }
+  const n = list.length;
+  const finalN = Math.min(30, Math.max(8, Math.ceil(n*0.12))); // el suspense final
+  list.forEach((cell,idx)=>{
+    // ARRANQUE ESCALONADO: cada casilla empieza VACÍA y arranca en su turno, repartido
+    // en el tiempo → la foto se construye poco a poco (unas casillas primero, luego el
+    // resto), en vez de girar todas de golpe.
+    const isFinal = idx >= n - finalN;
+    let start, spin;
+    if(!isFinal){
+      const u = idx / Math.max(1, n - finalN);
+      start = T * (0.46 * Math.pow(u, 1.1)); // el grueso arranca a lo largo del 0–46%
+      spin  = T * 0.12;                       // gira ~1s (entreviéndose la foto) y se asienta
+    } else {
+      const k = idx - (n - finalN);
+      start = T * (0.54 + 0.34 * (k / Math.max(1, finalN))); // los últimos, escalonados al final
+      spin  = T * 0.16;
+      cell.slowN = 4 + Math.floor(Math.random()*4);
+    }
+    cell.delay = Math.max(0, start + Math.random()*80);
+    const avail = Math.max(280, spin);
+    // al menos una vuelta: así la casilla pasa por la posición de la foto y se entrevé al rodar
+    const extra = Math.min(2, Math.max(1, Math.round((avail/55 - cell._d)/LEN)));
+    cell.steps = cell._d + extra*LEN;
+    cell.slowN = Math.min(cell.slowN, Math.max(0, cell.steps-1));
+    const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
+    cell.base = Math.min(170, Math.max(36, avail/(cell.steps + slowExtra)));
+  });
+  if(!animOn){ animOn = true; requestAnimationFrame(frame); }
+}
+
+/* ---------- foto a pantalla completa (sin flapizar) ---------- */
+function drawPlainPhoto(now){
+  if(!grid || !plainImg){ return; }
+  const {sx, sy, sw, sh} = grid;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  const scale = Math.max(sw/plainImg.width, sh/plainImg.height); // "cover"
+  const dw = plainImg.width*scale, dh = plainImg.height*scale;
+  const dx = sx + (sw-dw)/2, dy = sy + (sh-dh)/2;
+  const a = mediaFadeT ? Math.min(1, (now - mediaFadeT)/450) : 1;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(sx, sy, sw, sh); ctx.clip();
+  ctx.globalAlpha = a;
+  try{ ctx.drawImage(plainImg, dx, dy, dw, dh); }catch(e){}
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+function showPhotoItem(m){
+  mediaMode = "photo"; curImg = null; prevImg = null; animOn = false;
+  const idx = msgIdx;
+  const im = imgCache[idx] || (imgCache[idx] = Object.assign(new Image(), {src:m.img}));
+  const go = ()=>{ if(S && S.messages[msgIdx]===m){ plainImg = im; mediaFadeT = performance.now(); fadeInPhoto(); } };
+  if(im.complete) go(); else im.onload = go;
+}
+function fadeInPhoto(){
+  requestAnimationFrame(function f(now){
+    if(mediaMode!=="photo") return;
+    render(now);
+    if(now - mediaFadeT < 470) requestAnimationFrame(f);
+  });
+}
+
+/* ---------- vídeo a pantalla completa ---------- */
+function ensureVideoEl(){
+  if(videoEl) return videoEl;
+  videoEl = document.createElement("video");
+  videoEl.muted = true; videoEl.defaultMuted = true;
+  videoEl.playsInline = true; videoEl.setAttribute("playsinline","");
+  videoEl.preload = "auto";
+  videoEl.style.cssText = "position:absolute; background:#000; object-fit:cover; display:none; z-index:2;";
+  videoEl.addEventListener("ended", ()=>{
+    if(!S) return;
+    const loopOn = S.loop !== false;
+    if(S.messages.length > 1){
+      const next = (msgIdx+1) % S.messages.length;
+      if(!loopOn && next === 0){ msgIdx = 0; showCurrent(); return; } // cierra en la pantalla 1
+      msgIdx = next; showCurrent(); scheduleRot();
+    } else {
+      if(loopOn){ try{ videoEl.currentTime = 0; videoEl.play(); }catch(e){} }
+      // loop apagado + único vídeo: se queda en el último fotograma
+    }
+  });
+  document.body.appendChild(videoEl);
+  return videoEl;
+}
+function positionVideo(){
+  if(!videoEl || !grid) return;
+  const d = grid.dpr || 1;
+  videoEl.style.left   = (grid.sx/d)+"px";
+  videoEl.style.top    = (grid.sy/d)+"px";
+  videoEl.style.width  = (grid.sw/d)+"px";
+  videoEl.style.height = (grid.sh/d)+"px";
+}
+function showVideoItem(m){
+  mediaMode = "video"; curImg = null; prevImg = null; plainImg = null; animOn = false;
+  ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const v = ensureVideoEl();
+  positionVideo();
+  if(v.getAttribute("data-src") !== m.src){ v.src = m.src; v.setAttribute("data-src", m.src); }
+  v.loop = (S.messages.length <= 1) && (S.loop !== false); // bucle nativo solo si es el único y el loop está activo
+  v.style.display = "block";
+  try{ v.currentTime = 0; }catch(e){}
+  v.play().catch(()=>{});
+}
+function stopVideo(){
+  if(videoEl){ try{ videoEl.pause(); }catch(e){} videoEl.style.display = "none"; }
+  if(mediaMode==="video") mediaMode = null;
+}
+
+function showCurrent(){
+  if(!S || !S.messages.length) return;
+  msgIdx = msgIdx % S.messages.length;
+  const m = S.messages[msgIdx];
+  if(m.type==="video" && m.src){ showVideoItem(m); return; }
+  stopVideo();
+  if(m.type==="photo" && m.img){ showPhotoItem(m); return; }
+  mediaMode = null; plainImg = null;
+  prevImg = curImg; // si veníamos de una foto flapizada, las paletas la retiran flip a flip
+  if(m.type==="image" && m.img){
+    const im = imgCache[msgIdx];
+    if(!im || !im.complete){
+      if(im) im.onload = ()=>showCurrent();
+      return;
+    }
+    curImg = im;
+    transitionImage(randomTargets());
+  } else {
+    curImg = null;
+    transition(targetsFor(m.lines, S));
+  }
+}
+
+/* dibuja la porción de foto de una celda, con el acabado de flap */
+function drawImgCell(ctx, x, y, w, h, img){
+  const {cols, rows, cellW, cellH, offX, offY} = grid;
+  const gap = w*0.045;
+  const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
+  const half = fh/2, rad = Math.max(2, w*0.08);
+  const boardW = cols*cellW, boardH = rows*cellH;
+  const scale = Math.max(boardW/img.width, boardH/img.height);
+  const drawW = img.width*scale, drawH = img.height*scale;
+  const dx0 = offX + (boardW-drawW)/2, dy0 = offY + (boardH-drawH)/2;
+  const sx = (fx-dx0)/scale, sy = (fy-dy0)/scale;
+  const sw = fw/scale, sh = fh/scale;
+
+  ctx.save();
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(fx, fy, fw, fh, rad);
+  else ctx.rect(fx, fy, fw, fh);
+  ctx.clip();
+  try{ ctx.drawImage(img, sx, sy, sw, sh, fx, fy, fw, fh); }catch(e){}
+  // penumbra arriba, satinado abajo: el acabado del flap sobre la foto
+  let g = ctx.createLinearGradient(0,fy,0,fy+half);
+  g.addColorStop(0,"rgba(0,0,0,0.60)");
+  g.addColorStop(0.6,"rgba(0,0,0,0.28)");
+  g.addColorStop(1,"rgba(0,0,0,0.12)");
+  ctx.fillStyle = g; ctx.fillRect(fx,fy,fw,half);
+  g = ctx.createLinearGradient(0,fy+half,0,fy+fh);
+  g.addColorStop(0,"rgba(255,255,255,0.15)");
+  g.addColorStop(0.5,"rgba(255,255,255,0)");
+  g.addColorStop(1,"rgba(0,0,0,0.18)");
+  ctx.fillStyle = g; ctx.fillRect(fx,fy+half,fw,half);
+  ctx.restore();
+  // línea central y bisagras
+  ctx.fillStyle = "rgba(0,0,0,0.75)";
+  ctx.fillRect(fx, fy+half-Math.max(1,h*0.008), fw, Math.max(2,h*0.016));
+  const pw = Math.max(2, w*0.045), ph = Math.max(6, h*0.14);
+  for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
+    ctx.fillStyle = "#0a0a0a";
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(px, fy+half-ph/2, pw, ph, pw*0.4);
+    else ctx.rect(px, fy+half-ph/2, pw, ph);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.fillRect(px+pw*0.25, fy+half-ph/2+1, pw*0.28, ph-2);
+  }
+}
+function scheduleRot(){
+  clearTimeout(rotTimer);
+  if(!S || !S.messages.length) return;
+  const cur = S.messages[msgIdx % S.messages.length];
+  if(cur.type==="video"){ return; } // el fin del vídeo (evento "ended") controla el avance
+  if(S.messages.length <= 1) return; // una sola pantalla: nada que rotar
+  // una foto necesita sus ~9s de construcción + tiempo de contemplación
+  const secs = Math.max(cur.type==="image" ? 14 : 5, cur.secs || 20);
+  const loopOn = S.loop !== false; // por defecto: loop infinito
+  rotTimer = setTimeout(()=>{
+    const next = (msgIdx+1) % S.messages.length;
+    if(!loopOn && next === 0){
+      // loop apagado: cierra el ciclo volviendo a la pantalla 1 y se queda ahí
+      msgIdx = 0; showCurrent();
+      return;
+    }
+    msgIdx = next; showCurrent(); scheduleRot();
+  }, secs*1000);
+}
+setInterval(()=>{ if(S && S.clock && !animOn) render(performance.now()); }, 30000);
+function addFlutter(){
+  if(!cells.length) return;
+  flutters.push({i: Math.floor(Math.random()*cells.length), t0: performance.now()});
+  if(S && S.sound) click(0.07);
+  requestAnimationFrame(function fl(n){ render(n); if(flutters.length) requestAnimationFrame(fl); });
+}
+function strayCell(){
+  const cell = cells[Math.floor(Math.random()*cells.length)];
+  if(cell && cell.done){
+    cell.from = cell.cur; cell.steps = LEN; cell.slowN = 3;
+    cell.delay = 0; cell.base = 46 + Math.random()*14;
+    cell.t0 = performance.now(); cell.done = false;
+    animOn = true; requestAnimationFrame(frame);
+  }
+}
+/* al terminar cada animación: ráfaga de asentamientos y alguna descarriada */
+function settleBurst(){
+  if(!cells.length || mediaMode) return;
+  const n = 2 + Math.floor(Math.random()*3); // 2-4 flaps que se asientan
+  for(let k=0;k<n;k++){
+    setTimeout(()=>{ if(!animOn && !curImg) addFlutter(); }, 250+Math.random()*1900);
+  }
+  if(Math.random()<0.35){
+    setTimeout(()=>{ if(!animOn) strayCell(); }, 900+Math.random()*1400);
+  }
+}
+/* vida en reposo: más frecuente y a veces varios a la vez */
+setInterval(()=>{
+  if(animOn || !cells.length || mediaMode) return;
+  const r = Math.random();
+  if(r<0.28){
+    strayCell();
+  } else if(!curImg){
+    addFlutter();
+    if(Math.random()<0.35) setTimeout(()=>{ if(!animOn) addFlutter(); }, 220+Math.random()*450);
+  }
+}, 2300);
+
+/* ---------- audio ---------- */
+let audioCtx=null, master=null, noiseBuf=null, tickBuf=null, lastTick=-999;
+function ensureAudio(){
+  if(audioCtx){ audioCtx.resume(); return; }
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  master = audioCtx.createGain(); master.gain.value=0.85;
+  master.connect(audioCtx.destination);
+  const len = Math.floor(audioCtx.sampleRate*0.025);
+  noiseBuf = audioCtx.createBuffer(1,len,audioCtx.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+  fetch("flaps-tick.mp3")
+    .then(r=>r.ok?r.arrayBuffer():Promise.reject())
+    .then(b=>audioCtx.decodeAudioData(b))
+    .then(buf=>{ tickBuf=buf; })
+    .catch(()=>{});
+}
+function click(g, dt){
+  if(!audioCtx||audioCtx.state!=="running") return;
+  const t = audioCtx.currentTime + (dt||0);
+  if(tickBuf){
+    const src=audioCtx.createBufferSource(); src.buffer=tickBuf;
+    src.playbackRate.value=0.92+Math.random()*0.16;
+    const gn=audioCtx.createGain(); gn.gain.value=g;
+    src.connect(gn).connect(master); src.start(t);
+    return;
+  }
+  const o=audioCtx.createOscillator(); o.type="triangle";
+  o.frequency.setValueAtTime(340+Math.random()*220, t);
+  const og=audioCtx.createGain();
+  og.gain.setValueAtTime(g*0.6, t);
+  og.gain.exponentialRampToValueAtTime(0.0001, t+0.02);
+  o.connect(og).connect(master); o.start(t); o.stop(t+0.035);
+  const src=audioCtx.createBufferSource(); src.buffer=noiseBuf;
+  src.playbackRate.value=1.5+Math.random()*0.7;
+  const bp=audioCtx.createBiquadFilter(); bp.type="bandpass";
+  bp.frequency.value=4800+Math.random()*2600; bp.Q.value=0.8;
+  const gn=audioCtx.createGain(); gn.gain.value=g;
+  src.connect(bp).connect(gn).connect(master); src.start(t);
+}
+function tickSound(delta, now){
+  if(delta<=0 || now-lastTick<=22) return;
+  lastTick = now;
+  const n = Math.min(3, Math.ceil(delta/5));
+  const g = Math.min(0.55, 0.08+delta*0.009);
+  for(let i=0;i<n;i++) click(g*(0.8+Math.random()*0.4), Math.random()*0.022);
+}
+
+/* ---------- estado + conexión ---------- */
+function applyState(s, system){
+  const rebuild = !grid || !S || s.cols!==S.cols || s.rows!==S.rows
+    || s.logoOn!==S.logoOn || s.clock!==S.clock || s.format!==S.format;
+  S = s;
+  // precarga de fotos (flapizadas y a pantalla completa; el vídeo va en streaming)
+  imgCache = {};
+  S.messages.forEach((m,i)=>{
+    if((m.type==="image" || m.type==="photo") && m.img){
+      const im = new Image();
+      im.src = m.img;
+      imgCache[i] = im;
+    }
+  });
+  // precarga del logo por imagen (si lo hay)
+  if(S.logoImg){
+    if(!logoImage || logoImage.src!==S.logoImg){
+      logoImage = new Image();
+      logoImage.onload = ()=>{ try{ render(performance.now()); }catch(e){} };
+      logoImage.src = S.logoImg;
+    }
+  } else logoImage = null;
+  sndBtn.style.display = S.sound ? "block" : "none";
+  if(S.sound) ensureAudio();
+  if(rebuild) setup();
+  // reinicia cualquier media en curso al recibir un estado nuevo
+  stopVideo(); mediaMode = null; plainImg = null; curImg = null; prevImg = null;
+  // La PRIMERA pantalla de contenido real arranca con los flaps en blanco (no hereda
+  // los caracteres del código de vinculación / previsualización): se construye desde cero.
+  if(system){
+    hadContent = false;
+  } else if(!hadContent){
+    for(const cell of cells){ cell.cur = 0; cell.from = 0; cell.done = true; cell.slowN = 0; }
+    hadContent = true;
+  }
+  msgIdx = 0;
+  showCurrent();
+  scheduleRot();
+  if(!IS_PREVIEW){
+    try{ localStorage.setItem("flapsLastState", JSON.stringify(s)); }catch(e){}
+  }
+}
+
+let token = null, ws = null, retry = 1000;
+const net = document.getElementById("net");
+
+async function hello(){
+  if(IS_PREVIEW){
+    net.style.display = "none";
+    document.title = "FLAPS — Previsualización";
+    window.addEventListener("message", e=>{
+      if(e.data && e.data.type==="state") applyState(e.data.state);
+    });
+    applyState({
+      messages:[{secs:9999, lines:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]}],
+      trans:2, cols:26, rows:8, align:"center", format:"16:9",
+      textColor:"#FFFFFF", flapColor:"#1c1c1f",
+      clock:false, sound:false, logoOn:true, logoTxt:"PREVISUALIZACION — ASI SE VERA EN SU TV"
+    }, true);
+    var _pt = window.opener || (window.parent !== window ? window.parent : null);
+    if(_pt){ try{ _pt.postMessage({type:"previewReady"}, "*"); }catch(e){} }
+    return;
+  }
+  try{ token = localStorage.getItem("flapsScreenToken"); }catch(e){}
+  let r;
+  try{
+    r = await fetch("/api/screen/hello", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({token})
+    }).then(x=>x.json());
+  }catch(e){
+    // sin servidor: intenta estado cacheado
+    try{
+      const cached = localStorage.getItem("flapsLastState");
+      if(cached){ applyState(JSON.parse(cached)); }
+    }catch(e2){}
+    setTimeout(hello, 5000);
+    return;
+  }
+  token = r.token;
+  try{ localStorage.setItem("flapsScreenToken", token); }catch(e){}
+  if(r.paired && r.state) applyState(r.state);
+  else applyState(PAIRING_STATE(r.code||"????"), true);
+  connectWS();
+}
+
+function connectWS(){
+  const proto = location.protocol==="https:" ? "wss" : "ws";
+  ws = new WebSocket(proto+"://"+location.host+"/ws?token="+encodeURIComponent(token));
+  ws.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
+  ws.onmessage = e=>{
+    let m; try{ m = JSON.parse(e.data); }catch(err){ return; }
+    if(m.type==="state") applyState(m.state);
+    else if(m.type==="paired"){ /* esperando primer estado */ }
+    else if(m.type==="unpaired"){
+      try{ localStorage.removeItem("flapsScreenToken"); }catch(e2){}
+      token = null; hello();
+    }
+  };
+  ws.onclose = ()=>{
+    net.classList.remove("on");
+    setTimeout(connectWS, retry);
+    retry = Math.min(retry*1.6, 20000);
+  };
+  ws.onerror = ()=>{ try{ ws.close(); }catch(e){} };
+}
+
+window.addEventListener("resize", ()=>{
+  if(!S) return;
+  setup();
+  if(mediaMode==="video"){ positionVideo(); return; } // recolocar sin reiniciar el vídeo
+  showCurrent();
+});
+// re-encaje al despertar la tele o cambiar de resolución/densidad (sin reiniciar la animación)
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden || !S) return;
+  setup();
+  if(mediaMode==="video") positionVideo(); else render(performance.now());
+});
+document.body.addEventListener("click", ()=>{
+  if(document.fullscreenElement==null && document.documentElement.requestFullscreen)
+    document.documentElement.requestFullscreen().catch(()=>{});
+  ensureAudio();
+  document.getElementById("fsHint").style.opacity = 0;
+});
+sndBtn.addEventListener("click", e=>{ e.stopPropagation(); ensureAudio(); });
+setTimeout(()=>{ document.getElementById("fsHint").style.opacity=0; }, 6000);
+
+hello();
+</script>
+</body>
+</html>
