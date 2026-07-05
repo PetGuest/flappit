@@ -815,7 +815,7 @@ const net = document.getElementById("net");
 async function hello(){
   if(IS_PREVIEW){
     net.style.display = "none";
-    document.title = "FLAPS — Previsualización";
+    document.title = "Flappit — Previsualización";
     window.addEventListener("message", e=>{
       if(e.data && e.data.type==="state") applyState(e.data.state);
     });

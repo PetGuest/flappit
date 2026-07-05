@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cómo se instala Flappit · Sin técnico, sin obras</title>
+<meta name="description" content="Instalar Flappit es fácil: su televisor de siempre, un código de 4 letras y listo. Sin técnico, sin obras, sin aparatos raros. ¿TV sin navegador? Le enviamos un stick ya configurado.">
+<style>
+  :root{
+    --bg:#0a0a0c; --panel:#131316; --line:#26262b;
+    --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; color-scheme:dark;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} .rv{opacity:1!important; transform:none!important; transition:none!important;} }
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif; line-height:1.55;}
+  a{color:var(--brand); text-decoration:none;}
+  .wrap{max-width:1000px; margin:0 auto; padding:0 22px;}
+
+  .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; gap:16px; padding:12px 0; max-width:1000px; margin:0 auto; padding-left:22px; padding-right:22px;}
+  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:7px 14px;
+    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:18px; color:var(--text);}
+  .logo span{color:var(--brand); font-size:.6em; letter-spacing:1px;}
+  nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
+  nav .links a{color:var(--muted);}
+  nav .links a:hover{color:var(--text);}
+  .cta{background:var(--brand); color:#111; font-weight:800; border:none;
+    border-radius:10px; padding:12px 22px; font-size:15px; cursor:pointer; letter-spacing:.3px; display:inline-block;}
+  .cta:hover{filter:brightness(1.1);}
+  .cta.sm{padding:9px 16px; font-size:14px;}
+  .cta.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand);}
+
+  .hero{text-align:center; padding:56px 0 12px;}
+  .hero .ey{font-family:ui-monospace,monospace; color:var(--brand); letter-spacing:2px; font-size:13px;}
+  .hero h1{font-size:clamp(30px,5vw,52px); line-height:1.1; margin:12px 0 14px; font-weight:800;}
+  .hero h1 em{color:var(--brand); font-style:normal;}
+  .hero p{color:var(--muted); font-size:clamp(15px,2vw,19px); max-width:640px; margin:0 auto 24px;}
+  .trust{display:flex; gap:22px; justify-content:center; flex-wrap:wrap; color:var(--muted); font-size:13.5px; margin-top:20px;}
+  .trust b{color:var(--text);}
+
+  section{padding:56px 0 8px;}
+  h2{font-size:clamp(22px,3vw,32px); margin:0 0 8px; font-weight:800; text-align:center; text-wrap:balance;}
+  .sub{color:var(--muted); text-align:center; max-width:640px; margin:0 auto 40px; font-size:16px;}
+
+  /* opciones de hardware */
+  .hw{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; max-width:940px; margin:0 auto;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px 22px; position:relative;}
+  .card.best{border-color:rgba(215,224,33,0.5); box-shadow:0 0 26px rgba(215,224,33,0.08);}
+  .card .tag{position:absolute; top:-11px; left:22px; background:var(--brand); color:#111;
+    font-size:11px; font-weight:800; letter-spacing:.5px; padding:3px 10px; border-radius:999px;}
+  .card .ico{width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    color:var(--brand); background:rgba(215,224,33,0.06); border:1px solid rgba(215,224,33,0.3); margin-bottom:14px;}
+  .card .ico svg{width:28px; height:28px;}
+  .card h3{margin:0 0 7px; font-size:17px;}
+  .card p{color:var(--muted); font-size:13.5px; margin:0;}
+
+  /* pasos iconográficos */
+  .steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; max-width:940px; margin:0 auto; position:relative;}
+  .step{text-align:center; padding:8px 18px; position:relative; z-index:1;}
+  .step .ico{width:78px; height:78px; margin:0 auto 16px; border-radius:22px;
+    display:flex; align-items:center; justify-content:center; color:var(--brand);
+    background:rgba(215,224,33,0.06); border:1px solid rgba(215,224,33,0.35);}
+  .step .ico svg{width:38px; height:38px;}
+  .step .k{font-family:ui-monospace,monospace; font-size:12px; color:var(--brand); letter-spacing:2px;}
+  .step h3{margin:6px 0 8px; font-size:18px;}
+  .step p{color:var(--muted); font-size:14px; margin:0 auto; max-width:270px;}
+  @media(min-width:820px){
+    .steps.conn::before{content:""; position:absolute; top:47px; left:16%; right:16%; height:1px; z-index:0;
+      background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);}
+  }
+  .step .code{display:inline-block; margin-top:8px; font-family:ui-monospace,monospace; letter-spacing:6px;
+    font-size:20px; font-weight:800; color:var(--text); background:#08080a; border:1px solid var(--line);
+    border-radius:8px; padding:6px 12px;}
+
+  /* callout */
+  .note{max-width:820px; margin:14px auto 0; background:var(--panel); border:1px solid var(--line);
+    border-left:3px solid var(--brand); border-radius:12px; padding:18px 20px; color:var(--muted); font-size:14.5px;}
+  .note b{color:var(--text);}
+
+  /* faq */
+  .faq{max-width:760px; margin:0 auto;}
+  details{border-bottom:1px solid var(--line); padding:16px 4px;}
+  summary{cursor:pointer; font-weight:700; font-size:16px; list-style:none; display:flex; justify-content:space-between; gap:12px;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--brand); font-weight:800;}
+  details[open] summary::after{content:"–";}
+  details p{color:var(--muted); font-size:14.5px; margin:10px 0 0;}
+
+  .final{text-align:center; padding:64px 0 20px;}
+  .final h2{margin-bottom:16px;}
+  footer{border-top:1px solid var(--line); margin-top:40px; padding:26px 0; color:var(--muted); font-size:13px;}
+  footer .wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+  footer a{color:var(--muted);}
+
+  .rv{opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease;}
+  .rv.in{opacity:1; transform:none;}
+</style>
+</head>
+<body>
+
+<div class="navBar"><nav>
+  <a class="logo" href="/">FLAPPIT<span>signage</span></a>
+  <div class="links">
+    <a href="/">Inicio</a>
+    <a href="/#try">Pruébelo</a>
+    <a href="/#prices">Precios</a>
+    <a class="cta sm" href="/panel">Probar gratis</a>
+  </div>
+</nav></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="ey">INSTALACIÓN · EN MINUTOS</div>
+    <h1>Cómo se instala. <em>Spoiler: es fácil.</em></h1>
+    <p>Sin técnico, sin obras, sin aparatos raros. Su televisor de siempre, un código de 4 letras y a girar. Y si su tele es antigua, le enviamos un stick ya configurado: enchufar y listo.</p>
+    <a class="cta" href="/panel">Empezar prueba gratis →</a>
+    <div class="trust">
+      <span><b>14 días</b> gratis</span>
+      <span><b>Sin</b> instalación</span>
+      <span><b>Sin</b> permanencia</span>
+      <span>Se gestiona <b>desde el móvil</b></span>
+    </div>
+  </header>
+
+  <section id="hardware">
+    <h2>¿En qué pantalla funciona?</h2>
+    <p class="sub">En la que ya tiene. Flappit es una web: corre en cualquier pantalla con navegador, y para las que no lo tienen hay un stick de por medio.</p>
+    <div class="hw">
+      <div class="card best">
+        <span class="tag">LA VÍA MÁS FIABLE</span>
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="18" cy="13.5" r="0.6" fill="currentColor"/></svg></div>
+        <h3>Cualquier TV + stick HDMI</h3>
+        <p>Un Fire TV Stick, Android TV o Chromecast (~30 €) enchufado al HDMI, con Flappit arrancando solo en modo pantalla completa. Se lo podemos enviar <b>ya configurado con su cuenta</b>.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <h3>Smart TV con navegador</h3>
+        <p>Si su televisor trae navegador de internet, abre la dirección de Flappit y ya está. Nada que instalar. (¿La suya no tiene? Tire de stick.)</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+        <h3>Móvil o tablet</h3>
+        <p>Añada Flappit a la pantalla de inicio y se abre a pantalla completa. Perfecto para probar, o para un mostrador con una tablet reciclada.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="12" height="9" rx="1.5"/><rect x="10.5" y="11" width="11" height="8" rx="1.5"/></svg></div>
+        <h3>Varias pantallas</h3>
+        <p>Lobby, restaurante y spa a la vez. Cada pantalla tiene su código y muestra el mismo contenido o uno distinto, todo desde el mismo panel.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pasos">
+    <h2>Instalación en 3 pasos</h2>
+    <p class="sub">Como entrar en Netflix en la tele del hotel. Si su equipo sabe hacer eso, sabe montar Flappit.</p>
+    <div class="steps conn">
+      <div class="step">
+        <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="k">PASO 1</div><h3>Ponga Flappit en la pantalla</h3>
+        <p>Abra la web de Flappit en el navegador de la TV, o enchufe el stick, o añádala a inicio en el móvil. La pantalla mostrará un código.</p>
+        <span class="code">A B C D</span>
+      </div>
+      <div class="step">
+        <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5-5"/><path d="M11 6.5l1-1a4 4 0 0 1 5.7 5.7l-1 1"/><path d="M13 17.5l-1 1a4 4 0 0 1-5.7-5.7l1-1"/></svg></div>
+        <div class="k">PASO 2</div><h3>Vincule con el código</h3>
+        <p>Entre en su panel desde el móvil o el PC, escriba esas 4 letras y la pantalla queda unida a su cuenta para siempre.</p>
+      </div>
+      <div class="step">
+        <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+        <div class="k">PASO 3</div><h3>Componga y programe</h3>
+        <p>Escriba mensajes, suba fotos o vídeo, ordene la secuencia y los tiempos. Aparece al instante y se actualiza desde el móvil, esté donde esté.</p>
+      </div>
+    </div>
+    <div class="note">
+      <b>¿Y si se corta internet?</b> El panel sigue girando con lo último recibido — nunca se queda en negro. Para <b>enviar</b> contenido nuevo o programar horarios sí hace falta wifi o cable, pero lo que ya está en pantalla se queda.
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Preguntas de instalación</h2>
+    <p class="sub"></p>
+    <div class="faq">
+      <details><summary>¿Necesito comprar algún aparato?</summary>
+        <p>No, si su televisor tiene navegador de internet. Si es antiguo o no lo tiene, hace falta un stick HDMI (Fire TV, Android TV o Chromecast, ~30 €). Se lo podemos enviar ya configurado con su cuenta: lo enchufa detrás de la tele y su panel aparece solo.</p></details>
+      <details><summary>Mi Samsung/LG no tiene la app de navegador. ¿Qué hago?</summary>
+        <p>Algunas smart TV recientes ya no traen navegador. La vía fiable en ese caso es el stick HDMI: arranca solo, abre Flappit a pantalla completa y queda fijo. Es la opción que recomendamos para instalar sin sorpresas.</p></details>
+      <details><summary>¿Funciona sin internet?</summary>
+        <p>Necesita wifi o cable para recibir contenido y para la programación por horas. Pero una vez el contenido está en la pantalla, se mantiene aunque se caiga la conexión. Nada de pantallas en negro.</p></details>
+      <details><summary>¿Cuántas pantallas puedo poner?</summary>
+        <p>Las que quiera. Cada pantalla tiene su propio código de 4 letras y se gestiona desde el mismo panel. Pueden mostrar lo mismo a la vez o contenido distinto en cada zona.</p></details>
+      <details><summary>¿Puedo actualizar los mensajes desde el móvil?</summary>
+        <p>Sí, desde cualquier lugar. El panel es totalmente móvil: cambie la oferta de esta noche desde la cocina o lance un aviso desde el otro lado del mundo.</p></details>
+      <details><summary>¿Cuánto se tarda en dejarlo montado?</summary>
+        <p>Unos minutos. Poner Flappit en la pantalla, escribir las 4 letras y su primer mensaje: hecho. Explorar la programación y las opciones avanzadas lleva un poco más, pero el primer panel es rápido de verdad.</p></details>
+      <details><summary>¿Y si me atasco?</summary>
+        <p>Nos escribe y lo resolvemos, casi siempre en un solo correo. La mayoría de dudas se solucionan en minutos.</p></details>
+    </div>
+  </section>
+
+  <section class="final">
+    <h2>Su primer panel, a <em style="color:var(--brand);font-style:normal;">minutos</em> de distancia.</h2>
+    <p class="sub">Pruebe todo gratis durante 14 días. Sin tarjeta, sin permanencia.</p>
+    <a class="cta" href="/panel">Empezar prueba gratis</a>
+    &nbsp;&nbsp;
+    <a href="/#try">Ver la demo →</a>
+  </section>
+</div>
+
+<footer><div class="wrap">
+  <span>© <span id="yr"></span> Flappit Signage</span>
+  <span><a href="/">Inicio</a> · <a href="/#prices">Precios</a> · <a href="legal.html">Aviso legal</a></span>
+</div></footer>
+
+<script>
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  // aparición al hacer scroll
+  const io = new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }); }, {threshold:0.12});
+  document.querySelectorAll("section h2, section .sub, .card, .step, details").forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+</script>
+</body>
+</html>
