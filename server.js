@@ -202,6 +202,7 @@ function handleStripeEvent(event){
 app.use(express.json({limit:"12mb"})); // estados con fotos flapizadas y fotos a pantalla completa embebidas
 app.use(express.static(path.join(__dirname, "web")));
 app.use("/media", express.static(MEDIA_DIR, {maxAge:"7d", immutable:true})); // vídeos subidos
+app.get("/", (req,res)=>res.redirect("/panel")); // la raíz lleva al panel
 app.get("/tv", (req,res)=>res.sendFile(path.join(__dirname,"web","tv.html")));
 app.get("/panel", (req,res)=>res.sendFile(path.join(__dirname,"web","panel.html")));
 
