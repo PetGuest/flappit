@@ -724,14 +724,24 @@ function drawImgCell(ctx, x, y, w, h, buf){
     ctx.fillRect(px+pw*0.25, fy+half-ph/2+1, pw*0.28, ph-2);
   }
 }
+/* Cuánto dura la TRANSICIÓN (giro de paletas / construcción de la foto) de cada contenido.
+   No cuenta como tiempo de exposición: primero concluye y DESPUÉS empieza la duración. */
+function transMsFor(cur){
+  if(cur.type==="video") return 0;
+  if(cur.type==="photo") return 600;                  // foto plena: fundido corto
+  if(cur.type==="image") return LITE ? 600 : 9800;    // flapizada: en modo ligero se muestra directa
+  return Math.round(Math.max(800,(S.trans||3)*1000) * 1.7); // texto: giro + cola de suspense final
+}
 function scheduleRot(){
   clearTimeout(rotTimer);
   if(!S || !S.messages.length) return;
   const cur = S.messages[msgIdx % S.messages.length];
   if(cur.type==="video"){ return; } // el fin del vídeo (evento "ended") controla el avance
   if(S.messages.length <= 1) return; // una sola pantalla: nada que rotar
-  // una foto necesita sus ~9s de construcción + tiempo de contemplación
-  const secs = Math.max(cur.type==="image" ? 14 : 5, cur.secs || 20);
+  // DURACIÓN = tiempo de contemplación PURO, que empieza cuando la transición ya ha concluido.
+  // Tiempo total en pantalla = transición + duración (no se solapan).
+  const dwellMs = Math.max(2, cur.secs || 20) * 1000;
+  const waitMs  = transMsFor(cur) + dwellMs;
   const loopOn = S.loop !== false; // por defecto: loop infinito
   rotTimer = setTimeout(()=>{
     const next = (msgIdx+1) % S.messages.length;
@@ -741,7 +751,7 @@ function scheduleRot(){
       return;
     }
     msgIdx = next; showCurrent(); scheduleRot();
-  }, secs*1000);
+  }, waitMs);
 }
 setInterval(()=>{ if(S && S.clock && !animOn) render(performance.now()); }, 30000);
 function addFlutter(){

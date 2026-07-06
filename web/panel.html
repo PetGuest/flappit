@@ -58,7 +58,7 @@
   #pairBox{display:none;}
   #pairBox a{color:var(--accent);}
   #pairRow{display:flex; gap:8px;}
-  #pairRow input{flex:1; background:#0a0c05; color:var(--text); border:1px solid var(--line);
+  #pairRow input{width:120px; flex:0 0 auto; text-align:center; background:#0a0c05; color:var(--text); border:1px solid var(--line);
     border-radius:8px; padding:8px 10px; font-size:14px; text-transform:uppercase;
     font-family:ui-monospace,monospace; letter-spacing:3px;}
   #pairRow button{background:var(--accent); color:var(--accent-ink); border:none; border-radius:8px;
@@ -88,6 +88,8 @@
   .alnBtn{background:#14170c; border:1px solid var(--line); color:var(--muted);
     border-radius:8px; padding:5px 12px; cursor:pointer; font-size:13px;}
   .alnBtn.on{border-color:var(--accent); color:var(--accent); box-shadow:0 0 8px rgba(215,224,33,0.25);}
+  #clearBtn{margin-left:10px; gap:5px;}
+  #clearBtn:hover{border-color:#ff5c5c; color:#ff5c5c; box-shadow:none;}
   #toolbar .hint{font-size:11px; color:var(--muted); margin-left:auto;}
   #saveDot{font-size:11px; color:var(--muted);}
   #saveDot.saving{color:#ffb020;}
@@ -389,6 +391,7 @@
       <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span data-i18n="alignLeft">Izq</span></button>
       <button class="alnBtn" data-a="center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M6 18h12"/></svg><span data-i18n="alignCenter">Centro</span></button>
       <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg><span data-i18n="alignRight">Der</span></button>
+      <button class="alnBtn" id="clearBtn" data-i18n-title="clearScreenTitle" title="Borra todo el texto de esta pantalla"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8.5L3 14.5a2 2 0 0 1 0-2.8l7-7a2 2 0 0 1 2.8 0l6 6a2 2 0 0 1 0 2.8L15 20"/><path d="M9 11l5 5"/></svg><span data-i18n="clearScreen">Vaciar</span></button>
       <span id="saveDot"></span>
       <span class="hint" data-i18n="toolbarHint">Escribe directamente en el panel · Enter = línea siguiente</span>
     </div>
@@ -470,6 +473,9 @@ const I18N = {
     alignLeft: "Izq",
     alignCenter: "Centro",
     alignRight: "Der",
+    clearScreen: "Vaciar",
+    clearScreenTitle: "Borra todo el texto de esta pantalla",
+    clearScreenConfirm: "¿Borrar todo el texto de esta pantalla?",
     toolbarHint: "Escribe directamente en el panel · Enter = línea siguiente",
     editHint: "Haz clic en el panel para escribir tu texto",
     /* saveDot */
@@ -509,6 +515,7 @@ const I18N = {
     addTabTitle: "Añadir contenido a la secuencia",
     durVideoFull: "Vídeo completo",
     durLabel: "Duración de la pantalla",
+    durHelp: "Tiempo que la pantalla permanece una vez completada la transición. La transición no cuenta: transición + duración = tiempo total en pantalla.",
     durMin: "min",
     durSec: "s",
     /* menú añadir */
@@ -605,6 +612,9 @@ const I18N = {
     alignLeft: "Left",
     alignCenter: "Center",
     alignRight: "Right",
+    clearScreen: "Clear",
+    clearScreenTitle: "Clear all text on this screen",
+    clearScreenConfirm: "Clear all text on this screen?",
     toolbarHint: "Type directly on the panel · Enter = next line",
     editHint: "Click the panel to type your text",
     saving: "saving…",
@@ -638,6 +648,7 @@ const I18N = {
     addTabTitle: "Add content to the sequence",
     durVideoFull: "Full video",
     durLabel: "Screen duration",
+    durHelp: "How long the screen stays once the transition has finished. The transition doesn't count: transition + duration = total time on screen.",
     durMin: "min",
     durSec: "s",
     addMsgTitle: "Message",
@@ -1333,10 +1344,24 @@ document.querySelectorAll(".alnBtn").forEach(b=>{
   b.addEventListener("mousedown", e=>e.preventDefault());
   b.addEventListener("click", ()=>{
     if(selLine<0 || !S) return;
+    if(!b.dataset.a) return; // botones del grupo sin alineación (p.ej. Vaciar) no aplican aquí
     cur().lines[selLine].align = b.dataset.a;
     renderRow(selLine); updateToolbar(); push();
     hiddenInput.focus();
   });
+});
+
+/* Vaciar: borra de golpe todo el texto de la pantalla actual (sin eliminar la pantalla) */
+document.getElementById("clearBtn").addEventListener("click", ()=>{
+  if(!S) return;
+  const m = cur();
+  if(isMedia(m)) return; // solo aplica a pantallas de texto, no a fotos/vídeo
+  const hasText = (m.lines||[]).some(l=>l && l.text && l.text.trim());
+  if(!hasText) return;
+  if(!confirm(t("clearScreenConfirm"))) return;
+  m.lines.forEach(l=>{ if(l) l.text = ""; });
+  selLine = -1;
+  buildBoard(); push();
 });
 
 /* ---------- pestañas de contenido ---------- */
@@ -1387,7 +1412,8 @@ function renderTabs(){
     const vlbl = document.createElement("span"); vlbl.className = "durLbl"; vlbl.textContent = t("durVideoFull");
     meta.appendChild(vlbl);
   } else {
-    const lbl = document.createElement("span"); lbl.className = "durLbl"; lbl.textContent = t("durLabel");
+    const lbl = document.createElement("span"); lbl.className = "durLbl"; lbl.textContent = t("durLabel"); lbl.title = t("durHelp");
+    lbl.style.cursor = "help";
     const total = cur().secs || (cur().type==="photo" ? 12 : 20);
     const mIn = document.createElement("input");
     mIn.type = "number"; mIn.min = 0; mIn.max = 60; mIn.value = Math.floor(total/60);
