@@ -106,10 +106,12 @@ function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor){
     const ch = p < 0.5 ? prevC : curC;
     ctx.fillStyle = txtColor; ctx.font = font; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.save(); ctx.translate(cx, fy+half+fh*0.02); ctx.scale(0.74, 1); ctx.fillText(ch, 0, 0); ctx.restore();
-    // media sombra de la mitad superior: 3 bandas planas que se desvanecen (imita el degradado)
-    ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(fx, fy,              fw, half*0.40);
-    ctx.fillStyle = "rgba(0,0,0,0.14)"; ctx.fillRect(fx, fy+half*0.40,    fw, half*0.35);
-    ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.fillRect(fx, fy+half*0.75,    fw, half*0.25);
+    // media sombra de la mitad superior: 3 bandas planas que se desvanecen (imita el degradado
+    // de la versión completa 0.66→0.32→0.12). Cubre TODA la mitad superior, así la parte alta de
+    // la letra queda claramente más oscura que la baja — el sombreado característico del split-flap.
+    ctx.fillStyle = "rgba(0,0,0,0.52)"; ctx.fillRect(fx, fy,             fw, half*0.34);
+    ctx.fillStyle = "rgba(0,0,0,0.30)"; ctx.fillRect(fx, fy+half*0.34,   fw, half*0.33);
+    ctx.fillStyle = "rgba(0,0,0,0.15)"; ctx.fillRect(fx, fy+half*0.67,   fw, half*0.33);
     // junta central (separa mitad superior e inferior)
     ctx.fillStyle = "rgba(0,0,0,0.78)"; ctx.fillRect(fx, fy+half-Math.max(1,h*0.014), fw, Math.max(1.5, h*0.028));
     return;
@@ -333,13 +335,16 @@ function transition(targets){
   const T = Math.max(800, (S.trans||3)*1000);
   let any = false;
   const letterCells = [];
+  // Al salir de una foto PLANA (modo ligero) partimos de tablero en blanco: así solo giran las
+  // casillas con letra y el texto se compone limpio y escalonado (no un revoltijo de las 363 a la vez).
+  if(fromPhoto){ for(const c of cells){ c.cur = 0; } }
   cells.forEach((cell,i)=>{
     const r = Math.floor(i/grid.cols), c = i%grid.cols;
     const tgt = targets[r][c];
     let d = (tgt - cell.cur + LEN) % LEN;
     if(d===0){
-      // al salir de una foto (flapizada o plana) TODAS las casillas giran para retirarla
-      if(prevImg || fromPhoto) d = LEN;
+      // al salir de una foto FLAPIZADA todas las casillas giran para retirarla paleta a paleta
+      if(prevImg) d = LEN;
       else { cell.done=true; cell.slowN=0; return; }
     }
     cell.from = cell.cur;
@@ -377,8 +382,10 @@ function transition(targets){
     const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
     cell.base = Math.min(200, Math.max(38, avail/(cell.steps + slowExtra)));
   });
+  const wasFromPhoto = fromPhoto;
   fromPhoto = false; // bandera de un solo uso
   if(any && !animOn){ animOn=true; requestAnimationFrame(frame); }
+  else if(wasFromPhoto) render(now); // limpia la foto aunque no haya letras que animar
 }
 
 let sumPrev = 0;
