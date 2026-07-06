@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flappit — Convierta cualquier pantalla en un panel informativo espectacular</title>
-<meta name="description" content="Convierta la TV de su recepción en un espectacular panel split-flap de aeropuerto. Cartelería digital para hoteles, clínicas, gimnasios y comercios. Sin instalación. 14 días gratis.">
+<meta name="description" content="Convierta la TV de su recepción en un espectacular panel split-flap de aeropuerto. Cartelería digital para hoteles, clínicas, gimnasios y comercios. Sin instalación. 7 días gratis.">
 <meta name="keywords" content="cartelería digital, señalización digital, digital signage hoteles, panel split-flap, pantalla recepción hotel, pantalla de bienvenida, panel informativo, tótem recepción">
 <meta name="author" content="Flappit">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -15,14 +15,14 @@
 <meta property="og:site_name" content="Flappit">
 <meta property="og:locale" content="es_ES">
 <meta property="og:title" content="Flappit — Convierta cualquier pantalla en un panel informativo espectacular">
-<meta property="og:description" content="El encanto de los paneles split-flap de aeropuerto en la TV de su recepción. Para hoteles, clínicas, gimnasios y comercios. Sin instalación. 14 días gratis.">
+<meta property="og:description" content="El encanto de los paneles split-flap de aeropuerto en la TV de su recepción. Para hoteles, clínicas, gimnasios y comercios. Sin instalación. 7 días gratis.">
 <meta property="og:url" content="https://flappit.com/">
 <meta property="og:image" content="https://flappit.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Flappit — Convierta cualquier pantalla en un panel informativo espectacular">
-<meta name="twitter:description" content="El encanto de los paneles split-flap de aeropuerto en la TV de su recepción. Sin instalación. 14 días gratis.">
+<meta name="twitter:description" content="El encanto de los paneles split-flap de aeropuerto en la TV de su recepción. Sin instalación. 7 días gratis.">
 <meta name="twitter:image" content="https://flappit.com/og-image.png">
 <style>
   :root{
@@ -155,7 +155,7 @@
   .feat span{color:var(--muted); font-size:13.5px;}
 
   /* precios */
-  .prices{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; align-items:stretch;}
+  .prices{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; align-items:stretch;}
   .price{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:28px 24px;
     display:flex; flex-direction:column; text-align:center;}
   .price.hot{border-color:var(--brand); box-shadow:0 0 30px rgba(215,224,33,.12);}
@@ -248,7 +248,7 @@
         { "@type": "Question", "name": "¿Qué pasa si se corta internet?", "acceptedAnswer": { "@type": "Answer", "text": "La pantalla mantiene el último contenido guardado y se reconecta automáticamente cuando vuelve la conexión. No se queda en negro." } },
         { "@type": "Question", "name": "¿Puedo usar mi logo y mis colores?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Puede personalizar la franja de marca, los colores del panel, el logo y otros elementos visuales para que encaje con la identidad de su negocio." } },
         { "@type": "Question", "name": "¿Funciona en pantallas verticales?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Flappit funciona en pantallas horizontales y verticales, como televisores de lobby o tótems de recepción." } },
-        { "@type": "Question", "name": "¿Hay permanencia?", "acceptedAnswer": { "@type": "Answer", "text": "No. La suscripción es mensual, los primeros 14 días son gratis y puede cancelar cuando quiera con 2 clics." } }
+        { "@type": "Question", "name": "¿Hay permanencia?", "acceptedAnswer": { "@type": "Answer", "text": "No. La suscripción es mensual, los primeros 7 días son gratis y puede cancelar cuando quiera con 2 clics." } }
       ]
     }
   ]
@@ -280,7 +280,7 @@
     <div class="heroBoard"><div class="tvFrame"><canvas id="heroCv"></canvas></div></div>
     <div class="sndRow"><button id="heroSnd">Activar sonido</button></div>
     <div class="trust">
-      <span><b>14 días</b> gratis</span>
+      <span><b>7 días</b> gratis</span>
       <span><b>Sin</b> permanencia</span>
       <span>Cualquier <b>Smart TV</b></span>
       <span>Cancele con <b>2 clics</b></span>
@@ -419,13 +419,26 @@
 
   <section id="prices">
     <h2>Precios sencillos. Magia desde el primer día.</h2>
-    <p class="sub">Pruebe Flappit gratis durante 14 días. Sin permanencia, sin instalación y sin compromiso. Si no encaja con su negocio, puede cancelar con 2 clics.</p>
+    <p class="sub">Empiece con 7 días de prueba gratis, sin tarjeta. Sin permanencia: cancele cuando quiera con 2 clics.</p>
     <div class="billing">
       <button class="on" data-b="m">Mensual</button>
       <button data-b="y">Anual −20%</button>
     </div>
     <p class="billNote" id="billNote"></p>
     <div class="prices">
+      <div class="price">
+        <div class="tag">Prueba gratis</div>
+        <div class="amt"><span>0€</span><small>/7 días</small></div>
+        <p style="color:var(--muted); font-size:13px; margin:6px 0 0;">Pruebe Flappit completo, sin tarjeta, durante 7 días.</p>
+        <ul>
+          <li>Todas las funciones</li>
+          <li>1 pantalla</li>
+          <li>Mensajes, fotos y vídeos</li>
+          <li>Su logo y colores</li>
+          <li>Sin tarjeta ni permanencia</li>
+        </ul>
+        <button class="cta ghost" onclick="location.href='/panel'">Empezar gratis</button>
+      </div>
       <div class="price">
         <div class="tag">Una pantalla</div>
         <div class="amt"><span id="p1">19€</span><small>/mes</small></div>
@@ -435,9 +448,8 @@
           <li>Contenidos ilimitados</li>
           <li>Logo y colores de su marca</li>
           <li>Soporte por email</li>
-          <li>14 días de prueba gratis</li>
         </ul>
-        <button class="cta ghost" onclick="goPlan('uno')">Empezar prueba gratis</button>
+        <button class="cta ghost" onclick="goPlan('uno')">Suscribirse</button>
       </div>
       <div class="price hot">
         <div><span class="hotTag">EL MÁS ELEGIDO</span></div>
@@ -449,9 +461,8 @@
           <li>Contenido distinto en cada pantalla</li>
           <li>Stick preconfigurado incluido</li>
           <li>Soporte prioritario</li>
-          <li>14 días de prueba gratis</li>
         </ul>
-        <button class="cta" onclick="goPlan('tres')">Empezar prueba gratis</button>
+        <button class="cta" onclick="goPlan('tres')">Suscribirse</button>
       </div>
       <div class="price">
         <div class="tag">Cadenas y grupos</div>
@@ -484,7 +495,7 @@
     <details><summary>¿Funciona en pantallas verticales?</summary>
       <p>Sí. Flappit funciona en pantallas horizontales y verticales, como televisores de lobby o tótems de recepción.</p></details>
     <details><summary>¿Hay permanencia?</summary>
-      <p>No. La suscripción es mensual, los primeros 14 días son gratis y puede cancelar cuando quiera con 2 clics.</p></details>
+      <p>No. La suscripción es mensual, los primeros 7 días son gratis y puede cancelar cuando quiera con 2 clics.</p></details>
   </section>
 
   <div class="finale">
@@ -493,7 +504,7 @@
     <button class="cta" onclick="location.href='/panel'">Empezar prueba gratuita</button>
     <button class="cta ghost" style="margin-left:10px;" onclick="location.href='mailto:hello@flappit.com?subject=Quiero una demo de Flappit'">Pedir una demo guiada</button>
     <div class="trust" style="margin-top:22px;">
-      <span><b>14 días</b> gratis</span>
+      <span><b>7 días</b> gratis</span>
       <span><b>Sin</b> instalación</span>
       <span><b>Sin</b> permanencia</span>
     </div>

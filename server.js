@@ -20,7 +20,7 @@ const MEDIA_DIR = process.env.MEDIA_DIR || path.join(path.dirname(DB_FILE), "med
 fs.mkdirSync(MEDIA_DIR, { recursive: true });
 const MEDIA_MAX = (+process.env.MEDIA_MAX_MB || 250) * 1024 * 1024;
 const MEDIA_EXT = ["mp4","webm","mov","m4v","ogg","ogv","png","jpg","jpeg","gif","webp"];
-const TRIAL_DAYS = 14;
+const TRIAL_DAYS = 7;
 const PLAN_LIMITS = { uno: 1, tres: 3, cadena: 99 };
 
 /* ---------- base de datos ---------- */
