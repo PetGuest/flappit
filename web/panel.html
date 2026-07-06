@@ -329,8 +329,8 @@
       </div>
       <div class="row">
         <label>Letras/línea</label>
-        <input type="range" id="cols" min="10" max="36" step="1" value="31">
-        <span class="val" id="colsVal">31</span>
+        <input type="range" id="cols" min="10" max="36" step="1" value="33">
+        <span class="val" id="colsVal">33</span>
       </div>
       <div class="row">
         <label class="toggle"><input type="checkbox" id="clock" checked> Reloj (franja inferior)</label>
@@ -409,7 +409,7 @@ function defaultState(biz){
         {text:"", align:"center"}
       ]}
     ],
-    trans: 5, cols: 31, rows: 11, align: "center", format: "16:9",
+    trans: 5, cols: 33, rows: 11, align: "center", format: "16:9",
     textColor: TEXT_COLORS[0], flapColor: FLAP_COLORS[0],
     clock: true, sound: false, loop: true,
     logoOn: true, logoTxt: (biz||"").toUpperCase().slice(0,40)
@@ -632,7 +632,7 @@ let selScr = 0, selLine = -1;
 
 function migrate(S){
   if(!S.align) S.align = "center";
-  if(!S.cols) S.cols = 31;
+  if(!S.cols) S.cols = 33;
   if(!S.rows) S.rows = 11;
   if(!S.trans) S.trans = 5;
   if(!S.format) S.format = "16:9";
@@ -1197,7 +1197,7 @@ document.getElementById("format").addEventListener("click", e=>{
   document.querySelectorAll("#format .chip").forEach(c=>c.classList.remove("on"));
   b.classList.add("on"); S.format=b.dataset.v;
   // defaults por orientación al cambiar de formato
-  if(S.format==="9:16"){ S.cols=12; S.rows=14; } else { S.cols=31; S.rows=11; }
+  if(S.format==="9:16"){ S.cols=12; S.rows=14; } else { S.cols=33; S.rows=11; }
   syncControls();
   selLine=-1; buildBoard(); push();
 });

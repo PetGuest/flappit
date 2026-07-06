@@ -222,7 +222,7 @@ const PAIRING_STATE = (code)=>({
     "", "FLAPS", "", "CODIGO DE VINCULACION", code.split("").join(" "), "",
     "ESCRIBALO EN SU PANEL", ""
   ]}],
-  trans:3, cols:26, rows:8, align:"center", format:"16:9",
+  trans:3, cols:33, rows:11, align:"center", format:"16:9",
   textColor:"#FFD400", flapColor:"#1c1c1f",
   clock:false, sound:false, logoOn:true, logoTxt:"FLAPS.TV"
 });
@@ -885,7 +885,7 @@ async function hello(){
     });
     applyState({
       messages:[{secs:9999, lines:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]}],
-      trans:2, cols:26, rows:8, align:"center", format:"16:9",
+      trans:2, cols:33, rows:11, align:"center", format:"16:9",
       textColor:"#FFFFFF", flapColor:"#1c1c1f",
       clock:false, sound:false, logoOn:true, logoTxt:"PREVISUALIZACION — ASI SE VERA EN SU TV"
     }, true);
