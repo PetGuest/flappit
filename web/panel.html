@@ -300,15 +300,16 @@
         letter-spacing:1px;font-family:ui-monospace,monospace;margin-bottom:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg>PREVISUALIZAR AQUÍ</button>
       <button id="connectTvBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>CONECTAR MI TV REAL</button>
       <div id="pairBox">
-        <p class="cap" style="margin:0 0 8px;">
-          1 · En el televisor, abra esta misma web acabada en <b>/tv</b>
-          (¿sin TV a mano? <a href="/tv" target="_blank">ábrala en otra pestaña</a>).<br>
-          2 · Mostrará un código de 4 letras. Escríbalo aquí:
+        <p class="cap" style="margin:0 0 10px;">
+          <b>1.</b> En el televisor, abra el navegador y entre en
+          <b style="color:var(--accent);">flappit.com/tv</b><br>
+          <b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:
         </p>
         <div id="pairRow">
           <input id="pairCode" maxlength="4" placeholder="CÓDIGO">
           <button id="pairBtn">Vincular</button>
         </div>
+        <p class="cap" style="margin:8px 0 0;">¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.</p>
       </div>
       <p class="cap" id="noTvHint" style="margin-top:8px;">Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.</p>
     </div>
@@ -1138,17 +1139,16 @@ function openAddMenu(anchor){
       S.messages.push({type:"image", img:url, secs:20}); gotoLast();
     }));
   });
-  item(IC.video, "Vídeo", "Se reproduce a pantalla completa", ()=>{
-    pickFile("video/*", async f=>{
-      const done = toast("Subiendo vídeo…");
-      try{
-        const {src} = await uploadMedia(f);
-        S.messages.push({type:"video", src, secs:0}); gotoLast();
-      }catch(e){
-        alert("No se pudo subir el vídeo"+(e.data&&e.data.error?" ("+e.data.error+")":"")+".");
-      }finally{ done(); }
-    });
-  });
+  // VÍDEO APARCADO: opción de añadir vídeo desactivada temporalmente (rendimiento en TV).
+  // Para reactivarla, descomentar este bloque:
+  // item(IC.video, "Vídeo", "Se reproduce a pantalla completa", ()=>{
+  //   pickFile("video/*", async f=>{
+  //     const done = toast("Subiendo vídeo…");
+  //     try{ const {src} = await uploadMedia(f); S.messages.push({type:"video", src, secs:0}); gotoLast(); }
+  //     catch(e){ alert("No se pudo subir el vídeo"+(e.data&&e.data.error?" ("+e.data.error+")":"")+"."); }
+  //     finally{ done(); }
+  //   });
+  // });
   document.body.appendChild(menu);
   const r = anchor.getBoundingClientRect();
   const mw = menu.offsetWidth, mh = menu.offsetHeight;

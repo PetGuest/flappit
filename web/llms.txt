@@ -4,7 +4,7 @@
 
 ## Qué es
 - Cartelería digital / señalización digital tipo split-flap para pantallas de recepción, lobby y espacios con público.
-- Muestra mensajes de texto giratorios, fotografías y vídeos en una secuencia programada. Sonido clac-clac opcional.
+- Muestra mensajes de texto giratorios, fotografías en una secuencia programada. Sonido clac-clac opcional.
 - Funciona en cualquier Smart TV con navegador (o con un stick HDMI ya configurado). Horizontal o vertical (tótems).
 - Se controla desde el móvil o el ordenador de recepción, sin conocimientos técnicos. Si se cae internet, mantiene el último contenido.
 

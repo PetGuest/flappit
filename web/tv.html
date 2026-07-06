@@ -217,6 +217,7 @@ let imgCache = {};        // índice de pantalla -> Image
 let curImg = null;        // Image de la pantalla actual (null = texto)
 let prevImg = null;       // Image saliente: cada casilla la muestra hasta su primer flip
 let plainImg = null;      // foto a pantalla completa (SIN flapizar)
+let curImgBuf = null, prevImgBuf = null; // foto YA reducida al tamaño del tablero (rendimiento)
 let videoEl = null;       // <video> superpuesto para vídeo a pantalla completa
 let mediaMode = null;     // "photo" | "video" | null — con media plena el motor de flaps se pausa
 let mediaFadeT = 0;       // instante de arranque del fundido de la foto plena
@@ -226,8 +227,13 @@ let logoImage = null;     // logo por imagen (PNG) precargado para la franja inf
 function setup(){
   if(!S) return;
   const cssW = window.innerWidth, cssH = window.innerHeight;
-  // supersampling: dibujamos a ~2× (mínimo) para nitidez en teles; tope a 4K de lienzo.
-  let dpr = Math.max(2, window.devicePixelRatio || 1);
+  // Resolución de pintado adaptada al dispositivo. CLAVE de rendimiento: en pantallas
+  // grandes (TV/monitor) se pinta a resolución NATIVA — nada de supersampling, que ahogaba
+  // a las teles (un Full HD renderizaba a 4K sin ganar nada). Solo en pantallas pequeñas
+  // (móvil/tablet) se supersamplea un poco para más nitidez. Tope: lienzo de 4K.
+  let dpr = window.devicePixelRatio || 1;
+  const ssCap = cssW <= 1400 ? 2 : 1;   // TV/monitor => 1 (nativo); móvil/tablet => hasta 2
+  dpr = Math.min(dpr, ssCap);
   dpr = Math.min(dpr, 3840 / Math.max(cssW, cssH));
   dpr = Math.max(1, dpr);
   // CLAVE: fijamos el tamaño CSS del lienzo Y el de pintado a la MISMA proporción, para
@@ -267,6 +273,7 @@ function setup(){
   for(let i=0;i<cols*rows;i++){
     cells.push({cur: old[i]?old[i].cur:0, from:0, steps:0, slowN:0, done:true, delay:0, base:50, t0:0});
   }
+  if(curImg) curImgBuf = buildImgBuffer(curImg);
 }
 
 function stepTime(cell, n){
@@ -352,7 +359,7 @@ function frame(now){
   if(active) requestAnimationFrame(frame);
   else {
     animOn = false; sumPrev = 0;
-    prevImg = null; // la foto saliente ya fue retirada por todas las paletas
+    prevImg = null; prevImgBuf = null; // la foto saliente ya fue retirada por todas las paletas
     render(now);
     settleBurst(); // el panel "se asienta" tras el esfuerzo
   }
@@ -406,11 +413,11 @@ function render(now){
     } else if(curImg && (cell.done || curc===0)){
       // la foto va montada en el rodillo: se ve su trozo al posarse
       // Y TAMBIÉN cada vez que la rueda pasa por su posición (curc===0)
-      drawImgCell(ctx, x, y, cellW, cellH, curImg);
+      drawImgCell(ctx, x, y, cellW, cellH, curImgBuf);
     } else if(prevImg && !cell.done && stepN===0){
       // continuidad: la foto saliente permanece en la casilla
       // hasta el instante exacto en que su paleta se la lleva
-      drawImgCell(ctx, x, y, cellW, cellH, prevImg);
+      drawImgCell(ctx, x, y, cellW, cellH, prevImgBuf);
     } else {
       drawCellX(ctx, x, y, cellW, cellH, CHARSET[prev], CHARSET[curc], p, S.flapColor, S.textColor);
     }
@@ -602,51 +609,53 @@ function showCurrent(){
   stopVideo();
   if(m.type==="photo" && m.img){ showPhotoItem(m); return; }
   mediaMode = null; plainImg = null;
-  prevImg = curImg; // si veníamos de una foto flapizada, las paletas la retiran flip a flip
+  prevImg = curImg; prevImgBuf = curImgBuf; // si veníamos de una foto flapizada, las paletas la retiran flip a flip
   if(m.type==="image" && m.img){
     const im = imgCache[msgIdx];
     if(!im || !im.complete){
       if(im) im.onload = ()=>showCurrent();
       return;
     }
-    curImg = im;
+    curImg = im; curImgBuf = buildImgBuffer(im);
     transitionImage(randomTargets());
   } else {
-    curImg = null;
+    curImg = null; curImgBuf = null;
     transition(targetsFor(m.lines, S));
   }
 }
 
-/* dibuja la porción de foto de una celda, con el acabado de flap */
-function drawImgCell(ctx, x, y, w, h, img){
-  const {cols, rows, cellW, cellH, offX, offY} = grid;
+/* la foto se reduce UNA sola vez a un lienzo del tamaño del tablero; cada casilla copia
+   su trozo de ahí (rápido y sin saturar la memoria en teles con fotos grandes) */
+function buildImgBuffer(img){
+  if(!grid || !img || !img.complete || !img.naturalWidth) return null;
+  const w = Math.max(1, Math.round(grid.cols*grid.cellW));
+  const h = Math.max(1, Math.round(grid.rows*grid.cellH));
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const c = cv.getContext("2d");
+  const scale = Math.max(w/img.width, h/img.height);
+  const dw = img.width*scale, dh = img.height*scale;
+  try{ c.drawImage(img, (w-dw)/2, (h-dh)/2, dw, dh); }catch(e){}
+  return cv;
+}
+
+/* dibuja la porción de foto de una celda, con el acabado de flap (muestrea del buffer) */
+function drawImgCell(ctx, x, y, w, h, buf){
+  if(!buf) return;
+  const {offX, offY} = grid;
   const gap = w*0.045;
   const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
   const half = fh/2, rad = Math.max(2, w*0.08);
-  const boardW = cols*cellW, boardH = rows*cellH;
-  const scale = Math.max(boardW/img.width, boardH/img.height);
-  const drawW = img.width*scale, drawH = img.height*scale;
-  const dx0 = offX + (boardW-drawW)/2, dy0 = offY + (boardH-drawH)/2;
-  const sx = (fx-dx0)/scale, sy = (fy-dy0)/scale;
-  const sw = fw/scale, sh = fh/scale;
-
   ctx.save();
   ctx.beginPath();
   if(ctx.roundRect) ctx.roundRect(fx, fy, fw, fh, rad);
   else ctx.rect(fx, fy, fw, fh);
   ctx.clip();
-  try{ ctx.drawImage(img, sx, sy, sw, sh, fx, fy, fw, fh); }catch(e){}
-  // penumbra arriba, satinado abajo: el acabado del flap sobre la foto
-  let g = ctx.createLinearGradient(0,fy,0,fy+half);
-  g.addColorStop(0,"rgba(0,0,0,0.60)");
-  g.addColorStop(0.6,"rgba(0,0,0,0.28)");
-  g.addColorStop(1,"rgba(0,0,0,0.12)");
-  ctx.fillStyle = g; ctx.fillRect(fx,fy,fw,half);
-  g = ctx.createLinearGradient(0,fy+half,0,fy+fh);
-  g.addColorStop(0,"rgba(255,255,255,0.15)");
-  g.addColorStop(0.5,"rgba(255,255,255,0)");
-  g.addColorStop(1,"rgba(0,0,0,0.18)");
-  ctx.fillStyle = g; ctx.fillRect(fx,fy+half,fw,half);
+  // el buffer es del tamaño del tablero: la porción de esta casilla está en (fx-offX, fy-offY)
+  try{ ctx.drawImage(buf, fx-offX, fy-offY, fw, fh, fx, fy, fw, fh); }catch(e){}
+  // acabado del flap sobre la foto: sombras PLANAS (sin degradados por celda, más ligero)
+  ctx.fillStyle = "rgba(0,0,0,0.34)"; ctx.fillRect(fx, fy, fw, half*0.5);
+  ctx.fillStyle = "rgba(0,0,0,0.16)"; ctx.fillRect(fx, fy+half*0.5, fw, half*0.5);
+  ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(fx, fy+half, fw, half*0.4);
   ctx.restore();
   // línea central y bisagras
   ctx.fillStyle = "rgba(0,0,0,0.75)";
@@ -773,6 +782,12 @@ function applyState(s, system){
   const rebuild = !grid || !S || s.cols!==S.cols || s.rows!==S.rows
     || s.logoOn!==S.logoOn || s.clock!==S.clock || s.format!==S.format;
   S = s;
+  // VÍDEO APARCADO: la TV ignora los vídeos por ahora (solo texto y foto). Así, si un estado
+  // antiguo trae vídeos, no se intentan reproducir ni cuelgan la pantalla.
+  if(S.messages && S.messages.some(m=>m && m.type==="video")){
+    S.messages = S.messages.filter(m=>!(m && m.type==="video"));
+    if(!S.messages.length) S.messages = [{secs:9999, lines:["","","",""]}];
+  }
   // precarga de fotos (flapizadas y a pantalla completa; el vídeo va en streaming)
   imgCache = {};
   S.messages.forEach((m,i)=>{
@@ -794,7 +809,7 @@ function applyState(s, system){
   if(S.sound) ensureAudio();
   if(rebuild) setup();
   // reinicia cualquier media en curso al recibir un estado nuevo
-  stopVideo(); mediaMode = null; plainImg = null; curImg = null; prevImg = null;
+  stopVideo(); mediaMode = null; plainImg = null; curImg = null; prevImg = null; curImgBuf = null; prevImgBuf = null;
   // La PRIMERA pantalla de contenido real arranca con los flaps en blanco (no hereda
   // los caracteres del código de vinculación / previsualización): se construye desde cero.
   if(system){
