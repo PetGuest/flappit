@@ -628,12 +628,13 @@ async function selectScreen(id){
   syncControls();
   S.messages.forEach(ensureLines);
   buildBoard();
-  if(!r.state) push(); // emite el estado inicial a la pantalla
+  if(!r.state || migratedGrid) push(); // emite el estado inicial, o guarda+envía la migración 31→33
 }
 
 /* ================= estado del panel ================= */
 let S = null, pushT = null;
 let selScr = 0, selLine = -1;
+let migratedGrid = false; // true si migrate() acaba de subir una pantalla del antiguo 31×11 al nuevo 33×11
 
 function migrate(S){
   if(!S.align) S.align = "center";
@@ -641,6 +642,9 @@ function migrate(S){
   if(!S.rows) S.rows = 11;
   if(!S.trans) S.trans = 5;
   if(!S.format) S.format = "16:9";
+  // migración: las pantallas con el antiguo 31×11 (16:9) saltan al nuevo 33×11 por defecto
+  migratedGrid = false;
+  if(S.format!=="9:16" && S.cols===31 && S.rows===11){ S.cols = 33; migratedGrid = true; }
   if(S.loop===undefined) S.loop = true;
   const n = linesPer(S);
   S.messages = (S.messages||[]).map(m=>{
