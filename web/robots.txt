@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /panel
+Disallow: /tv
+Disallow: /api/
+Disallow: /media/
+
+Sitemap: https://flappit.com/sitemap.xml
