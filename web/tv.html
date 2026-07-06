@@ -241,6 +241,7 @@ let mediaFadeT = 0;       // instante de arranque del fundido de la foto plena
 let hadContent = false;   // ¿ya se mostró contenido real? (la 1ª pantalla arranca en blanco)
 let logoImage = null;     // logo por imagen (PNG) precargado para la franja inferior
 let LITE = false, _probed = false; // modo ligero: dibujo simple para navegadores flojos (TV)
+let fromPhoto = false; // al salir de una foto plana, todo el tablero gira para revelar el texto
 
 function setup(){
   if(!S) return;
@@ -337,15 +338,15 @@ function transition(targets){
     const tgt = targets[r][c];
     let d = (tgt - cell.cur + LEN) % LEN;
     if(d===0){
-      // al salir de una foto TODAS las casillas deben girar para retirarla
-      if(prevImg) d = LEN;
+      // al salir de una foto (flapizada o plana) TODAS las casillas giran para retirarla
+      if(prevImg || fromPhoto) d = LEN;
       else { cell.done=true; cell.slowN=0; return; }
     }
     cell.from = cell.cur;
     cell._d = d;
     cell.delay = Math.random()*Math.min(400, T*0.15) + r*20;
-    let k = LITE ? 0 : Math.min(3, Math.max(0, Math.floor(((T-cell.delay)/55 - d)/LEN)));
-    if(!LITE && Math.random()<0.07) k += 1;
+    let k = Math.min(3, Math.max(0, Math.floor(((T-cell.delay)/55 - d)/LEN)));
+    if(Math.random()<0.07) k += 1;
     cell.steps = d + k*LEN;
     cell.slowN = 0;
     cell._tail = 0;
@@ -358,8 +359,10 @@ function transition(targets){
     const j = Math.floor(Math.random()*(i+1));
     [letterCells[i],letterCells[j]] = [letterCells[j],letterCells[i]];
   }
-  // suspense final: las últimas letras caen escalonadas (una tras otra) y frenándose
-  if(!LITE){
+  // suspense final: las últimas letras caen escalonadas (una tras otra) y frenándose.
+  // La coreografía es idéntica en modo completo y ligero — es la marca de la casa y NO se toca;
+  // el modo ligero solo simplifica el DIBUJO de cada casilla, no cómo se compone la palabra.
+  {
     const nFin = Math.min(10, Math.max(2, Math.ceil(letterCells.length*0.28)));
     const finals = letterCells.slice(-nFin);
     finals.forEach((cell, k)=>{
@@ -374,6 +377,7 @@ function transition(targets){
     const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
     cell.base = Math.min(200, Math.max(38, avail/(cell.steps + slowExtra)));
   });
+  fromPhoto = false; // bandera de un solo uso
   if(any && !animOn){ animOn=true; requestAnimationFrame(frame); }
 }
 
@@ -644,6 +648,7 @@ function showCurrent(){
   if(!S || !S.messages.length) return;
   msgIdx = msgIdx % S.messages.length;
   const m = S.messages[msgIdx];
+  const wasPhoto = (mediaMode==="photo"); // veníamos de una foto plana (modo ligero)
   if(m.type==="video" && m.src){ showVideoItem(m); return; }
   stopVideo();
   if(m.type==="photo" && m.img){ showPhotoItem(m); return; }
@@ -660,6 +665,7 @@ function showCurrent(){
     transitionImage(randomTargets());
   } else {
     curImg = null; curImgBuf = null;
+    fromPhoto = wasPhoto; // veníamos de foto plana → todo el tablero gira para componer el texto
     transition(targetsFor(m.lines, S));
   }
 }
