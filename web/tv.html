@@ -291,6 +291,10 @@ function setup(){
 /* mide el coste de un fotograma completo; si el aparato va justo, activa el modo ligero */
 function probeLite(){
   if(_probed || !grid) return; _probed = true;
+  // Interruptor manual: ?lite=1 fuerza modo ligero, ?lite=0 lo desactiva (salta la sonda)
+  const q = new URLSearchParams(location.search).get("lite");
+  if(q === "1"){ LITE = true; return; }
+  if(q === "0"){ LITE = false; return; }
   const mm = mediaMode; mediaMode = null; // medir el dibujo del tablero (no una foto)
   const t0 = performance.now();
   render(performance.now()); render(performance.now());
