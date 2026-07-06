@@ -92,6 +92,11 @@
   #saveDot{font-size:11px; color:var(--muted);}
   #saveDot.saving{color:#ffb020;}
   #saveDot.saved{color:#3DFF6E;}
+  /* destello de "enviado a la pantalla": pulso breve del color de marca sobre el tablero */
+  #sentFlash{position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:var(--accent); opacity:0; z-index:6;}
+  #sentFlash.go{animation:sentFlash .5s ease-out;}
+  @keyframes sentFlash{ 0%{opacity:0;} 16%{opacity:.38;} 100%{opacity:0;} }
 
   #boardWrap{flex:1; min-height:280px; display:flex; align-items:center; justify-content:center;}
   #board{position:relative; border-radius:10px; overflow:hidden;
@@ -370,7 +375,7 @@
   <section id="workArea">
     <div id="scrTabs"></div>
     <div id="editHint"></div>
-    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"></div></div>
+    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div></div></div>
     <div id="toolbar">
       <span id="lineInfo">Haz clic en una línea del tablero</span>
       <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Izq</button>
@@ -711,6 +716,11 @@ async function uploadMedia(file){
 }
 
 const saveDot = document.getElementById("saveDot");
+function flashSent(){
+  const fl = document.getElementById("sentFlash");
+  if(!fl) return;
+  fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); // reinicia la animación
+}
 function push(){
   if(!S) return;
   try{ localStorage.setItem("flapsDraft", JSON.stringify(S)); }catch(e){}
@@ -724,7 +734,8 @@ function push(){
   pushT = setTimeout(async ()=>{
     try{
       await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
-      saveDot.textContent = "guardado ✓"; saveDot.className = "saved";
+      saveDot.textContent = "enviado a la pantalla ✓"; saveDot.className = "saved";
+      flashSent(); // destello visible: el cambio ha salido hacia la TV
       setTimeout(()=>{ saveDot.textContent=""; }, 2000);
     }catch(e){
       saveDot.textContent = "sin conexión"; saveDot.className = "saving";
@@ -776,7 +787,7 @@ function buildBoard(){
   board.style.height = H+"px";
   board.style.background =
     "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.008) 12%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.28) 100%), #000";
-  [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput") ch.remove(); });
+  [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput" && ch.id!=="sentFlash") ch.remove(); });
   rowEls = []; clockEl = null; bandEl = null;
 
   const gridArea = document.createElement("div");
