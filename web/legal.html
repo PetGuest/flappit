@@ -2,12 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{if(localStorage.getItem('flappitLang')==='en')location.replace('/en/legal.html');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flappit — Información legal</title>
 <meta name="description" content="Información legal de Flappit: aviso legal, términos y condiciones, política de privacidad y cookies.">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#0a0a0c">
 <link rel="canonical" href="https://flappit.com/legal.html">
+<link rel="alternate" hreflang="es" href="https://flappit.com/legal.html">
+<link rel="alternate" hreflang="en" href="https://flappit.com/en/legal.html">
+<link rel="alternate" hreflang="x-default" href="https://flappit.com/legal.html">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   :root{--bg:#0a0a0c; --panel:#131316; --line:#26262b; --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;}
@@ -39,12 +43,17 @@
     color:#e5dc6a; font-size:13px; font-family:ui-monospace,monospace;}
   .warn{border:1px dashed #444; border-radius:12px; padding:14px 18px; color:var(--muted);
     font-size:13px; margin-bottom:28px;}
+  .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
+  .langSel a{color:#9a9aa2;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid transparent;line-height:1;}
+  .langSel a.on{color:var(--brand,#d7e021);border-color:currentColor;}
+  .langSel a:hover{color:#fff;}
 </style>
 </head>
 <body>
 <div class="navBar"><nav>
   <div class="logo">FLAPPIT <span>SIGNAGE</span></div>
   <a class="back" href="/">← Volver a la web</a>
+  <span class="langSel"><a href="/legal.html" class="on" data-lang="es" onclick="try{localStorage.setItem('flappitLang','es')}catch(e){}">ES</a><a href="/en/legal.html" data-lang="en" onclick="try{localStorage.setItem('flappitLang','en')}catch(e){}">EN</a></span>
 </nav></div>
 
 <div class="wrap">

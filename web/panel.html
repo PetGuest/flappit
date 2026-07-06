@@ -244,35 +244,43 @@
     border-radius:7px; padding:4px 6px; font-size:13px; text-align:center; font-weight:700;}
   #scrMeta input::-webkit-outer-spin-button, #scrMeta input::-webkit-inner-spin-button{margin-left:2px;}
   #scrMeta span{font-size:12px; color:var(--muted);}
+
+  /* selector de idioma */
+  .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
+  .langSel a{color:#9a9aa2;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid transparent;line-height:1;cursor:pointer;}
+  .langSel a.on{color:var(--accent,#d7e021);border-color:currentColor;}
+  .langSel a:hover{color:#fff;}
 </style>
 </head>
 <body>
 
 <div id="authWrap" style="display:none;">
   <div id="authBox">
-    <h1 id="authTitle">Entrar en su panel</h1>
-    <p>El panel controla sus pantallas en tiempo real.</p>
+    <h1 id="authTitle" data-i18n="authTitleLogin">Entrar en su panel</h1>
+    <p data-i18n="authIntro">El panel controla sus pantallas en tiempo real.</p>
+    <div style="margin:0 0 16px;"><span class="langSel"><a data-setlang="es">ES</a><a data-setlang="en">EN</a></span></div>
     <div id="fBizRow" style="display:none;">
-      <label>Nombre del negocio</label>
-      <input type="text" id="aBiz" maxlength="60" placeholder="Hotel Miramar">
+      <label data-i18n="authBizLabel">Nombre del negocio</label>
+      <input type="text" id="aBiz" maxlength="60" placeholder="Hotel Miramar" data-i18n-ph="authBizPh">
     </div>
-    <label>Correo electrónico</label>
-    <input type="email" id="aMail" placeholder="recepcion@sunegocio.com">
-    <label>Contraseña</label>
-    <input type="password" id="aPass" placeholder="Mínimo 8 caracteres">
+    <label data-i18n="authMailLabel">Correo electrónico</label>
+    <input type="email" id="aMail" placeholder="recepcion@sunegocio.com" data-i18n-ph="authMailPh">
+    <label data-i18n="authPassLabel">Contraseña</label>
+    <input type="password" id="aPass" placeholder="Mínimo 8 caracteres" data-i18n-ph="authPassPh">
     <div id="authErr"></div>
-    <button class="go" id="authGo">Entrar</button>
-    <div class="alt" id="authAlt">¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a></div>
+    <button class="go" id="authGo" data-i18n="authGoLogin">Entrar</button>
+    <div class="alt" id="authAlt" data-i18n-html="authAltLogin">¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a></div>
   </div>
 </div>
 
 <header>
   <div class="logo">FLAPPIT <span>SIGNAGE</span></div>
-  <small id="bizName">Panel de control</small>
+  <small id="bizName" data-i18n="bizDefault">Panel de control</small>
   <div id="userBox">
     <span id="planInfo"></span>
     <button id="subBtn"></button>
-    <button id="logoutBtn">Salir</button>
+    <span class="langSel"><a data-setlang="es">ES</a><a data-setlang="en">EN</a></span>
+    <button id="logoutBtn" data-i18n="logout">Salir</button>
   </div>
 </header>
 
@@ -280,95 +288,95 @@
   <div id="payBox">
     <h1 id="payTitle">Tu prueba ha terminado</h1>
     <p id="payMsg">Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.</p>
-    <button class="go" id="payGo">Suscribirme</button>
-    <div class="alt"><a id="payLogout">Salir</a></div>
+    <button class="go" id="payGo" data-i18n="paySubscribe">Suscribirme</button>
+    <div class="alt"><a id="payLogout" data-i18n="logout">Salir</a></div>
   </div>
 </div>
 
 <div id="previewModal">
   <div class="pv">
     <div class="pvbar">
-      <b>VISTA PREVIA — ASÍ SE VERÁ EN LA TV</b>
-      <button id="previewClose" title="Cerrar">✕</button>
+      <b data-i18n="previewBar">VISTA PREVIA — ASÍ SE VERÁ EN LA TV</b>
+      <button id="previewClose" title="Cerrar" data-i18n-title="close">✕</button>
     </div>
-    <iframe id="previewFrame" title="Vista previa de la TV" allow="autoplay"></iframe>
+    <iframe id="previewFrame" title="Vista previa de la TV" data-i18n-title="previewFrameTitle" allow="autoplay"></iframe>
   </div>
 </div>
 
 <div id="layout">
   <aside>
     <div class="card">
-      <h3>Sus pantallas</h3>
+      <h3 data-i18n="cardScreens">Sus pantallas</h3>
       <div id="phList"></div>
       <button id="previewBtn" style="width:100%;padding:11px;border:1px solid var(--accent);border-radius:10px;
         background:transparent;color:var(--accent);font-size:13.5px;font-weight:800;cursor:pointer;
-        letter-spacing:1px;font-family:ui-monospace,monospace;margin-bottom:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg>PREVISUALIZAR AQUÍ</button>
+        letter-spacing:1px;font-family:ui-monospace,monospace;margin-bottom:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg><span data-i18n="previewHere">PREVISUALIZAR AQUÍ</span></button>
       <button id="connectTvBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>CONECTAR MI TV REAL</button>
       <div id="pairBox">
-        <p class="cap" style="margin:0 0 10px;">
+        <p class="cap" style="margin:0 0 10px;" data-i18n-html="pairSteps">
           <b>1.</b> En el televisor, abra el navegador y entre en
           <b style="color:var(--accent);">flappit.com/tv</b><br>
           <b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:
         </p>
         <div id="pairRow">
-          <input id="pairCode" maxlength="4" placeholder="CÓDIGO">
-          <button id="pairBtn">Vincular</button>
+          <input id="pairCode" maxlength="4" placeholder="CÓDIGO" data-i18n-ph="pairCodePh">
+          <button id="pairBtn" data-i18n="pairBtn">Vincular</button>
         </div>
-        <p class="cap" style="margin:8px 0 0;">¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.</p>
+        <p class="cap" style="margin:8px 0 0;" data-i18n-html="pairNoTv">¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.</p>
       </div>
-      <p class="cap" id="noTvHint" style="margin-top:8px;">Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.</p>
+      <p class="cap" id="noTvHint" style="margin-top:8px;" data-i18n="noTvHint">Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.</p>
     </div>
 
     <div class="card">
-      <h3>Configura el panel</h3>
+      <h3 data-i18n="cardConfig">Configura el panel</h3>
       <div class="row">
         <div class="chips" id="format">
-          <button class="chip on" data-v="16:9">TV 16:9</button>
-          <button class="chip" data-v="9:16">Tótem 9:16</button>
+          <button class="chip on" data-v="16:9" data-i18n="fmtTv">TV 16:9</button>
+          <button class="chip" data-v="9:16" data-i18n="fmtTotem">Tótem 9:16</button>
         </div>
       </div>
       <div class="row">
-        <label>Líneas</label>
+        <label data-i18n="lblLines">Líneas</label>
         <input type="range" id="rows" min="3" max="14" step="1" value="11">
         <span class="val" id="rowsVal">11</span>
       </div>
       <div class="row">
-        <label>Letras/línea</label>
+        <label data-i18n="lblCols">Letras/línea</label>
         <input type="range" id="cols" min="10" max="36" step="1" value="33">
         <span class="val" id="colsVal">33</span>
       </div>
       <div class="row">
-        <label class="toggle"><input type="checkbox" id="clock" checked> Reloj (franja inferior)</label>
+        <label class="toggle"><input type="checkbox" id="clock" checked> <span data-i18n="lblClock">Reloj (franja inferior)</span></label>
       </div>
       <div class="row">
-        <label class="toggle"><input type="checkbox" id="logoOn" checked> Logo</label>
-        <input type="text" class="wide" id="logoTxt" value="" maxlength="40" placeholder="Texto del logo">
+        <label class="toggle"><input type="checkbox" id="logoOn" checked> <span data-i18n="lblLogo">Logo</span></label>
+        <input type="text" class="wide" id="logoTxt" value="" maxlength="40" placeholder="Texto del logo" data-i18n-ph="logoTxtPh">
       </div>
       <div class="row" id="logoImgRow">
-        <button class="chip" id="logoUpload">Subir logo (PNG)</button>
-        <button class="chip" id="logoClear" style="display:none;">Quitar logo</button>
+        <button class="chip" id="logoUpload" data-i18n="logoUpload">Subir logo (PNG)</button>
+        <button class="chip" id="logoClear" style="display:none;" data-i18n="logoClear">Quitar logo</button>
         <span class="cap" id="logoImgHint" style="min-width:0;"></span>
       </div>
-      <div class="row"><label>Letras</label><div class="chips" id="txtCol"></div></div>
-      <div class="row"><label>Flaps</label><div class="chips" id="flapCol"></div></div>
+      <div class="row"><label data-i18n="lblLetters">Letras</label><div class="chips" id="txtCol"></div></div>
+      <div class="row"><label data-i18n="lblFlaps">Flaps</label><div class="chips" id="flapCol"></div></div>
       <div class="cap" id="capInfo"></div>
     </div>
 
     <div class="card">
-      <h3>Reproducción</h3>
+      <h3 data-i18n="cardPlayback">Reproducción</h3>
       <div class="row">
-        <label>Transición</label>
+        <label data-i18n="lblTransition">Transición</label>
         <input type="range" id="trans" min="1" max="12" step="1" value="5">
         <span class="val" id="transVal">5 s</span>
       </div>
-      <div class="cap">Larga = más vueltas y espectáculo</div>
+      <div class="cap" data-i18n="capTransition">Larga = más vueltas y espectáculo</div>
       <div class="row" style="margin-top:8px;">
-        <label class="toggle"><input type="checkbox" id="sound"> Sonido de flaps</label>
+        <label class="toggle"><input type="checkbox" id="sound"> <span data-i18n="lblSound">Sonido de flaps</span></label>
       </div>
       <div class="row" style="margin-top:8px;">
-        <label class="toggle"><input type="checkbox" id="loop" checked> Loop infinito</label>
+        <label class="toggle"><input type="checkbox" id="loop" checked> <span data-i18n="lblLoop">Loop infinito</span></label>
       </div>
-      <div class="cap">Si lo apagas, reproduce la secuencia una vez y se queda en la pantalla 1.</div>
+      <div class="cap" data-i18n="capLoop">Si lo apagas, reproduce la secuencia una vez y se queda en la pantalla 1.</div>
     </div>
   </aside>
 
@@ -378,17 +386,311 @@
     <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div></div></div>
     <div id="toolbar">
       <span id="lineInfo">Haz clic en una línea del tablero</span>
-      <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Izq</button>
-      <button class="alnBtn" data-a="center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M6 18h12"/></svg>Centro</button>
-      <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg>Der</button>
+      <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span data-i18n="alignLeft">Izq</span></button>
+      <button class="alnBtn" data-a="center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M7 12h10M6 18h12"/></svg><span data-i18n="alignCenter">Centro</span></button>
+      <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg><span data-i18n="alignRight">Der</span></button>
       <span id="saveDot"></span>
-      <span class="hint">Escribe directamente en el panel · Enter = línea siguiente</span>
+      <span class="hint" data-i18n="toolbarHint">Escribe directamente en el panel · Enter = línea siguiente</span>
     </div>
   </section>
 </div>
 
 <script>
 "use strict";
+
+/* ================= i18n (idioma elegido una vez por carga) ================= */
+var LANG = (function(){ try{ var s=localStorage.getItem('flappitLang'); if(s==='en'||s==='es') return s; var l=(navigator.language||'').toLowerCase(); return l.slice(0,2)==='en' ? 'en' : 'es'; }catch(e){ return 'es'; } })();
+
+const I18N = {
+  es: {
+    /* <head> / cabecera */
+    docTitle: "Flappit — Panel de control",
+    bizDefault: "Panel de control",
+    logout: "Salir",
+    /* acceso */
+    authTitleLogin: "Entrar en su panel",
+    authTitleRegister: "Cree su cuenta",
+    authIntro: "El panel controla sus pantallas en tiempo real.",
+    authBizLabel: "Nombre del negocio",
+    authBizPh: "Hotel Miramar",
+    authMailLabel: "Correo electrónico",
+    authMailPh: "recepcion@sunegocio.com",
+    authPassLabel: "Contraseña",
+    authPassPh: "Mínimo 8 caracteres",
+    authGoLogin: "Entrar",
+    authGoRegister: "Crear cuenta y empezar",
+    authAltLogin: '¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a>',
+    authAltRegister: '¿Ya tiene cuenta? <a id="authSwitch">Entre aquí</a>',
+    authErrLogin: "Correo o contraseña incorrectos.",
+    authErrEmailExists: "Ese correo ya tiene cuenta.",
+    authErrRegister: "Revise los datos (contraseña: mínimo 8).",
+    /* paywall */
+    payTitleTrial: "Tu prueba ha terminado",
+    payTitlePastDue: "Hay un pago pendiente",
+    payMsgTrial: "Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.",
+    payMsgPastDue: "No hemos podido cobrar tu suscripción. Actualiza el pago para seguir emitiendo. Tus contenidos y pantallas se conservan.",
+    paySubscribe: "Suscribirme",
+    /* preview */
+    previewBar: "VISTA PREVIA — ASÍ SE VERÁ EN LA TV",
+    previewFrameTitle: "Vista previa de la TV",
+    close: "Cerrar",
+    /* tarjeta pantallas */
+    cardScreens: "Sus pantallas",
+    previewHere: "PREVISUALIZAR AQUÍ",
+    connectTv: "CONECTAR MI TV REAL",
+    connectAnotherTv: "CONECTAR OTRA TV",
+    pairSteps: '<b>1.</b> En el televisor, abra el navegador y entre en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:',
+    pairCodePh: "CÓDIGO",
+    pairBtn: "Vincular",
+    pairNoTv: '¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.',
+    noTvHint: "Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.",
+    /* tarjeta config */
+    cardConfig: "Configura el panel",
+    fmtTv: "TV 16:9",
+    fmtTotem: "Tótem 9:16",
+    lblLines: "Líneas",
+    lblCols: "Letras/línea",
+    lblClock: "Reloj (franja inferior)",
+    lblLogo: "Logo",
+    logoTxtPh: "Texto del logo",
+    logoUpload: "Subir logo (PNG)",
+    logoClear: "Quitar logo",
+    logoImgActive: "Logo por imagen activo",
+    lblLetters: "Letras",
+    lblFlaps: "Flaps",
+    /* tarjeta reproducción */
+    cardPlayback: "Reproducción",
+    lblTransition: "Transición",
+    capTransition: "Larga = más vueltas y espectáculo",
+    lblSound: "Sonido de flaps",
+    lblLoop: "Loop infinito",
+    capLoop: "Si lo apagas, reproduce la secuencia una vez y se queda en la pantalla 1.",
+    /* toolbar */
+    clickLine: "Haz clic en una línea del tablero",
+    alignLeft: "Izq",
+    alignCenter: "Centro",
+    alignRight: "Der",
+    toolbarHint: "Escribe directamente en el panel · Enter = línea siguiente",
+    editHint: "Haz clic en el panel para escribir tu texto",
+    /* saveDot */
+    saving: "guardando…",
+    sentToScreen: "enviado a la pantalla ✓",
+    draftSaved: "borrador guardado",
+    offline: "sin conexión",
+    /* pantallas físicas (renderPh) */
+    renameTitle: "Renombrar",
+    unlinkTitle: "Desvincular",
+    online: "en línea",
+    offlineDot: "sin conexión",
+    screenNamePrompt: "Nombre de la pantalla:",
+    unlinkConfirm: '¿Desvincular "{n}"? La pantalla volverá a mostrar un código.',
+    /* draft */
+    draftCap: "Borrador — vincule una pantalla y se emitirá lo que ve aquí",
+    /* emparejamiento */
+    codeIs4: "El código tiene 4 letras.",
+    newScreenNamePrompt: "Nombre para esta pantalla:",
+    newScreenDefault: "Lobby",
+    newScreenFallback: "Pantalla",
+    planLimit: "Su plan permite {n} pantalla(s). Amplíe el plan para vincular más.",
+    codeNotFound: "Código no encontrado. ¿La pantalla muestra ese código ahora mismo?",
+    /* toolbar / updateToolbar */
+    mediaImage: "Foto flapizada — se construye flap a flap en la TV",
+    mediaPhoto: "Foto a pantalla completa",
+    mediaVideo: "Vídeo a pantalla completa — se reproduce en la TV",
+    lineInfo: "Línea {n} · <span class='free{cls}'>{r} libres</span>",
+    /* pestañas */
+    tabPhotoFlap: "Foto flap {n}",
+    tabPhoto: "Foto {n}",
+    tabVideo: "Vídeo {n}",
+    tabScreen: "Pantalla {n}",
+    deleteScreenTitle: "Eliminar esta pantalla",
+    deleteScreenConfirm: "¿Eliminar esta pantalla de la secuencia?",
+    addTab: "Añadir",
+    addTabTitle: "Añadir contenido a la secuencia",
+    durVideoFull: "Vídeo completo",
+    durLabel: "Duración de la pantalla",
+    durMin: "min",
+    durSec: "s",
+    /* menú añadir */
+    addMsgTitle: "Mensaje",
+    addMsgDesc: "Texto escrito en el panel split-flap",
+    addPhotoTitle: "Foto",
+    addPhotoDesc: "Se muestra a pantalla completa, tal cual",
+    addFlapTitle: "Foto flapizada",
+    addFlapDesc: "La foto se construye flap a flap (efecto FLAPS)",
+    addVideoTitle: "Vídeo",
+    addVideoDesc: "Se reproduce a pantalla completa",
+    uploadingVideo: "Subiendo vídeo…",
+    videoUploadFail: "No se pudo subir el vídeo{e}.",
+    /* capInfo */
+    capInfo: "{fmt} · {rows} líneas de {cols} letras{clock}",
+    capInfoClock: " — reloj en la franja inferior",
+    /* suscripción */
+    planUno: "1 pantalla",
+    planTres: "3 pantallas",
+    planCadena: "cadena",
+    planPrefix: "Plan ",
+    manageSub: "Gestionar suscripción",
+    subscribe: "Suscribirse",
+    trialDay: "Prueba: {n} día restantes",
+    trialDays: "Prueba: {n} días restantes",
+    pastDue: "Pago pendiente",
+    trialEnded: "Prueba terminada",
+    pricesMissing: "Faltan los precios de Stripe en el servidor.",
+    paymentsNotConfigured: "Los pagos aún no están configurados en el servidor.",
+    noSubToManage: "No hay suscripción que gestionar todavía.",
+    portalError: "No se pudo abrir el portal de suscripción.",
+    /* tablero por defecto */
+    boardWelcome: "BIENVENIDOS",
+    boardTo: "A",
+    boardBiz: "SU NEGOCIO"
+  },
+  en: {
+    docTitle: "Flappit — Control panel",
+    bizDefault: "Control panel",
+    logout: "Log out",
+    authTitleLogin: "Sign in to your panel",
+    authTitleRegister: "Create your account",
+    authIntro: "The panel controls your screens in real time.",
+    authBizLabel: "Business name",
+    authBizPh: "Hotel Miramar",
+    authMailLabel: "Email",
+    authMailPh: "reception@yourbusiness.com",
+    authPassLabel: "Password",
+    authPassPh: "At least 8 characters",
+    authGoLogin: "Sign in",
+    authGoRegister: "Create account and start",
+    authAltLogin: 'No account yet? <a id="authSwitch">Create one in 30 seconds</a>',
+    authAltRegister: 'Already have an account? <a id="authSwitch">Sign in here</a>',
+    authErrLogin: "Wrong email or password.",
+    authErrEmailExists: "That email already has an account.",
+    authErrRegister: "Check your details (password: at least 8).",
+    payTitleTrial: "Your trial has ended",
+    payTitlePastDue: "There's a payment pending",
+    payMsgTrial: "Subscribe to keep broadcasting on your screens. Your content and linked screens are kept.",
+    payMsgPastDue: "We couldn't charge your subscription. Update your payment to keep broadcasting. Your content and screens are kept.",
+    paySubscribe: "Subscribe",
+    previewBar: "PREVIEW — THIS IS HOW IT WILL LOOK ON THE TV",
+    previewFrameTitle: "TV preview",
+    close: "Close",
+    cardScreens: "Your screens",
+    previewHere: "PREVIEW HERE",
+    connectTv: "CONNECT MY REAL TV",
+    connectAnotherTv: "CONNECT ANOTHER TV",
+    pairSteps: '<b>1.</b> On the TV, open the browser and go to <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> The screen will show a <b>4-letter code</b>. Type it here:',
+    pairCodePh: "CODE",
+    pairBtn: "Link",
+    pairNoTv: 'No TV in front of you? <a href="/tv" target="_blank">Open the screen in a tab</a> to try it.',
+    noTvHint: "In the meantime, play around all you like: everything you edit is saved as a draft.",
+    cardConfig: "Set up the panel",
+    fmtTv: "TV 16:9",
+    fmtTotem: "Totem 9:16",
+    lblLines: "Lines",
+    lblCols: "Letters/line",
+    lblClock: "Clock (bottom band)",
+    lblLogo: "Logo",
+    logoTxtPh: "Logo text",
+    logoUpload: "Upload logo (PNG)",
+    logoClear: "Remove logo",
+    logoImgActive: "Image logo active",
+    lblLetters: "Letters",
+    lblFlaps: "Flaps",
+    cardPlayback: "Playback",
+    lblTransition: "Transition",
+    capTransition: "Longer = more spins and spectacle",
+    lblSound: "Flap sound",
+    lblLoop: "Infinite loop",
+    capLoop: "If you turn it off, it plays the sequence once and stays on screen 1.",
+    clickLine: "Click a line on the board",
+    alignLeft: "Left",
+    alignCenter: "Center",
+    alignRight: "Right",
+    toolbarHint: "Type directly on the panel · Enter = next line",
+    editHint: "Click the panel to type your text",
+    saving: "saving…",
+    sentToScreen: "sent to the screen ✓",
+    draftSaved: "draft saved",
+    offline: "offline",
+    renameTitle: "Rename",
+    unlinkTitle: "Unlink",
+    online: "online",
+    offlineDot: "offline",
+    screenNamePrompt: "Screen name:",
+    unlinkConfirm: 'Unlink "{n}"? The screen will show a code again.',
+    draftCap: "Draft — link a screen and it will broadcast what you see here",
+    codeIs4: "The code is 4 letters.",
+    newScreenNamePrompt: "Name for this screen:",
+    newScreenDefault: "Lobby",
+    newScreenFallback: "Screen",
+    planLimit: "Your plan allows {n} screen(s). Upgrade your plan to link more.",
+    codeNotFound: "Code not found. Is the screen showing that code right now?",
+    mediaImage: "Flapized photo — built flap by flap on the TV",
+    mediaPhoto: "Full-screen photo",
+    mediaVideo: "Full-screen video — plays on the TV",
+    lineInfo: "Line {n} · <span class='free{cls}'>{r} free</span>",
+    tabPhotoFlap: "Flap photo {n}",
+    tabPhoto: "Photo {n}",
+    tabVideo: "Video {n}",
+    tabScreen: "Screen {n}",
+    deleteScreenTitle: "Remove this screen",
+    deleteScreenConfirm: "Remove this screen from the sequence?",
+    addTab: "Add",
+    addTabTitle: "Add content to the sequence",
+    durVideoFull: "Full video",
+    durLabel: "Screen duration",
+    durMin: "min",
+    durSec: "s",
+    addMsgTitle: "Message",
+    addMsgDesc: "Text written on the split-flap panel",
+    addPhotoTitle: "Photo",
+    addPhotoDesc: "Shown full-screen, as is",
+    addFlapTitle: "Flapized photo",
+    addFlapDesc: "The photo is built flap by flap (FLAPS effect)",
+    addVideoTitle: "Video",
+    addVideoDesc: "Plays full-screen",
+    uploadingVideo: "Uploading video…",
+    videoUploadFail: "The video could not be uploaded{e}.",
+    capInfo: "{fmt} · {rows} lines of {cols} letters{clock}",
+    capInfoClock: " — clock in the bottom band",
+    planUno: "1 screen",
+    planTres: "3 screens",
+    planCadena: "chain",
+    planPrefix: "Plan ",
+    manageSub: "Manage subscription",
+    subscribe: "Subscribe",
+    trialDay: "Trial: {n} day left",
+    trialDays: "Trial: {n} days left",
+    pastDue: "Payment pending",
+    trialEnded: "Trial ended",
+    pricesMissing: "Stripe prices are missing on the server.",
+    paymentsNotConfigured: "Payments are not set up on the server yet.",
+    noSubToManage: "There's no subscription to manage yet.",
+    portalError: "The subscription portal could not be opened.",
+    boardWelcome: "WELCOME",
+    boardTo: "TO",
+    boardBiz: "YOUR BUSINESS"
+  }
+};
+function t(k){ return (I18N[LANG] && I18N[LANG][k]!=null) ? I18N[LANG][k] : (I18N.es[k]!=null?I18N.es[k]:k); }
+
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.title = t("docTitle");
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-html]").forEach(function(el){ el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ el.placeholder = t(el.getAttribute("data-i18n-ph")); });
+  document.querySelectorAll("[data-i18n-title]").forEach(function(el){ el.title = t(el.getAttribute("data-i18n-title")); });
+  document.querySelectorAll("[data-setlang]").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-setlang")===LANG); });
+}
+document.addEventListener("click", function(e){
+  var a = e.target.closest && e.target.closest("[data-setlang]");
+  if(!a) return;
+  var lang = a.getAttribute("data-setlang");
+  if(lang===LANG) return;
+  try{ localStorage.setItem("flappitLang", lang); }catch(err){}
+  location.reload();
+});
+applyLang();
 
 /* ================= constantes compartidas ================= */
 const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
@@ -406,9 +708,9 @@ function defaultState(biz){
     messages: [
       {secs:15, lines:[
         {text:"", align:"center"},
-        {text:"BIENVENIDOS", align:"center"},
-        {text:"A", align:"center"},
-        {text:(biz||"SU NEGOCIO").toUpperCase().slice(0,24), align:"center"},
+        {text:t("boardWelcome"), align:"center"},
+        {text:t("boardTo"), align:"center"},
+        {text:(biz||t("boardBiz")).toUpperCase().slice(0,24), align:"center"},
         {text:"", align:"center"},
         {text:"", align:"center"},
         {text:"", align:"center"}
@@ -467,12 +769,12 @@ function showAuth(){
 }
 function setAuthMode(m){
   authMode = m;
-  document.getElementById("authTitle").textContent = m==="login" ? "Entrar en su panel" : "Cree su cuenta";
+  document.getElementById("authTitle").textContent = m==="login" ? t("authTitleLogin") : t("authTitleRegister");
   document.getElementById("fBizRow").style.display = m==="login" ? "none" : "block";
-  document.getElementById("authGo").textContent = m==="login" ? "Entrar" : "Crear cuenta y empezar";
+  document.getElementById("authGo").textContent = m==="login" ? t("authGoLogin") : t("authGoRegister");
   document.getElementById("authAlt").innerHTML = m==="login"
-    ? '¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a>'
-    : '¿Ya tiene cuenta? <a id="authSwitch">Entre aquí</a>';
+    ? t("authAltLogin")
+    : t("authAltRegister");
   document.getElementById("authSwitch").addEventListener("click",
     ()=>setAuthMode(authMode==="login"?"register":"login"));
 }
@@ -489,8 +791,8 @@ document.getElementById("authGo").addEventListener("click", async ()=>{
     location.reload();
   }catch(e){
     err.textContent = authMode==="login"
-      ? "Correo o contraseña incorrectos."
-      : (e.data && e.data.error==="email-existe" ? "Ese correo ya tiene cuenta." : "Revise los datos (contraseña: mínimo 8).");
+      ? t("authErrLogin")
+      : (e.data && e.data.error==="email-existe" ? t("authErrEmailExists") : t("authErrRegister"));
   }
 });
 document.getElementById("logoutBtn").addEventListener("click", async ()=>{
@@ -525,8 +827,7 @@ async function loadScreens(){
     syncControls();
     S.messages.forEach(ensureLines);
     buildBoard();
-    document.getElementById("capInfo").textContent =
-      "Borrador — vincule una pantalla y se emitirá lo que ve aquí";
+    document.getElementById("capInfo").textContent = t("draftCap");
   }
 }
 function renderPh(){
@@ -534,7 +835,7 @@ function renderPh(){
   box.innerHTML = "";
   const btn = document.getElementById("connectTvBtn");
   const tvIc = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>';
-  if(btn) btn.innerHTML = SCREENS.length ? tvIc+"CONECTAR OTRA TV" : tvIc+"CONECTAR MI TV REAL";
+  if(btn) btn.innerHTML = SCREENS.length ? tvIc+t("connectAnotherTv") : tvIc+t("connectTv");
   const hint = document.getElementById("noTvHint");
   if(hint) hint.style.display = SCREENS.length ? "none" : "block";
   SCREENS.forEach(s=>{
@@ -542,18 +843,18 @@ function renderPh(){
     d.className = "scrPh"+(curScreen===s.id?" on":"");
     const dot = document.createElement("span");
     dot.className = "dot"+(s.online?" online":"");
-    dot.title = s.online ? "en línea" : "sin conexión";
+    dot.title = s.online ? t("online") : t("offlineDot");
     const nm = document.createElement("span"); nm.className="nm"; nm.textContent = s.name;
-    const ren = document.createElement("button"); ren.innerHTML=IC.pencil; ren.title="Renombrar";
+    const ren = document.createElement("button"); ren.innerHTML=IC.pencil; ren.title=t("renameTitle");
     ren.addEventListener("click", async ev=>{
       ev.stopPropagation();
-      const n = prompt("Nombre de la pantalla:", s.name);
+      const n = prompt(t("screenNamePrompt"), s.name);
       if(n){ await api("PUT","/api/screens/"+s.id,{name:n}); loadScreens(); }
     });
-    const del = document.createElement("button"); del.innerHTML=IC.x; del.title="Desvincular";
+    const del = document.createElement("button"); del.innerHTML=IC.x; del.title=t("unlinkTitle");
     del.addEventListener("click", async ev=>{
       ev.stopPropagation();
-      if(confirm("¿Desvincular \""+s.name+"\"? La pantalla volverá a mostrar un código.")){
+      if(confirm(t("unlinkConfirm").replace("{n}", s.name))){
         await api("DELETE","/api/screens/"+s.id);
         if(curScreen===s.id) curScreen=null;
         loadScreens();
@@ -603,17 +904,17 @@ document.getElementById("connectTvBtn").addEventListener("click", ()=>{
 
 document.getElementById("pairBtn").addEventListener("click", async ()=>{
   const code = document.getElementById("pairCode").value.trim().toUpperCase();
-  if(code.length!==4) return alert("El código tiene 4 letras.");
+  if(code.length!==4) return alert(t("codeIs4"));
   try{
-    const name = prompt("Nombre para esta pantalla:", "Lobby") || "Pantalla";
+    const name = prompt(t("newScreenNamePrompt"), t("newScreenDefault")) || t("newScreenFallback");
     const r = await api("POST","/api/pair",{code, name});
     document.getElementById("pairCode").value = "";
     await loadScreens();
     selectScreen(r.id);
   }catch(e){
     if(e.data && e.data.error==="limite-plan")
-      alert("Su plan permite "+e.data.limit+" pantalla(s). Amplíe el plan para vincular más.");
-    else alert("Código no encontrado. ¿La pantalla muestra ese código ahora mismo?");
+      alert(t("planLimit").replace("{n}", e.data.limit));
+    else alert(t("codeNotFound"));
   }
 });
 setInterval(()=>{ if(ME) loadScreens().catch(()=>{}); }, 20000);
@@ -730,19 +1031,19 @@ function push(){
   try{ localStorage.setItem("flapsDraft", JSON.stringify(S)); }catch(e){}
   pushPreview();
   if(!curScreen){
-    saveDot.textContent = "borrador guardado"; saveDot.className = "saved";
+    saveDot.textContent = t("draftSaved"); saveDot.className = "saved";
     return;
   }
-  saveDot.textContent = "guardando…"; saveDot.className = "saving";
+  saveDot.textContent = t("saving"); saveDot.className = "saving";
   clearTimeout(pushT);
   pushT = setTimeout(async ()=>{
     try{
       await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
-      saveDot.textContent = "enviado a la pantalla ✓"; saveDot.className = "saved";
+      saveDot.textContent = t("sentToScreen"); saveDot.className = "saved";
       flashSent(); // destello visible: el cambio ha salido hacia la TV
       setTimeout(()=>{ saveDot.textContent=""; }, 2000);
     }catch(e){
-      saveDot.textContent = "sin conexión"; saveDot.className = "saving";
+      saveDot.textContent = t("offline"); saveDot.className = "saving";
     }
   }, 400);
 }
@@ -951,7 +1252,7 @@ function renderAll(){
   if(eh){
     if(cur().type){ eh.style.display = "none"; }
     else{
-      eh.innerHTML = IC.pencil + "Haz clic en el panel para escribir tu texto";
+      eh.innerHTML = IC.pencil + t("editHint");
       eh.style.display = "block";
     }
   }
@@ -970,7 +1271,7 @@ function renderAll(){
   renderTabs();
   updateToolbar();
   document.getElementById("capInfo").textContent =
-    S.format+" · "+linesPer(S)+" líneas de "+S.cols+" letras"+(S.clock?" — reloj en la franja inferior":"");
+    t("capInfo").replace("{fmt}", S.format).replace("{rows}", linesPer(S)).replace("{cols}", S.cols).replace("{clock}", S.clock?t("capInfoClock"):"");
 }
 
 function selectLine(j){
@@ -1007,14 +1308,14 @@ function updateToolbar(){
   const info = document.getElementById("lineInfo");
   if(S && isMedia(cur())){
     const t = cur().type;
-    info.textContent = t==="image" ? "Foto flapizada — se construye flap a flap en la TV"
-      : t==="photo" ? "Foto a pantalla completa"
-      : "Vídeo a pantalla completa — se reproduce en la TV";
+    info.textContent = t==="image" ? window.t("mediaImage")
+      : t==="photo" ? window.t("mediaPhoto")
+      : window.t("mediaVideo");
     document.querySelectorAll(".alnBtn").forEach(b=>b.classList.remove("on"));
     return;
   }
   if(!S || selLine<0){
-    info.textContent = "Haz clic en una línea del tablero";
+    info.textContent = window.t("clickLine");
     document.querySelectorAll(".alnBtn").forEach(b=>b.classList.remove("on"));
     return;
   }
@@ -1022,8 +1323,8 @@ function updateToolbar(){
   const ln = cur().lines[selLine];
   const used = normalize(ln.text||"").replace(/\s+$/,"").length;
   const rest = S.cols - used;
-  info.innerHTML = "Línea "+(selLine+1)+" · <span class='free"+
-    (rest<=0?" full":(rest<=3?" warn":""))+"'>"+rest+" libres</span>";
+  const cls = rest<=0?" full":(rest<=3?" warn":"");
+  info.innerHTML = window.t("lineInfo").replace("{n}", selLine+1).replace("{cls}", cls).replace("{r}", rest);
   document.querySelectorAll(".alnBtn").forEach(b=>
     b.classList.toggle("on", b.dataset.a===(ln.align||"center")));
 }
@@ -1052,30 +1353,30 @@ function renderTabs(){
   tabs.innerHTML = "";
   if(!S) return;
   S.messages.forEach((m,i)=>{
-    const t = document.createElement("button");
-    t.className = "tab"+(i===selScr?" on":"");
+    const tb = document.createElement("button");
+    tb.className = "tab"+(i===selScr?" on":"");
     const lab = document.createElement("span");
-    if(m.type==="image")      lab.innerHTML = IC.flap+"Foto flap "+(i+1);
-    else if(m.type==="photo") lab.innerHTML = IC.photo+"Foto "+(i+1);
-    else if(m.type==="video") lab.innerHTML = IC.video+"Vídeo "+(i+1);
-    else                      lab.textContent = "Pantalla "+(i+1);
-    t.appendChild(lab);
-    t.addEventListener("click", ()=>{ selScr=i; selLine=-1; buildBoard(); });
+    if(m.type==="image")      lab.innerHTML = IC.flap+t("tabPhotoFlap").replace("{n}", i+1);
+    else if(m.type==="photo") lab.innerHTML = IC.photo+t("tabPhoto").replace("{n}", i+1);
+    else if(m.type==="video") lab.innerHTML = IC.video+t("tabVideo").replace("{n}", i+1);
+    else                      lab.textContent = t("tabScreen").replace("{n}", i+1);
+    tb.appendChild(lab);
+    tb.addEventListener("click", ()=>{ selScr=i; selLine=-1; buildBoard(); });
     // X de borrar, integrada en cada pestaña (así se entiende qué se elimina)
     const x = document.createElement("span");
-    x.className = "tabx"; x.innerHTML = IC.x; x.title = "Eliminar esta pantalla";
+    x.className = "tabx"; x.innerHTML = IC.x; x.title = t("deleteScreenTitle");
     x.addEventListener("click", ev=>{
       ev.stopPropagation();
-      if(confirm("¿Eliminar esta pantalla de la secuencia?")) deleteMsg(i);
+      if(confirm(t("deleteScreenConfirm"))) deleteMsg(i);
     });
-    t.appendChild(x);
-    tabs.appendChild(t);
+    tb.appendChild(x);
+    tabs.appendChild(tb);
   });
 
   // un único botón "+ Añadir" con un menú claro de tipos de contenido
   const add = document.createElement("button");
-  add.className = "tab addT"; add.innerHTML = IC.plus+"Añadir";
-  add.title = "Añadir contenido a la secuencia";
+  add.className = "tab addT"; add.innerHTML = IC.plus+t("addTab");
+  add.title = t("addTabTitle");
   add.addEventListener("click", e=>{ e.stopPropagation(); openAddMenu(add); });
   tabs.appendChild(add);
 
@@ -1083,17 +1384,17 @@ function renderTabs(){
   const meta = document.createElement("div");
   meta.id = "scrMeta";
   if(cur().type==="video"){
-    const vlbl = document.createElement("span"); vlbl.className = "durLbl"; vlbl.textContent = "Vídeo completo";
+    const vlbl = document.createElement("span"); vlbl.className = "durLbl"; vlbl.textContent = t("durVideoFull");
     meta.appendChild(vlbl);
   } else {
-    const lbl = document.createElement("span"); lbl.className = "durLbl"; lbl.textContent = "Duración de la pantalla";
+    const lbl = document.createElement("span"); lbl.className = "durLbl"; lbl.textContent = t("durLabel");
     const total = cur().secs || (cur().type==="photo" ? 12 : 20);
     const mIn = document.createElement("input");
     mIn.type = "number"; mIn.min = 0; mIn.max = 60; mIn.value = Math.floor(total/60);
-    const mLbl = document.createElement("span"); mLbl.textContent = "min";
+    const mLbl = document.createElement("span"); mLbl.textContent = t("durMin");
     const sIn = document.createElement("input");
     sIn.type = "number"; sIn.min = 0; sIn.max = 59; sIn.value = total%60;
-    const sLbl = document.createElement("span"); sLbl.textContent = "s";
+    const sLbl = document.createElement("span"); sLbl.textContent = t("durSec");
     const applyDur = ()=>{
       const mm = Math.max(0, Math.min(60, Math.floor(+mIn.value||0)));
       const ss = Math.max(0, Math.min(59, Math.floor(+sIn.value||0)));
@@ -1140,16 +1441,16 @@ function openAddMenu(anchor){
     b.addEventListener("click", ()=>{ closeAddMenu(); fn(); });
     menu.appendChild(b);
   };
-  item(IC.text, "Mensaje", "Texto escrito en el panel split-flap", ()=>{
+  item(IC.text, t("addMsgTitle"), t("addMsgDesc"), ()=>{
     S.messages.push({secs:20, lines:[]}); gotoLast();
   });
   const sep = document.createElement("div"); sep.className = "sep"; menu.appendChild(sep);
-  item(IC.photo, "Foto", "Se muestra a pantalla completa, tal cual", ()=>{
+  item(IC.photo, t("addPhotoTitle"), t("addPhotoDesc"), ()=>{
     pickFile("image/*", f=> loadPhotoData(f, 1920, 0.82, url=>{
       S.messages.push({type:"photo", img:url, secs:12}); gotoLast();
     }));
   });
-  item(IC.flap, "Foto flapizada", "La foto se construye flap a flap (efecto FLAPS)", ()=>{
+  item(IC.flap, t("addFlapTitle"), t("addFlapDesc"), ()=>{
     pickFile("image/*", f=> loadPhoto(f, url=>{
       S.messages.push({type:"image", img:url, secs:20}); gotoLast();
     }));
@@ -1263,7 +1564,7 @@ function syncLogoUI(){
   const hint = document.getElementById("logoImgHint");
   const txt = document.getElementById("logoTxt");
   if(clr) clr.style.display = has ? "inline-block" : "none";
-  if(hint) hint.textContent = has ? "Logo por imagen activo" : "";
+  if(hint) hint.textContent = has ? t("logoImgActive") : "";
   if(txt) txt.style.opacity = has ? "0.4" : "1";
 }
 document.getElementById("logoUpload").addEventListener("click", ()=>{
@@ -1284,7 +1585,7 @@ window.addEventListener("resize", ()=>{ if(S){ selLine=-1; buildBoard(); } });
 setInterval(()=>{ if(clockEl) clockEl.textContent = clockLine(); }, 30000);
 
 /* ================= suscripción ================= */
-const PLAN_LABEL = {uno:"1 pantalla", tres:"3 pantallas", cadena:"cadena"};
+const PLAN_LABEL = {uno:t("planUno"), tres:t("planTres"), cadena:t("planCadena")};
 function renderSub(){
   if(!ME) return;
   const info = document.getElementById("planInfo");
@@ -1292,22 +1593,22 @@ function renderSub(){
   info.className = ""; btn.className = ""; btn.style.display = "none"; btn.onclick = null;
   const st = ME.sub_status;
   if(st==="active" || st==="trialing"){
-    info.textContent = "Plan "+(PLAN_LABEL[ME.plan]||ME.plan);
+    info.textContent = t("planPrefix")+(PLAN_LABEL[ME.plan]||ME.plan);
     if(ME.has_customer){
-      btn.textContent = "Gestionar suscripción"; btn.className = "ghost";
+      btn.textContent = t("manageSub"); btn.className = "ghost";
       btn.style.display = "inline-block"; btn.onclick = openPortal;
     }
     hidePaywall();
   } else if(ME.entitled){ // prueba vigente
     const d = Math.max(0, Math.ceil((ME.trial_until - Date.now())/86400000));
-    info.textContent = "Prueba: "+d+(d===1?" día":" días")+" restantes";
+    info.textContent = (d===1?t("trialDay"):t("trialDays")).replace("{n}", d);
     if(d<=5) info.className = "warn";
-    btn.textContent = "Suscribirse"; btn.style.display = "inline-block"; btn.onclick = startCheckout;
+    btn.textContent = t("subscribe"); btn.style.display = "inline-block"; btn.onclick = startCheckout;
     hidePaywall();
   } else { // sin acceso: prueba caducada, pago pendiente o cancelada
-    info.textContent = st==="past_due" ? "Pago pendiente" : "Prueba terminada";
+    info.textContent = st==="past_due" ? t("pastDue") : t("trialEnded");
     info.className = "warn";
-    btn.textContent = "Suscribirse"; btn.style.display = "inline-block"; btn.onclick = startCheckout;
+    btn.textContent = t("subscribe"); btn.style.display = "inline-block"; btn.onclick = startCheckout;
     showPaywall(st);
   }
 }
@@ -1316,23 +1617,23 @@ async function startCheckout(){
     const r = await api("GET","/api/subscribe");
     if(r.url){ location.href = r.url; return; }
     alert(r.note==="precio-no-configurado"
-      ? "Faltan los precios de Stripe en el servidor."
-      : "Los pagos aún no están configurados en el servidor.");
+      ? t("pricesMissing")
+      : t("paymentsNotConfigured"));
   }catch(e){}
 }
 async function openPortal(){
   try{
     const r = await api("GET","/api/portal");
     if(r.url){ location.href = r.url; return; }
-    alert("No hay suscripción que gestionar todavía.");
-  }catch(e){ alert("No se pudo abrir el portal de suscripción."); }
+    alert(t("noSubToManage"));
+  }catch(e){ alert(t("portalError")); }
 }
 function showPaywall(st){
   document.getElementById("payTitle").textContent =
-    st==="past_due" ? "Hay un pago pendiente" : "Tu prueba ha terminado";
+    st==="past_due" ? t("payTitlePastDue") : t("payTitleTrial");
   document.getElementById("payMsg").textContent = st==="past_due"
-    ? "No hemos podido cobrar tu suscripción. Actualiza el pago para seguir emitiendo. Tus contenidos y pantallas se conservan."
-    : "Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.";
+    ? t("payMsgPastDue")
+    : t("payMsgTrial");
   document.getElementById("payGo").onclick =
     (st==="past_due" && ME && ME.has_customer) ? openPortal : startCheckout;
   document.getElementById("payWrap").style.display = "flex";

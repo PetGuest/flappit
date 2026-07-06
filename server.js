@@ -204,6 +204,7 @@ app.use(express.static(path.join(__dirname, "web")));
 app.use("/media", express.static(MEDIA_DIR, {maxAge:"7d", immutable:true})); // vídeos subidos
 app.get("/tv", (req,res)=>res.sendFile(path.join(__dirname,"web","tv.html")));
 app.get("/panel", (req,res)=>res.sendFile(path.join(__dirname,"web","panel.html")));
+app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","index.html"))); // landing en inglés (URL limpia)
 
 /* ---- cuentas ---- */
 app.post("/api/register", (req,res)=>{
