@@ -88,6 +88,7 @@
 
   section{padding:64px 0 10px;}
   h2{font-size:clamp(22px,3vw,34px); margin:0 0 8px; font-weight:800; text-align:center;}
+  h2 em{color:var(--brand); font-style:normal;}
   .sub{color:var(--muted); text-align:center; max-width:620px; margin:0 auto 40px; font-size:16px;}
 
   /* cómo funciona — iconográfico, sin cajas */
@@ -137,7 +138,7 @@
   .uses{max-width:900px; margin:0 auto; columns:2; column-gap:50px;}
   @media(max-width:640px){ .uses{columns:1;} }
   .use{break-inside:avoid; padding:16px 0; border-bottom:1px solid var(--line);}
-  .use h3{margin:0 0 4px; font-size:clamp(19px,2.3vw,25px); font-weight:800; line-height:1.12;}
+  .use h3{margin:0 0 4px; font-size:clamp(19px,2.3vw,25px); font-weight:800; line-height:1.12; color:var(--brand);}
   .use p{color:var(--muted); font-size:13.5px; margin:0 0 7px;}
   .use .ex{font-family:ui-monospace,monospace; font-size:12px; color:var(--brand); letter-spacing:1px;}
 
@@ -276,8 +277,8 @@
 
 <div class="wrap">
   <div class="hero">
-    <h1>Convierta cualquier pantalla en un panel informativo <em>espectacular</em>.</h1>
-    <p style="color:var(--text); font-weight:700; font-size:clamp(16px,2.2vw,22px); max-width:660px; margin:0 auto 14px;">Mensajes que giran. Huéspedes que miran. Una recepción con más magia.</p>
+    <h1>Convierta cualquier pantalla en un<br><em>panel informativo espectacular.</em></h1>
+    <p style="color:var(--text); font-weight:700; font-size:clamp(15px,2vw,21px); max-width:none; margin:0 auto 14px;">Mensajes que giran. Huéspedes que miran. Una recepción con más magia.</p>
     <p>Flappit lleva el encanto de los antiguos paneles de aeropuerto a la televisión que ya tiene en su lobby. Escriba desde el móvil de recepción y el mensaje aparece al instante, girando letra a letra, con su clac-clac inconfundible.<br><b style="color:var(--text);">Sin instalación. Sin obras. Sin técnico.</b></p>
     <button class="cta" onclick="location.href='/panel'">Escribir mi primer mensaje</button>
     <button class="cta ghost" style="margin-left:10px;" onclick="location.href='#how'">Ver cómo funciona</button>
@@ -292,7 +293,7 @@
   </div>
 
   <section id="insitu">
-    <h2>Una pantalla que deja de pasar desapercibida.</h2>
+    <h2>Una pantalla que <em>deja de pasar desapercibida</em>.</h2>
     <p class="sub">La televisión de la pared ya no muestra un cartel más. Ahora recibe, anuncia, sorprende y acompaña la espera con el movimiento hipnótico de un panel split-flap. Cada bienvenida, cada horario y cada aviso se convierte en un pequeño momento de atención.</p>
     <div class="lobby">
       <img src="lobby.jpg" alt="" onerror="this.remove()">
@@ -327,7 +328,7 @@
   </section>
 
   <section id="how">
-    <h2>Tan fácil como abrir una web en la televisión.</h2>
+    <h2><em>Fácil, muy fácil.</em> Tan fácil como abrir una web en tu televisión.</h2>
     <p class="sub">Si su equipo sabe poner Netflix en la TV del hotel, sabe usar Flappit.</p>
     <div class="steps conn">
       <div class="step">
@@ -352,7 +353,7 @@
 
 <div id="try">
   <div class="wrap">
-    <h2>Pruebe el efecto Flappit.</h2>
+    <h2>Pruebe el efecto <em>Flappit</em>.</h2>
     <p class="sub">Escriba el nombre de su hotel, una bienvenida o un mensaje especial. Pulse girar y vea cómo la pantalla cobra vida con el sonido clásico de los paneles de aeropuerto.</p>
     <div class="tryBoard"><canvas id="tryCv"></canvas></div>
     <div class="tryRow">
@@ -367,7 +368,7 @@
 
 <div class="wrap">
   <section id="content">
-    <h2>Mucho más que un cartel bonito.</h2>
+    <h2><em>Mucho más</em> que un cartel bonito.</h2>
     <p class="sub">Flappit convierte su pantalla en un punto de atención vivo. Puede mostrar mensajes, fotografías y vídeos en una secuencia programada, cambiarlos cuando quiera y mantener siempre el lobby actualizado.</p>
     <div class="ctypes">
       <div class="ctype">
@@ -396,17 +397,17 @@
     <h2>Pensado para lugares donde la gente espera, entra o mira.</h2>
     <p class="sub">Donde antes había una pantalla apagada o un cartel estático, Flappit crea un momento de atención.</p>
     <div class="uses">
-      <div class="use"><h3>Hoteles</h3><p>Bienvenidas con nombre, horarios de desayuno, eventos del día, check-in de grupos, recomendaciones locales o despedidas especiales.</p><span class="ex">BIENVENIDO SR. GARCÍA</span></div>
-      <div class="use"><h3>Clínicas</h3><p>Turnos, consultas, avisos de sala y mensajes de orientación con una estética más cálida y menos fría.</p><span class="ex">DRA. RUIZ · CONSULTA 3</span></div>
-      <div class="use"><h3>Gimnasios</h3><p>Clases del día, retos de socios, horarios, avisos y mensajes motivacionales para zonas de paso.</p><span class="ex">18H · SPINNING · SALA 2</span></div>
-      <div class="use"><h3>Restaurantes y cafés</h3><p>Menú del día, platos especiales, productos agotados, promociones o mensajes de bienvenida.</p><span class="ex">MENÚ DEL DÍA · 14,50 €</span></div>
-      <div class="use"><h3>Comercios</h3><p>Ofertas, novedades, horarios, lanzamientos o escaparates dinámicos que invitan a detenerse.</p><span class="ex">REBAJAS · -30%</span></div>
-      <div class="use"><h3>Oficinas y eventos</h3><p>Agenda de salas, bienvenida a visitas, cuenta atrás, acreditaciones o información para asistentes.</p><span class="ex">SALA A · JUNTA 10H</span></div>
+      <div class="use"><h3>Hoteles</h3><p>Bienvenidas con nombre, horarios de desayuno, eventos del día, check-in de grupos, recomendaciones locales o despedidas especiales.</p></div>
+      <div class="use"><h3>Clínicas</h3><p>Turnos, consultas, avisos de sala y mensajes de orientación con una estética más cálida y menos fría.</p></div>
+      <div class="use"><h3>Gimnasios</h3><p>Clases del día, retos de socios, horarios, avisos y mensajes motivacionales para zonas de paso.</p></div>
+      <div class="use"><h3>Restaurantes y cafés</h3><p>Menú del día, platos especiales, productos agotados, promociones o mensajes de bienvenida.</p></div>
+      <div class="use"><h3>Comercios</h3><p>Ofertas, novedades, horarios, lanzamientos o escaparates dinámicos que invitan a detenerse.</p></div>
+      <div class="use"><h3>Oficinas y eventos</h3><p>Agenda de salas, bienvenida a visitas, cuenta atrás, acreditaciones o información para asistentes.</p></div>
     </div>
   </section>
 
   <section>
-    <h2>Todo lo que necesita. Nada que instalar.</h2>
+    <h2>Todo lo que necesita. <em>Nada que instalar.</em></h2>
     <p class="sub"></p>
     <div class="featTicker"><canvas id="featCv"></canvas></div>
     <div class="feats">
@@ -422,7 +423,7 @@
   </section>
 
   <section id="prices">
-    <h2>Precios sencillos. Magia desde el primer día.</h2>
+    <h2>Precios sencillos. <em>Magia desde el primer día.</em></h2>
     <p class="sub">Empiece con 7 días de prueba gratis, sin tarjeta. Sin permanencia: cancele cuando quiera con 2 clics.</p>
     <div class="billing">
       <button class="on" data-b="m">Mensual</button>
