@@ -98,14 +98,20 @@ function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor){
   const cx = x+w/2;
   const font = `400 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
   if(LITE){
-    // MODO LIGERO: relleno plano de las dos mitades + la letra + junta central. Sin
-    // degradados, brillos, filetes ni bisagras por celda → muchísimo más barato por fotograma.
-    ctx.fillStyle = shade(flap, 1.05); ctx.fillRect(fx, fy, fw, half);
-    ctx.fillStyle = shade(flap, 1.2);  ctx.fillRect(fx, fy+half, fw, fh-half);
+    // MODO LIGERO: solo rellenos planos (nada de degradados, clips, transformaciones ni
+    // bisagras por celda, que es lo caro). Conserva los matices clave con rectángulos:
+    // contraste entre mitades, media sombra de la superior y junta central marcada.
+    ctx.fillStyle = shade(flap, 1.05); ctx.fillRect(fx, fy, fw, half);          // mitad superior
+    ctx.fillStyle = shade(flap, 1.2);  ctx.fillRect(fx, fy+half, fw, fh-half);  // inferior (20% más clara)
     const ch = p < 0.5 ? prevC : curC;
     ctx.fillStyle = txtColor; ctx.font = font; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.save(); ctx.translate(cx, fy+half+fh*0.02); ctx.scale(0.74, 1); ctx.fillText(ch, 0, 0); ctx.restore();
-    ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fillRect(fx, fy+half-Math.max(1,h*0.012), fw, Math.max(1.5, h*0.024));
+    // media sombra de la mitad superior: 3 bandas planas que se desvanecen (imita el degradado)
+    ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(fx, fy,              fw, half*0.40);
+    ctx.fillStyle = "rgba(0,0,0,0.14)"; ctx.fillRect(fx, fy+half*0.40,    fw, half*0.35);
+    ctx.fillStyle = "rgba(0,0,0,0.06)"; ctx.fillRect(fx, fy+half*0.75,    fw, half*0.25);
+    // junta central (separa mitad superior e inferior)
+    ctx.fillStyle = "rgba(0,0,0,0.78)"; ctx.fillRect(fx, fy+half-Math.max(1,h*0.014), fw, Math.max(1.5, h*0.028));
     return;
   }
   function halfPath(top){
@@ -295,12 +301,16 @@ function probeLite(){
   const q = new URLSearchParams(location.search).get("lite");
   if(q === "1"){ LITE = true; return; }
   if(q === "0"){ LITE = false; return; }
-  const mm = mediaMode; mediaMode = null; // medir el dibujo del tablero (no una foto)
-  const t0 = performance.now();
-  render(performance.now()); render(performance.now());
-  const dt = (performance.now() - t0) / 2;
+  const mm = mediaMode; mediaMode = null; // medir el coste de la versión COMPLETA del tablero
+  render(performance.now()); // calentamiento (compila caminos/JIT; no se cronometra)
+  let sum = 0; const N = 4;
+  for(let i=0;i<N;i++){ const t = performance.now(); render(performance.now()); sum += performance.now() - t; }
   mediaMode = mm;
-  LITE = dt > 20; // >20 ms por fotograma (<50 fps) => navegador flojo => modo ligero
+  const avg = sum / N;
+  // Si la versión completa (lujosa) no aguanta ~55 fps en este aparato, pasamos a modo ligero.
+  // Umbral 18 ms con margen amplio: un PC/stick potente pinta en <10 ms (queda completo);
+  // una tele floja pinta en 40-80 ms (queda ligero). El hueco es grande => decisión estable.
+  LITE = avg > 18;
 }
 
 function stepTime(cell, n){
@@ -640,14 +650,14 @@ function showCurrent(){
   mediaMode = null; plainImg = null;
   prevImg = curImg; prevImgBuf = curImgBuf; // si veníamos de una foto flapizada, las paletas la retiran flip a flip
   if(m.type==="image" && m.img){
+    if(LITE){ showPhotoItem(m); return; } // en modo ligero la foto se muestra plana (sin flapear), fluida y sin colgarse
     const im = imgCache[msgIdx];
     if(!im || !im.complete){
       if(im) im.onload = ()=>showCurrent();
       return;
     }
     curImg = im; curImgBuf = buildImgBuffer(im);
-    if(LITE){ for(const cell of cells){ cell.done = true; cell.cur = 0; } render(performance.now()); } // foto directa (sin construcción pesada)
-    else transitionImage(randomTargets());
+    transitionImage(randomTargets());
   } else {
     curImg = null; curImgBuf = null;
     transition(targetsFor(m.lines, S));
