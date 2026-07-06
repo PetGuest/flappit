@@ -1,0 +1,21 @@
+# Flappit
+
+> Flappit convierte cualquier pantalla o televisor en un panel split-flap de aeropuerto (letras giratorias con su "clac-clac") para recepciones de hoteles, clínicas, gimnasios, restaurantes y comercios. Se gestiona desde el móvil, sin instalación ni técnico, por suscripción.
+
+## Qué es
+- Cartelería digital / señalización digital tipo split-flap para pantallas de recepción, lobby y espacios con público.
+- Muestra mensajes de texto giratorios, fotografías y vídeos en una secuencia programada. Sonido clac-clac opcional.
+- Funciona en cualquier Smart TV con navegador (o con un stick HDMI ya configurado). Horizontal o vertical (tótems).
+- Se controla desde el móvil o el ordenador de recepción, sin conocimientos técnicos. Si se cae internet, mantiene el último contenido.
+
+## Precios
+- Una pantalla: 19 €/mes. Hasta 3 pantallas: 39 €/mes. Cadenas y grupos: a medida.
+- 14 días de prueba gratis, sin permanencia, cancelable con 2 clics.
+
+## Para quién
+- Hoteles y alojamientos turísticos, clínicas, gimnasios, restaurantes y cafés, comercios, oficinas y eventos.
+
+## Enlaces
+- Web: https://flappit.com/
+- Instalación paso a paso: https://flappit.com/instalacion.html
+- Contacto: hello@flappit.com
