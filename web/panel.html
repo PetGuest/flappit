@@ -136,6 +136,21 @@
   #saveDot{font-size:11px; color:var(--muted); font-family:ui-monospace,monospace;}
   #saveDot.saving{color:var(--warn);}
   #saveDot.saved{color:var(--ok);}
+  /* botón de envío explícito a la pantalla: apagado sin cambios, encendido con cambios pendientes */
+  #updateBtn{display:none; align-items:center; margin-left:6px; border:1px solid var(--line);
+    border-radius:var(--r-sm); padding:6px 15px; cursor:pointer; font-size:12px; font-weight:800;
+    letter-spacing:.6px; font-family:ui-monospace,monospace; text-transform:uppercase;
+    background:var(--panel-2); color:var(--muted);
+    transition:background .18s, color .18s, box-shadow .18s, transform .12s;}
+  #updateBtn:disabled{cursor:default; opacity:.5;}
+  #updateBtn.dirty{background:linear-gradient(180deg, #e6ef3a, var(--accent)); color:var(--accent-ink);
+    border-color:transparent; opacity:1;
+    box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,0.35);
+    animation:pubPulse 1.8s ease-in-out infinite;}
+  #updateBtn.dirty:active{transform:scale(0.96);}
+  @keyframes pubPulse{
+    0%,100%{box-shadow:0 0 8px rgba(215,224,33,0.25);}
+    50%{box-shadow:0 0 20px rgba(215,224,33,0.55);} }
   /* destello de "enviado a la pantalla": pulso breve del color de marca sobre el tablero */
   #sentFlash{position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     background:var(--accent); opacity:0; z-index:6;}
@@ -493,6 +508,7 @@
       <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg><span data-i18n="alignRight">Der</span></button>
       <button class="alnBtn" id="clearBtn" data-i18n-title="clearScreenTitle" title="Borra todo el texto de esta pantalla"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8.5L3 14.5a2 2 0 0 1 0-2.8l7-7a2 2 0 0 1 2.8 0l6 6a2 2 0 0 1 0 2.8L15 20"/><path d="M9 11l5 5"/></svg><span data-i18n="clearScreen">Vaciar</span></button>
       <span id="saveDot"></span>
+      <button id="updateBtn" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg><span data-i18n="updateScreen">Actualizar pantalla</span></button>
       <span class="hint" data-i18n="toolbarHint">Escribe directamente en el panel · Enter = línea siguiente</span>
     </div>
   </section>
@@ -581,8 +597,11 @@ const I18N = {
     toolbarHint: "Escribe directamente en el panel · Enter = línea siguiente",
     editHint: "Haz clic en el panel para escribir tu texto",
     /* saveDot */
-    saving: "guardando…",
+    saving: "enviando…",
     sentToScreen: "enviado a la pantalla ✓",
+    unsent: "cambios sin enviar",
+    updateScreen: "Actualizar pantalla",
+    confirmUnsent: "Hay cambios sin enviar en esta pantalla. ¿Enviarlos antes de cambiar? (Cancelar los descarta)",
     draftSaved: "borrador guardado",
     badgeUpdated: "ACTUALIZADO ✓",
     badgeSaved: "GUARDADO ✓",
@@ -723,8 +742,11 @@ const I18N = {
     clearScreenConfirm: "Clear all text on this screen?",
     toolbarHint: "Type directly on the panel · Enter = next line",
     editHint: "Click the panel to type your text",
-    saving: "saving…",
+    saving: "sending…",
     sentToScreen: "sent to the screen ✓",
+    unsent: "unsent changes",
+    updateScreen: "Update screen",
+    confirmUnsent: "There are unsent changes on this screen. Send them before switching? (Cancel discards them)",
     draftSaved: "draft saved",
     badgeUpdated: "UPDATED ✓",
     badgeSaved: "SAVED ✓",
@@ -938,6 +960,7 @@ const IC = {
 async function loadScreens(){
   SCREENS = await api("GET","/api/screens");
   renderPh();
+  updatePubBtn();
   if(SCREENS.length && !curScreen) selectScreen(SCREENS[0].id);
   if(!SCREENS.length && !S){
     // modo borrador: se puede montar y editar el panel antes de vincular la TV
@@ -1041,6 +1064,11 @@ document.getElementById("pairBtn").addEventListener("click", async ()=>{
 setInterval(()=>{ if(ME) loadScreens().catch(()=>{}); }, 20000);
 
 async function selectScreen(id){
+  if(dirty && curScreen && id!==curScreen){
+    // hay ediciones sin enviar en la pantalla actual: ofrecer enviarlas antes de cambiar
+    if(confirm(t("confirmUnsent"))) await publish();
+  }
+  dirty = false;
   curScreen = id;
   renderPh();
   const r = await api("GET","/api/screens/"+id+"/state");
@@ -1050,11 +1078,13 @@ async function selectScreen(id){
   syncControls();
   S.messages.forEach(ensureLines);
   buildBoard();
-  if(!r.state || migratedGrid) push(); // emite el estado inicial, o guarda+envía la migración 31→33
+  saveDot.textContent = "";
+  updatePubBtn();
+  if(!r.state || migratedGrid) publish(); // emite el estado inicial, o envía la migración 31→33
 }
 
 /* ================= estado del panel ================= */
-let S = null, pushT = null;
+let S = null, dirty = false;
 let selScr = 0, selLine = -1;
 let migratedGrid = false; // true si migrate() acaba de subir una pantalla del antiguo 31×11 al nuevo 33×11
 
@@ -1153,28 +1183,46 @@ function flashSaved(msg){
   b.textContent = msg;
   b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); // reinicia la animación
 }
+/* push(): guarda el borrador en local y refresca la previsualización. NO envía a la
+   pantalla ni parpadea — la edición es tranquila. El envío es explícito: publish(). */
 function push(){
   if(!S) return;
   try{ localStorage.setItem("flapsDraft", JSON.stringify(S)); }catch(e){}
   pushPreview();
   if(!curScreen){
     saveDot.textContent = t("draftSaved"); saveDot.className = "saved";
-    flashSaved(t("badgeSaved")); // borrador guardado localmente
     return;
   }
-  saveDot.textContent = t("saving"); saveDot.className = "saving";
-  clearTimeout(pushT);
-  pushT = setTimeout(async ()=>{
-    try{
-      await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
-      saveDot.textContent = t("sentToScreen"); saveDot.className = "saved";
-      flashSent(); flashSaved(t("badgeUpdated")); // destello + insignia: quedó grabado en la pantalla
-      setTimeout(()=>{ saveDot.textContent=""; }, 2000);
-    }catch(e){
-      saveDot.textContent = t("offline"); saveDot.className = "saving";
-    }
-  }, 400);
+  dirty = true;
+  saveDot.textContent = t("unsent"); saveDot.className = "saving";
+  updatePubBtn();
 }
+/* publish(): envía el estado a la pantalla vinculada. Único momento con destello + insignia. */
+async function publish(){
+  if(!S || !curScreen) return;
+  saveDot.textContent = t("saving"); saveDot.className = "saving";
+  try{
+    await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
+    dirty = false;
+    saveDot.textContent = t("sentToScreen"); saveDot.className = "saved";
+    flashSent(); flashSaved(t("badgeUpdated"));
+    setTimeout(()=>{ if(!dirty) saveDot.textContent=""; }, 2000);
+  }catch(e){
+    saveDot.textContent = t("offline"); saveDot.className = "saving";
+  }
+  updatePubBtn();
+}
+function updatePubBtn(){
+  const b = document.getElementById("updateBtn");
+  if(!b) return;
+  b.style.display = curScreen ? "inline-flex" : "none";
+  b.classList.toggle("dirty", dirty);
+  b.disabled = !dirty;
+}
+document.getElementById("updateBtn").addEventListener("click", publish);
+window.addEventListener("beforeunload", e=>{
+  if(dirty && curScreen){ e.preventDefault(); e.returnValue = ""; }
+});
 
 /* ================= editor sobre el tablero ================= */
 const board = document.getElementById("board");
@@ -1303,16 +1351,17 @@ function renderRow(j){
   if(!row) return;
   ensureLines(cur());
   const ln = cur().lines[j];
-  const text = normalize(ln.text||"").slice(0,S.cols).replace(/\s+$/,"");
+  const raw = normalize(ln.text||"").slice(0,S.cols);   // con espacios finales: son casillas reales
+  const text = raw.replace(/\s+$/,"");                  // el pintado los omite (no mueven el centrado)
   const st = lineStart(text, ln.align||"center", S.cols);
-  const caretPos = Math.min(S.cols-1, st+text.length);
+  const caretPos = Math.min(S.cols-1, st+raw.length);   // el cursor SÍ avanza con los espacios
   [...row.children].forEach((cell,c)=>{
     const ch = (c>=st && c<st+text.length) ? text[c-st] : " ";
     let sp = cell.firstElementChild;
     if(!sp || !sp.classList.contains("ch")){ cell.textContent = ""; sp = document.createElement("span"); sp.className = "ch"; cell.appendChild(sp); }
     sp.textContent = ch===" " ? " " : ch;
     cell.classList.toggle("caret",
-      j===selLine && document.activeElement===hiddenInput && c===caretPos && text.length<S.cols);
+      j===selLine && document.activeElement===hiddenInput && c===caretPos && raw.length<S.cols);
   });
   row.classList.toggle("selected", j===selLine);
 }
@@ -1426,7 +1475,8 @@ hiddenInput.addEventListener("input", ()=>{
   push();
 });
 hiddenInput.addEventListener("keydown", e=>{
-  if(e.key==="Enter" || e.key==="ArrowDown"){ e.preventDefault(); selectLine(Math.min(linesPer(S)-1, selLine+1)); }
+  if((e.metaKey||e.ctrlKey) && e.key==="Enter"){ e.preventDefault(); publish(); } // Cmd/Ctrl+Enter = actualizar
+  else if(e.key==="Enter" || e.key==="ArrowDown"){ e.preventDefault(); selectLine(Math.min(linesPer(S)-1, selLine+1)); }
   else if(e.key==="ArrowUp"){ e.preventDefault(); selectLine(Math.max(0, selLine-1)); }
   else if(e.key==="Escape"){ hiddenInput.blur(); renderAll(); }
 });
