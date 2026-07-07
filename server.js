@@ -57,7 +57,11 @@ CREATE TABLE IF NOT EXISTS screens(
   addCol("stripe_customer_id", "TEXT");
   addCol("stripe_sub_id", "TEXT");
   addCol("current_period_end", "INTEGER");
+  addCol("is_admin", "INTEGER DEFAULT 0");
 }
+// concede permiso de administrador a la cuenta propietaria (idempotente en cada arranque)
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "marcel@petguest.eu").toLowerCase().trim();
+try{ db.prepare("UPDATE users SET is_admin=1 WHERE email=?").run(ADMIN_EMAIL); }catch(e){}
 
 /* ---------- stripe (perezoso: solo si está configurado) ---------- */
 let _stripe = null;
@@ -121,6 +125,11 @@ function auth(req, res, next){
 function requirePaid(req, res, next){
   if(entitled(req.user)) return next();
   return res.status(402).json({error:"suscripcion-requerida"});
+}
+// solo administradores (panel interno)
+function requireAdmin(req, res, next){
+  if(req.user && req.user.is_admin) return next();
+  return res.status(403).json({error:"solo-admin"});
 }
 
 /* ---------- app ---------- */
@@ -204,6 +213,7 @@ app.use(express.static(path.join(__dirname, "web")));
 app.use("/media", express.static(MEDIA_DIR, {maxAge:"7d", immutable:true})); // vídeos subidos
 app.get("/tv", (req,res)=>res.sendFile(path.join(__dirname,"web","tv.html")));
 app.get("/panel", (req,res)=>res.sendFile(path.join(__dirname,"web","panel.html")));
+app.get("/admin", (req,res)=>res.sendFile(path.join(__dirname,"web","admin.html"))); // panel interno (protegido por API)
 app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","index.html"))); // landing en inglés (URL limpia)
 
 /* ---- cuentas ---- */
@@ -248,8 +258,26 @@ app.get("/api/me", auth, (req,res)=>{
     entitled: entitled(u),
     has_customer: !!u.stripe_customer_id,
     current_period_end: u.current_period_end || null,
-    billing_ready: !!process.env.STRIPE_SECRET_KEY
+    billing_ready: !!process.env.STRIPE_SECRET_KEY,
+    is_admin: !!u.is_admin
   });
+});
+
+/* ---- panel interno de administración (solo admin) ---- */
+app.get("/api/admin/users", auth, requireAdmin, (req,res)=>{
+  const rows = db.prepare(`
+    SELECT u.id, u.email, u.business, u.plan, u.bill, u.sub_status, u.trial_until, u.created,
+           u.current_period_end, u.stripe_customer_id,
+           (SELECT COUNT(*) FROM screens s WHERE s.user_id=u.id) AS screens
+    FROM users u ORDER BY u.created DESC`).all();
+  const users = rows.map(r=>({
+    id:r.id, email:r.email, business:r.business, plan:r.plan, bill:r.bill,
+    sub_status:r.sub_status, trial_until:r.trial_until, created:r.created,
+    current_period_end:r.current_period_end, screens:r.screens,
+    screens_limit: PLAN_LIMITS[r.plan] || 1,
+    has_customer: !!r.stripe_customer_id, entitled: entitled(r)
+  }));
+  res.json({ users, now: now() });
 });
 
 /* ---- pantallas ---- */

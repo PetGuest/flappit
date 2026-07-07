@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Flappit · Administración</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root{--bg:#0a0a0c; --panel:#131316; --line:#26262b; --accent:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;
+    --ink:#0a0a0c; --green:#3dff6e; --yellow:#ffd400; --red:#ff5c5c;}
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); line-height:1.5;
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
+  .wrap{max-width:1120px; margin:0 auto; padding:22px 20px 80px;}
+  header{display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap;}
+  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
+    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:15px;}
+  .logo span{color:var(--accent); font-size:.6em;}
+  h1{font-size:17px; margin:0; font-weight:700;}
+  .sub{color:var(--muted); font-size:13px;}
+  .spacer{margin-left:auto;}
+  button.refresh{background:var(--accent); color:var(--ink); border:none; border-radius:9px;
+    padding:9px 16px; font-weight:800; cursor:pointer; font-family:ui-monospace,monospace; font-size:13px;}
+  button.refresh:active{transform:translateY(1px);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:22px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:15px 16px;}
+  .card .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px;}
+  .card .v{font-size:26px; font-weight:800; margin-top:4px; font-family:ui-monospace,monospace;}
+  .card .v.accent{color:var(--accent);}
+  .tableBox{background:var(--panel); border:1px solid var(--line); border-radius:13px; overflow:hidden;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  th{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700;
+    position:sticky; top:0; background:#17171b;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  td.email{font-family:ui-monospace,monospace; font-size:12.5px;}
+  td.wrap-ok{white-space:normal;}
+  .pill{display:inline-block; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:700;
+    font-family:ui-monospace,monospace;}
+  .pill.green{background:rgba(61,255,110,.14); color:var(--green);}
+  .pill.yellow{background:rgba(255,212,0,.14); color:var(--yellow);}
+  .pill.red{background:rgba(255,92,92,.16); color:var(--red);}
+  .pill.plan{background:rgba(215,224,33,.14); color:var(--accent);}
+  .msg{background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:34px 26px;
+    text-align:center; color:var(--muted);}
+  .msg h2{color:var(--text); margin:0 0 8px; font-size:18px;}
+  .msg a{color:var(--accent); text-decoration:none; font-weight:700;}
+  .foot{color:var(--muted); font-size:12px; margin-top:14px;}
+  @media(max-width:640px){ th,td{padding:9px 10px;} .colHide{display:none;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">FLAPPIT <span>ADMIN</span></div>
+    <div>
+      <h1>Panel de administración</h1>
+      <div class="sub" id="whoami"></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="refresh" id="refreshBtn" style="display:none;">Actualizar</button>
+  </header>
+
+  <div id="content"></div>
+</div>
+
+<script>
+"use strict";
+const $ = (id)=>document.getElementById(id);
+const content = $("content");
+
+function fmtDate(ms){
+  if(!ms) return "—";
+  const d = new Date(Number(ms));
+  if(isNaN(d)) return "—";
+  return d.toLocaleDateString("es-ES", {day:"2-digit", month:"2-digit", year:"numeric"});
+}
+function planName(p){ return p==="uno" ? "1 pantalla" : p==="tres" ? "3 pantallas" : p==="cadena" ? "Cadenas" : (p||"—"); }
+
+// estado legible + color a partir de la suscripción
+function statusPill(u){
+  const s = (u.sub_status||"").toLowerCase();
+  if(s==="active" || s==="trialing") return '<span class="pill green">Activo</span>';
+  if(u.entitled && s==="trial")       return '<span class="pill yellow">En prueba</span>';
+  if(!u.entitled)                     return '<span class="pill red">Prueba caducada</span>';
+  return '<span class="pill">'+ (u.sub_status||"—") +'</span>';
+}
+// fecha relevante segun estado
+function whenCol(u){
+  const s = (u.sub_status||"").toLowerCase();
+  if(s==="active" || s==="trialing") return u.current_period_end ? "Renueva "+fmtDate(u.current_period_end) : "Activa";
+  if(u.entitled && s==="trial")       return "Prueba hasta "+fmtDate(u.trial_until);
+  if(!u.entitled)                     return "Caducó "+fmtDate(u.trial_until);
+  return "—";
+}
+
+function showMessage(html){ content.innerHTML = '<div class="msg">'+html+'</div>'; }
+
+function render(users){
+  const total = users.length;
+  const activos = users.filter(u=>{ const s=(u.sub_status||"").toLowerCase(); return s==="active"||s==="trialing"; }).length;
+  const prueba  = users.filter(u=> u.entitled && (u.sub_status||"").toLowerCase()==="trial").length;
+  const caduca  = users.filter(u=> !u.entitled).length;
+  const pantallas = users.reduce((a,u)=> a + (u.screens||0), 0);
+
+  let html = '<div class="cards">'
+    + card("Usuarios", total)
+    + card("Suscripción activa", activos, true)
+    + card("En prueba", prueba)
+    + card("Prueba caducada", caduca)
+    + card("Pantallas totales", pantallas)
+    + '</div>';
+
+  if(!total){
+    html += '<div class="msg"><h2>Aún no hay usuarios registrados</h2>'
+      + '<div>Cuando alguien cree una cuenta, aparecerá aquí.</div></div>';
+    content.innerHTML = html; return;
+  }
+
+  html += '<div class="tableBox"><table><thead><tr>'
+    + '<th>Email</th><th>Negocio</th><th>Plan</th><th>Estado</th>'
+    + '<th class="colHide">Suscripción</th><th>Pantallas</th><th class="colHide">Alta</th>'
+    + '</tr></thead><tbody>';
+  for(const u of users){
+    html += '<tr>'
+      + '<td class="email">'+esc(u.email)+'</td>'
+      + '<td class="wrap-ok">'+esc(u.business||"—")+'</td>'
+      + '<td><span class="pill plan">'+planName(u.plan)+'</span></td>'
+      + '<td>'+statusPill(u)+'</td>'
+      + '<td class="colHide">'+esc(whenCol(u))+'</td>'
+      + '<td>'+(u.screens||0)+' / '+(u.screens_limit||1)+'</td>'
+      + '<td class="colHide">'+fmtDate(u.created)+'</td>'
+      + '</tr>';
+  }
+  html += '</tbody></table></div>';
+  html += '<div class="foot">Actualizado: '+ new Date().toLocaleString("es-ES") +'</div>';
+  content.innerHTML = html;
+}
+function card(k,v,accent){ return '<div class="card"><div class="k">'+k+'</div><div class="v'+(accent?" accent":"")+'">'+v+'</div></div>'; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function load(){
+  content.innerHTML = '<div class="msg">Cargando…</div>';
+  let me;
+  try{ me = await fetch("/api/me", {headers:{Accept:"application/json"}}); }
+  catch(e){ showMessage('<h2>Sin conexión</h2><div>No se pudo contactar con el servidor.</div>'); return; }
+
+  if(me.status===401){
+    $("refreshBtn").style.display = "none";
+    showMessage('<h2>Inicia sesión</h2><div>Este panel es privado. Entra primero en tu <a href="/panel">panel de control</a> con tu cuenta y vuelve a abrir esta página.</div>');
+    return;
+  }
+  const meData = await me.json().catch(()=>({}));
+  $("whoami").textContent = meData.email ? ("Conectado como "+meData.email) : "";
+  if(!meData.is_admin){
+    $("refreshBtn").style.display = "none";
+    showMessage('<h2>Acceso no autorizado</h2><div>Tu cuenta no tiene permiso de administrador.</div>');
+    return;
+  }
+
+  const r = await fetch("/api/admin/users", {headers:{Accept:"application/json"}});
+  if(!r.ok){ showMessage('<h2>No se pudo cargar</h2><div>Error '+r.status+'.</div>'); return; }
+  const data = await r.json();
+  $("refreshBtn").style.display = "";
+  render(data.users || []);
+}
+
+$("refreshBtn").addEventListener("click", load);
+load();
+</script>
+</body>
+</html>
