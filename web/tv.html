@@ -24,23 +24,6 @@
   #net{position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%;
     background:#c33; opacity:.7;}
   #net.on{background:#2c2;}
-  /* overlay de vinculación: el código MUY destacado y legible incluso en móvil pequeño */
-  #pairOverlay{position:fixed; inset:0; z-index:40; display:none; pointer-events:none;
-    align-items:center; justify-content:center; text-align:center; background:rgba(0,0,0,0.6);}
-  #pairOverlay.show{display:flex;}
-  #pairOverlay .inner{padding:20px; max-width:94vw;}
-  #pairOverlay .brand{font-family:ui-monospace,monospace; letter-spacing:.35em; color:#FFD400;
-    font-weight:800; font-size:clamp(13px,3.2vw,24px); margin-bottom:16px; opacity:.9;}
-  #pairOverlay .msg{color:#fff; font-weight:500; font-size:clamp(15px,3.6vw,30px);
-    margin:0 0 22px; font-family:system-ui,sans-serif;}
-  #pairOverlay .code{display:flex; gap:clamp(7px,2vw,20px); justify-content:center;}
-  #pairOverlay .code span{display:flex; align-items:center; justify-content:center;
-    background:#fff; color:#e01414; font-family:ui-monospace,'SF Mono',monospace; font-weight:600;
-    width:clamp(56px,17vw,150px); height:clamp(76px,22vw,196px); border-radius:clamp(8px,2vw,16px);
-    font-size:clamp(42px,13vw,120px); line-height:1; box-shadow:0 10px 34px rgba(0,0,0,.55);}
-  #pairOverlay .sub{color:#b8b8bf; font-size:clamp(12px,2.6vw,19px); margin-top:22px;
-    font-family:system-ui,sans-serif;}
-  #pairOverlay .sub b{color:#fff;}
 </style>
 </head>
 <body>
@@ -48,12 +31,6 @@
 <div id="fsHint">Haz clic para pantalla completa</div>
 <div id="net" title="conexión"></div>
 <button id="sndBtn">Activar sonido</button>
-<div id="pairOverlay"><div class="inner">
-  <div class="brand">FLAPPIT</div>
-  <div class="msg" id="pairMsg"></div>
-  <div class="code" id="pairCodeBig"></div>
-  <div class="sub" id="pairSub"></div>
-</div></div>
 
 <script>
 "use strict";
@@ -79,30 +56,17 @@ const TV_LANG = (function(){ try{
   return (navigator.language||"").toLowerCase().slice(0,2)==="en" ? "en" : "es";
 }catch(e){ return "es"; } })();
 const TVL = TV_LANG==="en" ? {
-  pairMsg:"Enter this code in your control panel",
-  pairSub:'at <b>flappit.com</b>',
+  pairLine1:"PAIRING CODE",
+  pairLine2:"ENTER IT IN YOUR PANEL",
   fsHint:"Tap for full screen",
   waiting:["","","PREVIEW","","WAITING FOR THE PANEL...",""]
 } : {
-  pairMsg:"Escribe este código en tu panel de control",
-  pairSub:'en <b>flappit.com</b>',
+  pairLine1:"CODIGO DE VINCULACION",
+  pairLine2:"ESCRIBALO EN SU PANEL",
   fsHint:"Toca para pantalla completa",
   waiting:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]
 };
 try{ document.getElementById("fsHint").textContent = TVL.fsHint; }catch(e){}
-
-/* El código de vinculación se muestra en un overlay HTML grande y legible (casillas
-   blancas, número en rojo), independiente del tablero de flaps. */
-function showPairOverlay(code){
-  const ov = document.getElementById("pairOverlay"), box = document.getElementById("pairCodeBig");
-  if(!ov || !box) return;
-  box.innerHTML = "";
-  String(code||"????").split("").forEach(ch=>{ const s=document.createElement("span"); s.textContent=ch; box.appendChild(s); });
-  document.getElementById("pairMsg").textContent = TVL.pairMsg;
-  document.getElementById("pairSub").innerHTML = TVL.pairSub;
-  ov.classList.add("show");
-}
-function hidePairOverlay(){ const ov = document.getElementById("pairOverlay"); if(ov) ov.classList.remove("show"); }
 
 function normalize(s){
   return s.toUpperCase()
@@ -147,12 +111,12 @@ function targetsFor(lines, S){
   return t;
 }
 
-function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor){
+function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor, weight){
   const gap = w*0.045;
   const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
   const half = fh/2, rad = Math.max(2, w*0.08);
   const cx = x+w/2;
-  const font = `400 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+  const font = `${weight||400} ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
   if(LITE){
     // MODO LIGERO: solo rellenos planos (nada de degradados, clips, transformaciones ni
     // bisagras por celda, que es lo caro). Conserva los matices clave con rectángulos:
@@ -275,10 +239,21 @@ const canvas = document.getElementById("tv");
 const ctx = canvas.getContext("2d");
 const sndBtn = document.getElementById("sndBtn");
 
-/* El código y las instrucciones van en el overlay HTML (grande y legible); el canvas
-   queda de fondo como tablero sutil de flaps en blanco, atenuado por el overlay. */
+/* El código aparece DENTRO del panel (con su animación de flaps). Las 4 casillas del
+   código se resaltan (fondo blanco, letra roja, peso 600) vía el marcador `hl`. */
 const PAIRING_STATE = (code)=>({
-  messages:[{secs:9999, lines:["","","","","","","",""]}],
+  messages:[{secs:9999, lines:[
+    "", "FLAPPIT", "",
+    TVL.pairLine1,
+    "",
+    (code||"????").split("").join(" "),   // fila 5: el código
+    "",
+    TVL.pairLine2,
+    "",
+    "FLAPPIT.COM",
+    ""
+  ]}],
+  hl:{ row:5, flap:"#FFFFFF", text:"#E01414", weight:600 }, // casillas del código en blanco+rojo
   trans:3, cols:33, rows:11, align:"center", format:"16:9",
   textColor:"#FFD400", flapColor:"#1c1c1f",
   clock:false, sound:false, logoOn:false, logoTxt:"FLAPPIT"
@@ -396,6 +371,7 @@ function transition(targets){
   cells.forEach((cell,i)=>{
     const r = Math.floor(i/grid.cols), c = i%grid.cols;
     const tgt = targets[r][c];
+    cell.hl = !!(S.hl && r===S.hl.row && tgt!==0); // casilla del código a resaltar
     let d = (tgt - cell.cur + LEN) % LEN;
     if(d===0){
       // al salir de una foto FLAPIZADA todas las casillas giran para retirarla paleta a paleta
@@ -523,6 +499,9 @@ function render(now){
       // continuidad: la foto saliente permanece en la casilla
       // hasta el instante exacto en que su paleta se la lleva
       drawImgCell(ctx, x, y, cellW, cellH, prevImgBuf);
+    } else if(cell.hl && S.hl){
+      // casilla del código: fondo y letra propios (blanco + rojo), con más peso
+      drawCellX(ctx, x, y, cellW, cellH, CHARSET[prev], CHARSET[curc], p, S.hl.flap, S.hl.text, S.hl.weight||600);
     } else {
       drawCellX(ctx, x, y, cellW, cellH, CHARSET[prev], CHARSET[curc], p, S.flapColor, S.textColor);
     }
@@ -983,8 +962,8 @@ async function hello(){
   }
   token = r.token;
   try{ localStorage.setItem("flapsScreenToken", token); }catch(e){}
-  if(r.paired && r.state){ applyState(r.state); hidePairOverlay(); }
-  else { applyState(PAIRING_STATE(r.code||"????"), true); showPairOverlay(r.code||"????"); }
+  if(r.paired && r.state) applyState(r.state);
+  else applyState(PAIRING_STATE(r.code||"????"), true);
   connectWS();
 }
 
@@ -994,7 +973,7 @@ function connectWS(){
   ws.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
   ws.onmessage = e=>{
     let m; try{ m = JSON.parse(e.data); }catch(err){ return; }
-    if(m.type==="state"){ applyState(m.state); hidePairOverlay(); }
+    if(m.type==="state") applyState(m.state);
     else if(m.type==="paired"){ /* esperando primer estado */ }
     else if(m.type==="unpaired"){
       try{ localStorage.removeItem("flapsScreenToken"); }catch(e2){}
