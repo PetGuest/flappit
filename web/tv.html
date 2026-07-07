@@ -24,6 +24,23 @@
   #net{position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%;
     background:#c33; opacity:.7;}
   #net.on{background:#2c2;}
+  /* overlay de vinculación: el código MUY destacado y legible incluso en móvil pequeño */
+  #pairOverlay{position:fixed; inset:0; z-index:40; display:none; pointer-events:none;
+    align-items:center; justify-content:center; text-align:center; background:rgba(0,0,0,0.6);}
+  #pairOverlay.show{display:flex;}
+  #pairOverlay .inner{padding:20px; max-width:94vw;}
+  #pairOverlay .brand{font-family:ui-monospace,monospace; letter-spacing:.35em; color:#FFD400;
+    font-weight:800; font-size:clamp(13px,3.2vw,24px); margin-bottom:16px; opacity:.9;}
+  #pairOverlay .msg{color:#fff; font-weight:500; font-size:clamp(15px,3.6vw,30px);
+    margin:0 0 22px; font-family:system-ui,sans-serif;}
+  #pairOverlay .code{display:flex; gap:clamp(7px,2vw,20px); justify-content:center;}
+  #pairOverlay .code span{display:flex; align-items:center; justify-content:center;
+    background:#fff; color:#e01414; font-family:ui-monospace,'SF Mono',monospace; font-weight:600;
+    width:clamp(56px,17vw,150px); height:clamp(76px,22vw,196px); border-radius:clamp(8px,2vw,16px);
+    font-size:clamp(42px,13vw,120px); line-height:1; box-shadow:0 10px 34px rgba(0,0,0,.55);}
+  #pairOverlay .sub{color:#b8b8bf; font-size:clamp(12px,2.6vw,19px); margin-top:22px;
+    font-family:system-ui,sans-serif;}
+  #pairOverlay .sub b{color:#fff;}
 </style>
 </head>
 <body>
@@ -31,6 +48,12 @@
 <div id="fsHint">Haz clic para pantalla completa</div>
 <div id="net" title="conexión"></div>
 <button id="sndBtn">Activar sonido</button>
+<div id="pairOverlay"><div class="inner">
+  <div class="brand">FLAPPIT</div>
+  <div class="msg" id="pairMsg"></div>
+  <div class="code" id="pairCodeBig"></div>
+  <div class="sub" id="pairSub"></div>
+</div></div>
 
 <script>
 "use strict";
@@ -47,6 +70,39 @@ const CELL_AR = 0.70;
    en su ordenador (sin servidor ni vinculación) — lo que se ve es EXACTAMENTE
    lo que verá la TV real */
 const IS_PREVIEW = /\bpreview\b/.test(location.search);
+
+/* Idioma del dispositivo para los textos de sistema (vinculación): ES por defecto,
+   EN si el navegador está en inglés; override manual con ?lang=en / ?lang=es */
+const TV_LANG = (function(){ try{
+  const q = new URLSearchParams(location.search).get("lang");
+  if(q==="en"||q==="es") return q;
+  return (navigator.language||"").toLowerCase().slice(0,2)==="en" ? "en" : "es";
+}catch(e){ return "es"; } })();
+const TVL = TV_LANG==="en" ? {
+  pairMsg:"Enter this code in your control panel",
+  pairSub:'at <b>flappit.com</b>',
+  fsHint:"Tap for full screen",
+  waiting:["","","PREVIEW","","WAITING FOR THE PANEL...",""]
+} : {
+  pairMsg:"Escribe este código en tu panel de control",
+  pairSub:'en <b>flappit.com</b>',
+  fsHint:"Toca para pantalla completa",
+  waiting:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]
+};
+try{ document.getElementById("fsHint").textContent = TVL.fsHint; }catch(e){}
+
+/* El código de vinculación se muestra en un overlay HTML grande y legible (casillas
+   blancas, número en rojo), independiente del tablero de flaps. */
+function showPairOverlay(code){
+  const ov = document.getElementById("pairOverlay"), box = document.getElementById("pairCodeBig");
+  if(!ov || !box) return;
+  box.innerHTML = "";
+  String(code||"????").split("").forEach(ch=>{ const s=document.createElement("span"); s.textContent=ch; box.appendChild(s); });
+  document.getElementById("pairMsg").textContent = TVL.pairMsg;
+  document.getElementById("pairSub").innerHTML = TVL.pairSub;
+  ov.classList.add("show");
+}
+function hidePairOverlay(){ const ov = document.getElementById("pairOverlay"); if(ov) ov.classList.remove("show"); }
 
 function normalize(s){
   return s.toUpperCase()
@@ -219,14 +275,13 @@ const canvas = document.getElementById("tv");
 const ctx = canvas.getContext("2d");
 const sndBtn = document.getElementById("sndBtn");
 
+/* El código y las instrucciones van en el overlay HTML (grande y legible); el canvas
+   queda de fondo como tablero sutil de flaps en blanco, atenuado por el overlay. */
 const PAIRING_STATE = (code)=>({
-  messages:[{secs:9999, lines:[
-    "", "FLAPS", "", "CODIGO DE VINCULACION", code.split("").join(" "), "",
-    "ESCRIBALO EN SU PANEL", ""
-  ]}],
+  messages:[{secs:9999, lines:["","","","","","","",""]}],
   trans:3, cols:33, rows:11, align:"center", format:"16:9",
   textColor:"#FFD400", flapColor:"#1c1c1f",
-  clock:false, sound:false, logoOn:true, logoTxt:"FLAPS.TV"
+  clock:false, sound:false, logoOn:false, logoTxt:"FLAPPIT"
 });
 
 let S = null;
@@ -901,10 +956,10 @@ async function hello(){
       if(e.data && e.data.type==="state") applyState(e.data.state);
     });
     applyState({
-      messages:[{secs:9999, lines:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]}],
+      messages:[{secs:9999, lines:TVL.waiting}],
       trans:2, cols:33, rows:11, align:"center", format:"16:9",
       textColor:"#FFFFFF", flapColor:"#1c1c1f",
-      clock:false, sound:false, logoOn:true, logoTxt:"PREVISUALIZACION — ASI SE VERA EN SU TV"
+      clock:false, sound:false, logoOn:true, logoTxt:(TV_LANG==="en"?"PREVIEW - THIS IS HOW YOUR TV WILL LOOK":"PREVISUALIZACION - ASI SE VERA EN SU TV")
     }, true);
     var _pt = window.opener || (window.parent !== window ? window.parent : null);
     if(_pt){ try{ _pt.postMessage({type:"previewReady"}, "*"); }catch(e){} }
@@ -928,8 +983,8 @@ async function hello(){
   }
   token = r.token;
   try{ localStorage.setItem("flapsScreenToken", token); }catch(e){}
-  if(r.paired && r.state) applyState(r.state);
-  else applyState(PAIRING_STATE(r.code||"????"), true);
+  if(r.paired && r.state){ applyState(r.state); hidePairOverlay(); }
+  else { applyState(PAIRING_STATE(r.code||"????"), true); showPairOverlay(r.code||"????"); }
   connectWS();
 }
 
@@ -939,7 +994,7 @@ function connectWS(){
   ws.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
   ws.onmessage = e=>{
     let m; try{ m = JSON.parse(e.data); }catch(err){ return; }
-    if(m.type==="state") applyState(m.state);
+    if(m.type==="state"){ applyState(m.state); hidePairOverlay(); }
     else if(m.type==="paired"){ /* esperando primer estado */ }
     else if(m.type==="unpaired"){
       try{ localStorage.removeItem("flapsScreenToken"); }catch(e2){}
