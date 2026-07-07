@@ -48,9 +48,8 @@
   .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
   nav{display:flex; align-items:center; gap:16px; padding:12px 0;}
-  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:7px 14px;
-    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:18px;}
-  .logo span{color:var(--brand); font-size:.6em; letter-spacing:1px;}
+  .logo{display:flex; align-items:center;}
+  .logo img{height:28px; display:block;}
   nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px;}
   nav .links a{color:var(--muted);}
   nav .links a:hover{color:var(--text);}
@@ -212,9 +211,6 @@
   .billNote{text-align:center; color:var(--muted); font-size:12.5px; margin-top:-18px; margin-bottom:28px; min-height:16px;}
   .rv{opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease;}
   .rv.in{opacity:1; transform:none;}
-  .brandmark{position:fixed; right:14px; bottom:12px; z-index:55; font-size:12px; letter-spacing:.5px;
-    font-family:ui-monospace,'Roboto Mono',monospace; color:#6a6a72; opacity:.75; transition:opacity .2s,color .2s;}
-  .brandmark:hover{opacity:1; color:#9a9aa2;}
   #cookieBar{position:fixed; left:16px; right:16px; bottom:16px; z-index:80;
     background:#141418; border:1px solid var(--line); border-radius:14px;
     padding:14px 18px; display:none; gap:14px; align-items:center; flex-wrap:wrap;
@@ -273,7 +269,7 @@
 
 <div class="navBar"><div class="wrap">
   <nav>
-    <div class="logo">FLAPPIT</div>
+    <a class="logo" href="/" aria-label="Flappit"><img src="/flappit-logo.svg" alt="Flappit"></a>
     <div class="links">
       <a href="#how">Cómo funciona</a>
       <a href="#try">Pruébelo</a>
@@ -288,11 +284,11 @@
 <div class="wrap">
   <div class="hero">
     <h1>Convierta cualquier pantalla en un<br><em>panel informativo espectacular.</em></h1>
-    <p style="color:var(--text); font-weight:700; font-size:clamp(15px,2vw,21px); max-width:none; margin:0 auto 14px;">Mensajes que giran. Huéspedes que miran. Una recepción con más magia.</p>
+    <p style="color:var(--text); font-weight:600; font-size:clamp(14px,1.8vw,17px); letter-spacing:.2px; max-width:none; margin:0 auto 14px;">Mensajes que giran. Huéspedes que miran. Una recepción con más magia.</p>
     <p>Flappit lleva el encanto de los antiguos paneles de aeropuerto a la televisión que ya tiene en su lobby. Escriba desde el móvil de recepción y el mensaje aparece al instante, girando letra a letra, con su clac-clac inconfundible.<br><b style="color:var(--text);">Sin instalación. Sin obras. Sin técnico.</b></p>
     <button class="cta" onclick="location.href='/panel'">Escribir mi primer mensaje</button>
     <button class="cta ghost" style="margin-left:10px;" onclick="location.href='#how'">Ver cómo funciona</button>
-    <div class="heroBoard"><div class="tvFrame"><canvas id="heroCv"></canvas></div></div>
+    <div class="heroBoard"><div class="tvFrame"><canvas id="heroCv" role="img" aria-label="Demostración animada de un panel split-flap con mensajes de hotel"></canvas></div></div>
     <div class="sndRow"><button id="heroSnd">Activar sonido</button></div>
     <div class="trust">
       <span><b>7 días</b> gratis</span>
@@ -332,13 +328,13 @@
         <rect x="165" y="437" width="870" height="10" fill="#23232c"/>
         <rect x="540" y="452" width="120" height="6" rx="3" fill="#d7e021" opacity="0.5"/>
       </svg>
-      <div class="tvSpot"><canvas id="lobbyCv"></canvas></div>
+      <div class="tvSpot"><canvas id="lobbyCv" role="img" aria-label="Pantalla split-flap en el lobby ilustrado"></canvas></div>
     </div>
     <p class="lobbyNote">Imagine este efecto en su propio lobby: el nombre de un huésped, el evento del día, el horario del desayuno o una promoción especial girando en pantalla.</p>
   </section>
 
   <section id="how">
-    <h2><em>Fácil, muy fácil.</em> Tan fácil como abrir una web en tu televisión.</h2>
+    <h2><em>Fácil, muy fácil.</em> Tan fácil como abrir una web en su televisión.</h2>
     <p class="sub">Si su equipo sabe poner Netflix en la TV del hotel, sabe usar Flappit.</p>
     <div class="steps conn">
       <div class="step">
@@ -365,7 +361,7 @@
   <div class="wrap">
     <h2>Pruebe el efecto <em>Flappit</em>.</h2>
     <p class="sub">Escriba el nombre de su hotel, una bienvenida o un mensaje especial. Pulse girar y vea cómo la pantalla cobra vida con el sonido clásico de los paneles de aeropuerto.</p>
-    <div class="tryBoard"><canvas id="tryCv"></canvas></div>
+    <div class="tryBoard"><canvas id="tryCv" role="img" aria-label="Panel split-flap interactivo de prueba"></canvas></div>
     <div class="tryRow">
       <input id="tryInput" type="text" maxlength="60" placeholder="BIENVENIDO HOTEL ATLAS" value=""
         aria-label="Escriba un mensaje para el panel" autocomplete="off" spellcheck="false">
@@ -417,8 +413,7 @@
 
   <section>
     <h2>Todo lo que necesita. <em>Nada que instalar.</em></h2>
-    <p class="sub"></p>
-    <div class="featTicker"><canvas id="featCv"></canvas></div>
+    <div class="featTicker"><canvas id="featCv" role="img" aria-label="Ticker split-flap con los nombres de las funciones"></canvas></div>
     <div class="feats">
       <div class="feat"><div class="dot"></div><div><b>Sin instalación</b><span>Abra una web en su TV. Sin obras, sin cables nuevos y sin esperar a un técnico.</span></div></div>
       <div class="feat"><div class="dot"></div><div><b>Control desde recepción</b><span>Su equipo puede cambiar mensajes desde el móvil o el ordenador, de forma sencilla y sin formación técnica.</span></div></div>
@@ -495,7 +490,6 @@
 
   <section id="faq">
     <h2>Preguntas frecuentes</h2>
-    <p class="sub"></p>
     <details><summary>¿Qué necesito comprar?</summary>
       <p>Nada, si su televisor es Smart TV y tiene navegador. Solo tendrá que abrir Flappit en la pantalla y vincularla con su cuenta. Si la TV es antigua, puede usar un stick HDMI ya configurado.</p></details>
     <details><summary>¿Quién lo maneja en el día a día?</summary>
@@ -547,6 +541,7 @@ const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
 const LEN = CHARSET.length;
 const FLIP_ANIM = 65;
 const CELL_AR = 0.70;
+const RM = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 
 function shade(hex,f){
   const n=parseInt(hex.slice(1),16);
@@ -690,6 +685,15 @@ function FlapBoard(canvas, cols, rows, opts){
 
   function show(spec, T, force){
     T = (T||2600);
+    if(RM && spec && spec.img) T = 400;
+    if(RM && !(spec && spec.img)){
+      const L2 = (spec && spec.lines) ? spec.lines : wrapLines(String(spec));
+      const tg2 = buildTargets(L2, (spec && spec.align) || "center");
+      prevImg = null; curImg = null;
+      cells.forEach(function(cell,i){ cell.cur = tg2[i]; cell.done = true; });
+      render(performance.now());
+      return;
+    }
     if(spec && spec.img){ return showImage(spec.img, T); }
     const now = performance.now();
     prevImg = curImg; curImg = null;
@@ -705,30 +709,28 @@ function FlapBoard(canvas, cols, rows, opts){
         else { cell.done=true; cell.slowN=0; return; }
       }
       cell.from=cell.cur;
-      cell.delay = Math.random()*Math.min(350, T*0.15) + Math.floor(i/cols)*18;
-      // al salir de una foto: giro MÍNIMO (sin vueltas extra) → transición limpia, menos símbolos
-      let k = prevImg ? 0 : Math.min(2, Math.max(0, Math.floor(((T-cell.delay)/55-d)/LEN)));
-      if(!prevImg && Math.random()<0.06) k+=1;
-      cell.steps = d+k*LEN;
+      cell._d = d;
       cell.slowN = 0; cell._tail = 0; cell.done=false; cell.t0=now;
       if(targets[i]!==0) letters.push(cell);
     });
-    for(let i=letters.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [letters[i],letters[j]]=[letters[j],letters[i]];
+    /* Coreografia Solari, como el producto real: ola de arranque izquierda->derecha,
+       tambor a velocidad unica y cada ficha se DETIENE al llegar a su letra. */
+    {
+      let maxD = 0;
+      cells.forEach(cell=>{ if(!cell.done) maxD = Math.max(maxD, cell._d); });
+      if(maxD>0){
+        const perCol = Math.min(69, (T*0.345)/Math.max(1, cols));
+        const budget = Math.max(500, T - perCol*(cols-1));
+        const k = prevImg ? 0 : Math.max(0, Math.round((budget/80 - maxD)/LEN));
+        const base = Math.min(110, Math.max(36, budget/(maxD + k*LEN)));
+        cells.forEach((cell,i)=>{
+          if(cell.done) return;
+          cell.steps = cell._d + k*LEN;
+          cell.delay = (i%cols)*perCol + Math.floor(i/cols)*10 + Math.random()*30;
+          cell.base = base;
+        });
+      }
     }
-    // SUSPENSE: las últimas letras caen escalonadas durante ~2,5 s, una tras otra y frenándose
-    const fin = letters.slice(-Math.min(7, Math.ceil(letters.length*0.28)));
-    fin.forEach((c,idx)=>{
-      c.slowN = Math.min(3+Math.floor(Math.random()*3), Math.max(0,c.steps-1));
-      c._tail = 2500 * ((idx+1)/fin.length); // reparte su caída en los ~2,5 s finales
-    });
-    cells.forEach(cell=>{
-      if(cell.done) return;
-      const avail = Math.max(500, T + (cell._tail||0) - cell.delay);
-      const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
-      cell.base = Math.min(200, Math.max(36, avail/(cell.steps+slowExtra)));
-    });
     if(!animOn){ animOn=true; requestAnimationFrame(frame); }
   }
 
@@ -861,16 +863,16 @@ function FlapBoard(canvas, cols, rows, opts){
     ctx.fillText("HOTEL MADISON", bx + bw/2, by + bh/2);
     // marca flappit, discreta, a la derecha
     ctx.fillStyle = "rgba(255,255,255,0.30)";
-    ctx.font = `400 ${bh*0.34}px 'Helvetica Neue',Arial,sans-serif`;
+    ctx.font = `400 ${bh*0.28}px 'Helvetica Neue',Arial,sans-serif`;
     ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    ctx.fillText("flappit.com", bx + bw - bh*0.4, by + bh/2);
+    ctx.fillText("FLAPPIT.COM", bx + bw - bh*0.4, by + bh/2);
   }
 
   function drawCell(x,y,w,h,prevC,curC,p){
     const gap=w*0.045;
     const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
     const half=fh/2, rad=Math.max(2,w*0.08), cx=x+w/2;
-    const font=`400 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+    const font=`500 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
     function halfPath(top){
       ctx.beginPath();
       if(top){
@@ -997,7 +999,11 @@ function FlapBoard(canvas, cols, rows, opts){
 }
 
 /* ---------- hero: TV 16:9 con mensajes rotando ---------- */
-const hero = FlapBoard(document.getElementById("heroCv"), 31, 11, {aspect:16/9, band:true});
+const cvVis = new Map();
+const cvIO = new IntersectionObserver(function(es){ es.forEach(function(e){ cvVis.set(e.target, e.isIntersecting); }); }, {threshold:0.05});
+["heroCv","lobbyCv","featCv"].forEach(function(id){ var c=document.getElementById(id); cvVis.set(c,true); cvIO.observe(c); });
+function cvOn(id){ return cvVis.get(document.getElementById(id)) !== false; }
+const hero = FlapBoard(document.getElementById("heroCv"), 33, 11, {aspect:16/9, band:true});
 const HERO_MSGS = [
   "BIENVENIDOS AL GRAND HOTEL MEDITERRANEO",
   {align:"left", lines:["AGENDA DE SALAS HOY","ATENEA    JUNTA 09:00","OLIMPO    TALLER 11:30","EGEO      CONVENCION 16H"]},
@@ -1008,6 +1014,7 @@ const HERO_MSGS = [
 ];
 let heroIdx = 0;
 function heroTick(){
+  if(!cvOn("heroCv")){ setTimeout(heroTick, 1500); return; }
   const spec = HERO_MSGS[heroIdx];
   const isImg = spec && spec.img;
   hero.show(spec, isImg ? 4200 : 3000);
@@ -1054,6 +1061,7 @@ const LOBBY_MSGS = ["BIENVENIDO SR. GARCIA", "DESAYUNO 7 A 11", "HOY 19H CATA DE
 let lobbyIdx = 0;
 setTimeout(()=>lobbyB.show(LOBBY_MSGS[0], 2400), 1500);
 setInterval(()=>{
+  if(!cvOn("lobbyCv")) return;
   lobbyIdx = (lobbyIdx+1)%LOBBY_MSGS.length;
   lobbyB.show(LOBBY_MSGS[lobbyIdx], 2600);
 }, 6500);
@@ -1065,6 +1073,7 @@ const FEAT_NAMES = ["SIN INSTALACION","DESDE EL MOVIL","MULTI PANTALLA","SU MARC
                     "SONIDO REAL","ANTI CORTES","GIRO VERTICAL","MODO TEATRO"];
 let featIdx = -1;
 function nextFeat(){
+  if(!cvOn("featCv")) return;
   featIdx = (featIdx+1)%FEAT_NAMES.length;
   featB.show(FEAT_NAMES[featIdx], 1800);
   featCards.forEach((c,i)=>c.classList.toggle("hot", i===featIdx));
@@ -1114,6 +1123,5 @@ try{
   });
 }catch(e){}
 </script>
-<a href="https://flappit.com" class="brandmark" translate="no">flappit.com</a>
 </body>
 </html>
