@@ -322,7 +322,15 @@ app.get("/api/admin/users", auth, requireAdmin, (req,res)=>{
     screens_limit: PLAN_LIMITS[r.plan] || 1,
     has_customer: !!r.stripe_customer_id, entitled: entitled(r)
   }));
-  res.json({ users, now: now() });
+  const stats = db.prepare("SELECT key, n FROM stats").all();
+  res.json({ users, now: now(), stats });
+});
+
+/* ---- estadística mínima: cuántos vídeos genera la gente en la landing ---- */
+db.exec("CREATE TABLE IF NOT EXISTS stats(key TEXT PRIMARY KEY, n INTEGER DEFAULT 0)");
+app.post("/api/stat/video-dl", rateLimit("stat", 30, 60000), (req,res)=>{
+  db.prepare("INSERT INTO stats(key,n) VALUES('video-dl',1) ON CONFLICT(key) DO UPDATE SET n=n+1").run();
+  res.json({ok:true});
 });
 
 /* ---- pantallas ---- */
