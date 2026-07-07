@@ -99,6 +99,18 @@
     background:var(--accent); opacity:0; z-index:6;}
   #sentFlash.go{animation:sentFlash .5s ease-out;}
   @keyframes sentFlash{ 0%{opacity:0;} 16%{opacity:.38;} 100%{opacity:0;} }
+  /* insignia de confirmación: aparece "ACTUALIZADO ✓" (o "GUARDADO ✓") y se desvanece,
+     para dar sensación clara de que el mensaje quedó grabado en esa pantalla */
+  #sentBadge{position:absolute; top:10px; right:10px; z-index:7; pointer-events:none;
+    background:var(--accent); color:var(--accent-ink); font-family:ui-monospace,monospace;
+    font-weight:800; font-size:12px; letter-spacing:.4px; padding:5px 12px; border-radius:999px;
+    opacity:0; box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  #sentBadge.go{animation:sentBadge 1.3s ease-out;}
+  @keyframes sentBadge{
+    0%{opacity:0; transform:translateY(-7px) scale(.94);}
+    12%{opacity:1; transform:translateY(0) scale(1);}
+    68%{opacity:1; transform:translateY(0) scale(1);}
+    100%{opacity:0; transform:translateY(-4px) scale(.98);} }
 
   #boardWrap{flex:1; min-height:280px; display:flex; align-items:center; justify-content:center;}
   #board{position:relative; border-radius:10px; overflow:hidden;
@@ -385,7 +397,7 @@
   <section id="workArea">
     <div id="scrTabs"></div>
     <div id="editHint"></div>
-    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div></div></div>
+    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div><div id="sentBadge"></div></div></div>
     <div id="toolbar">
       <span id="lineInfo">Haz clic en una línea del tablero</span>
       <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span data-i18n="alignLeft">Izq</span></button>
@@ -482,6 +494,8 @@ const I18N = {
     saving: "guardando…",
     sentToScreen: "enviado a la pantalla ✓",
     draftSaved: "borrador guardado",
+    badgeUpdated: "ACTUALIZADO ✓",
+    badgeSaved: "GUARDADO ✓",
     offline: "sin conexión",
     /* pantallas físicas (renderPh) */
     renameTitle: "Renombrar",
@@ -620,6 +634,8 @@ const I18N = {
     saving: "saving…",
     sentToScreen: "sent to the screen ✓",
     draftSaved: "draft saved",
+    badgeUpdated: "UPDATED ✓",
+    badgeSaved: "SAVED ✓",
     offline: "offline",
     renameTitle: "Rename",
     unlinkTitle: "Unlink",
@@ -1037,12 +1053,19 @@ function flashSent(){
   if(!fl) return;
   fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go"); // reinicia la animación
 }
+function flashSaved(msg){
+  const b = document.getElementById("sentBadge");
+  if(!b) return;
+  b.textContent = msg;
+  b.classList.remove("go"); void b.offsetWidth; b.classList.add("go"); // reinicia la animación
+}
 function push(){
   if(!S) return;
   try{ localStorage.setItem("flapsDraft", JSON.stringify(S)); }catch(e){}
   pushPreview();
   if(!curScreen){
     saveDot.textContent = t("draftSaved"); saveDot.className = "saved";
+    flashSaved(t("badgeSaved")); // borrador guardado localmente
     return;
   }
   saveDot.textContent = t("saving"); saveDot.className = "saving";
@@ -1051,7 +1074,7 @@ function push(){
     try{
       await api("PUT","/api/screens/"+curScreen+"/state",{state:S});
       saveDot.textContent = t("sentToScreen"); saveDot.className = "saved";
-      flashSent(); // destello visible: el cambio ha salido hacia la TV
+      flashSent(); flashSaved(t("badgeUpdated")); // destello + insignia: quedó grabado en la pantalla
       setTimeout(()=>{ saveDot.textContent=""; }, 2000);
     }catch(e){
       saveDot.textContent = t("offline"); saveDot.className = "saving";
@@ -1103,7 +1126,7 @@ function buildBoard(){
   board.style.height = H+"px";
   board.style.background =
     "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.008) 12%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.28) 100%), #000";
-  [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput" && ch.id!=="sentFlash") ch.remove(); });
+  [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput" && ch.id!=="sentFlash" && ch.id!=="sentBadge") ch.remove(); });
   rowEls = []; clockEl = null; bandEl = null;
 
   const gridArea = document.createElement("div");
