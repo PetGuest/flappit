@@ -1024,12 +1024,12 @@ const cvIO = new IntersectionObserver(function(es){ es.forEach(function(e){ cvVi
 function cvOn(id){ return cvVis.get(document.getElementById(id)) !== false; }
 const hero = FlapBoard(document.getElementById("heroCv"), 33, 11, {aspect:16/9, band:true});
 const HERO_MSGS = [
-  "WELCOME TO THE GRAND HOTEL MEDITERRANEO",
-  {align:"left", lines:["TODAY'S ROOM AGENDA","ATHENA    BOARD 09:00","OLYMPUS   WORKSHOP 11:30","AEGEAN    CONVENTION 16H"]},
-  "DISCOVER OUR ROOFTOP ON THE 7TH FLOOR WITH A SPECIAL MENU EVERY NIGHT",
+  "WELCOME TO THE GRAND HOTEL",
+  {align:"left", lines:["TODAY'S SPECIALS","FLAT WHITE        3.50","CINNAMON ROLL     4.20","AVOCADO TOAST     8.90"]},
+  "BREAKFAST SERVED DAILY 7 TO 11",
   {img:"room.jpg"},
-  "WELCOME TO THE NOVATECH 2026 CONVENTION",
-  {align:"left", lines:["TODAY AT THE GYM","18H   SPINNING","19H   BODY PUMP","20H   YOGA FLOW"]}
+  "WELCOME MR & MRS SMITH ENJOY YOUR STAY",
+  {align:"left", lines:["HAPPY HOUR 5 TO 7","LIVE JAZZ FRIDAY 9PM","SUNDAY BRUNCH 11 TO 3"]}
 ];
 let heroIdx = 0;
 function heroTick(){
