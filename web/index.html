@@ -733,7 +733,7 @@ function FlapBoard(canvas, cols, rows, opts){
       if(maxD>0){
         const perCol = Math.min(69, (T*0.345)/Math.max(1, cols));
         const budget = Math.max(500, T - perCol*(cols-1));
-        const k = prevImg ? 0 : Math.max(0, Math.round((budget/80 - maxD)/LEN));
+        const k = prevImg ? 0 : Math.max(0, Math.ceil((budget/110 - maxD)/LEN)); // vueltas extra suficientes para LLENAR la duracion (sin cola muerta)
         const base = Math.min(110, Math.max(36, budget/(maxD + k*LEN)));
         cells.forEach((cell,i)=>{
           if(cell.done) return;
