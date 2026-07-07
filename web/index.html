@@ -881,12 +881,10 @@ function FlapBoard(canvas, cols, rows, opts){
     const bandLogo = (opts && opts.logo !== undefined) ? opts.logo : "HOTEL MADISON";
     if(bandLogo) ctx.fillText(bandLogo, bx + bw/2, by + bh/2);
     // marca flappit, discreta, a la derecha
-    if(!(opts && opts.topMark)){
-      ctx.fillStyle = "rgba(255,255,255,0.30)";
-      ctx.font = `400 ${bh*0.28}px 'Helvetica Neue',Arial,sans-serif`;
-      ctx.textAlign = "right"; ctx.textBaseline = "middle";
-      ctx.fillText("FLAPPIT.COM", bx + bw - bh*0.4, by + bh/2);
-    }
+    ctx.fillStyle = "rgba(255,255,255,0.30)";
+    ctx.font = `400 ${bh*0.28}px 'Helvetica Neue',Arial,sans-serif`;
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ctx.fillText("FLAPPIT.COM", bx + bw - bh*0.4, by + bh/2);
   }
 
   function drawCell(x,y,w,h,prevC,curC,p){
