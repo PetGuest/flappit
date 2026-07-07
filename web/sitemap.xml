@@ -43,4 +43,32 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/legal.html"/>
     <lastmod>2026-07-06</lastmod><changefreq>yearly</changefreq><priority>0.2</priority>
   </url>
+  <url>
+    <loc>https://flappit.com/panel-tipo-aeropuerto.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/airport-style-board.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
+    <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flappit.com/en/airport-style-board.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/airport-style-board.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
+    <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flappit.com/historia-panel-split-flap.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/historia-panel-split-flap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-history.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/historia-panel-split-flap.html"/>
+    <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flappit.com/en/split-flap-history.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/historia-panel-split-flap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-history.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/historia-panel-split-flap.html"/>
+    <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+  </url>
 </urlset>

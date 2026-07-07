@@ -368,7 +368,7 @@
         aria-label="Type a message for the board" autocomplete="off" spellcheck="false">
       <button class="cta" id="tryBtn">Flip message</button>
       <button class="cta ghost" id="trySnd">Turn on sound</button>
-      <button class="cta ghost" id="tryDl">Download video</button>
+      <button class="cta ghost" id="tryDl">Download sample video</button>
     </div>
     <p class="tryNote">In the full version you can adapt lines, number of letters, colours, logo, clock and content sequence. You can also mix split-flap messages with <b>photos</b>.</p>
   </div>
@@ -519,7 +519,7 @@
   </div>
 
   <footer>
-    <div style="max-width:320px;"><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b><br>The split-flap board for reception, lobby and public-facing screens.</div>
+    <div style="max-width:320px;"><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b><br>The split-flap board for reception, lobby and public-facing screens.<br><a href="/en/airport-style-board.html" style="color:var(--muted);">How to create an airport-style board</a> · <a href="/en/split-flap-history.html" style="color:var(--muted);">Split-flap history</a></div>
     <div class="legal">
       <a href="/en/legal.html#aviso">Legal notice</a>
       <a href="/en/legal.html#terminos">Terms</a>
@@ -1094,7 +1094,7 @@ async function makeVideo(){
   try{
     ensureAudio();
     const b = getExportBoard();
-    const T = 5200;
+    const T = 5800;
     const stream = exportCv.captureStream(30);
     let combined = stream;
     try{
@@ -1113,7 +1113,7 @@ async function makeVideo(){
     b.sound(true);
     rec.start(200);
     setTimeout(()=> b.show(v, T, true), 300);
-    setTimeout(()=>{ b.sound(false); try{ rec.stop(); }catch(e){} }, 300+T+1600);
+    setTimeout(()=>{ b.sound(false); try{ rec.stop(); }catch(e){} }, 300+T+1300);
     await done;
     const blob = new Blob(chunks, {type: mime || "video/webm"});
     if(lastVidUrl) URL.revokeObjectURL(lastVidUrl);

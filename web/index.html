@@ -368,7 +368,7 @@
         aria-label="Escriba un mensaje para el panel" autocomplete="off" spellcheck="false">
       <button class="cta" id="tryBtn">Girar mensaje</button>
       <button class="cta ghost" id="trySnd">Activar sonido</button>
-      <button class="cta ghost" id="tryDl">Descargar vídeo</button>
+      <button class="cta ghost" id="tryDl">Descargar muestra en vídeo</button>
     </div>
     <p class="tryNote">En la versión completa podrá adaptar líneas, número de letras, colores, logo, reloj y secuencia de contenidos. También podrá combinar mensajes split-flap con <b>fotos</b>.</p>
   </div>
@@ -519,7 +519,7 @@
   </div>
 
   <footer>
-    <div style="max-width:320px;"><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b><br>El panel split-flap para pantallas de recepción, lobby y espacios con público.</div>
+    <div style="max-width:320px;"><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b><br>El panel split-flap para pantallas de recepción, lobby y espacios con público.<br><a href="/panel-tipo-aeropuerto.html" style="color:var(--muted);">Cómo crear un panel tipo aeropuerto</a> · <a href="/historia-panel-split-flap.html" style="color:var(--muted);">Historia del split-flap</a></div>
     <div class="legal">
       <a href="legal.html#aviso">Aviso legal</a>
       <a href="legal.html#terminos">Términos</a>
@@ -1094,7 +1094,7 @@ async function makeVideo(){
   try{
     ensureAudio();
     const b = getExportBoard();
-    const T = 5200;
+    const T = 5800;
     const stream = exportCv.captureStream(30);
     let combined = stream;
     try{
@@ -1113,7 +1113,7 @@ async function makeVideo(){
     b.sound(true);
     rec.start(200);
     setTimeout(()=> b.show(v, T, true), 300);
-    setTimeout(()=>{ b.sound(false); try{ rec.stop(); }catch(e){} }, 300+T+1600);
+    setTimeout(()=>{ b.sound(false); try{ rec.stop(); }catch(e){} }, 300+T+1300);
     await done;
     const blob = new Blob(chunks, {type: mime || "video/webm"});
     if(lastVidUrl) URL.revokeObjectURL(lastVidUrl);

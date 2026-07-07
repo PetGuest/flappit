@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{if(localStorage.getItem('flappitLang')==='es')location.replace('/panel-tipo-aeropuerto.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to create an airport-style split-flap board on any screen or TV</title>
+<meta name="description" content="A practical guide to getting an airport departure board (split-flap) in your business or home: buy a mechanical one, build it, or recreate it in 5 minutes on the TV you already own.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="canonical" href="https://flappit.com/en/airport-style-board.html">
+<link rel="alternate" hreflang="es" href="https://flappit.com/panel-tipo-aeropuerto.html">
+<link rel="alternate" hreflang="en" href="https://flappit.com/en/airport-style-board.html">
+<link rel="alternate" hreflang="x-default" href="https://flappit.com/panel-tipo-aeropuerto.html">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Flappit">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="How to create an airport-style split-flap board on any screen or TV">
+<meta property="og:description" content="Three ways to get an airport split-flap board: buy one, build one, or recreate it on the TV you already own. Full guide with steps.">
+<meta property="og:url" content="https://flappit.com/en/airport-style-board.html">
+<meta property="og:image" content="https://flappit.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flappit.com/og-image.png">
+<style>
+  :root{
+    --bg:#0a0a0c; --panel:#131316; --line:#26262b;
+    --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; color-scheme:dark;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif; line-height:1.62;}
+  a{color:var(--brand); text-decoration:none;}
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px;}
+  .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; gap:16px; padding:12px 22px; max-width:1000px; margin:0 auto;}
+  .logo{display:flex; align-items:center;}
+  .logo img{height:26px; display:block;}
+  nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
+  nav .links a{color:var(--muted);}
+  nav .links a:hover{color:var(--text);}
+  @media(max-width:600px){ nav .links a:not(.cta){display:none;} }
+  .cta{background:var(--brand); color:#111; font-weight:800; border:none;
+    border-radius:10px; padding:11px 20px; font-size:14.5px; cursor:pointer; letter-spacing:.3px; display:inline-block;}
+  .cta:hover{filter:brightness(1.1);}
+  .cta.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand);}
+
+  .hero{text-align:center; padding:52px 0 8px;}
+  .hero .ey{font-family:ui-monospace,monospace; color:var(--brand); letter-spacing:2px; font-size:12.5px;}
+  h1{font-size:clamp(28px,4.6vw,44px); line-height:1.14; margin:12px 0 14px; font-weight:800; text-wrap:balance;}
+  h1 em{color:var(--brand); font-style:normal;}
+  .lead{color:var(--muted); font-size:clamp(15px,2vw,18px); max-width:640px; margin:0 auto;}
+  article{padding:26px 0 10px;}
+  article h2{font-size:clamp(21px,2.8vw,28px); margin:44px 0 12px; font-weight:800;}
+  article h3{font-size:17px; margin:26px 0 8px;}
+  article p{color:#c9c9c2; font-size:16px; margin:0 0 14px;}
+  article p b{color:var(--text);}
+  .opt{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin:0 0 14px;}
+  .opt h3{margin:0 0 6px;}
+  .opt .meta{font-family:ui-monospace,monospace; font-size:12px; color:var(--brand); letter-spacing:1px; margin-bottom:8px;}
+  .opt p{font-size:14.5px; color:var(--muted); margin:0;}
+  .opt.best{border-color:rgba(215,224,33,0.5); box-shadow:0 0 26px rgba(215,224,33,0.08);}
+  ol.pasos{counter-reset:p; list-style:none; padding:0; margin:6px 0 0;}
+  ol.pasos li{counter-increment:p; position:relative; padding:0 0 18px 52px; color:#c9c9c2; font-size:15.5px;}
+  ol.pasos li::before{content:counter(p); position:absolute; left:0; top:-1px; width:34px; height:34px;
+    border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:rgba(215,224,33,0.08); border:1px solid rgba(215,224,33,0.4);
+    color:var(--brand); font-family:ui-monospace,monospace; font-weight:800;}
+  ol.pasos b{color:var(--text);}
+  .note{background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--brand);
+    border-radius:12px; padding:16px 18px; color:var(--muted); font-size:14.5px; margin:18px 0;}
+  .note b{color:var(--text);}
+  .faq{margin-top:8px;}
+  details{border-bottom:1px solid var(--line); padding:14px 4px;}
+  summary{cursor:pointer; font-weight:700; font-size:15.5px; list-style:none; display:flex; justify-content:space-between; gap:12px;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--brand); font-weight:800;}
+  details[open] summary::after{content:"–";}
+  details p{color:var(--muted); font-size:14.5px; margin:10px 0 0;}
+  .final{text-align:center; padding:52px 0 24px;}
+  .final h2{font-size:clamp(21px,3vw,30px); margin:0 0 8px;}
+  .final p{color:var(--muted); margin:0 0 20px;}
+  footer{border-top:1px solid var(--line); margin-top:36px; padding:24px 0 36px; color:var(--muted); font-size:13px;}
+  footer .wrap{display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; max-width:1000px;}
+  footer a{color:var(--muted);}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "How to create an airport-style split-flap board on any screen or TV",
+      "inLanguage": "en",
+      "author": {"@type": "Organization", "name": "Flappit", "url": "https://flappit.com/"},
+      "publisher": {"@type": "Organization", "name": "Flappit", "logo": {"@type": "ImageObject", "url": "https://flappit.com/og-image.png"}},
+      "image": "https://flappit.com/og-image.png",
+      "datePublished": "2026-07-07",
+      "dateModified": "2026-07-07",
+      "mainEntityOfPage": "https://flappit.com/en/airport-style-board.html"
+    },
+    {
+      "@type": "HowTo",
+      "name": "How to recreate an airport board on your TV in 5 minutes",
+      "totalTime": "PT5M",
+      "supply": [{"@type":"HowToSupply","name":"Smart TV with a browser (or an HDMI stick)"},{"@type":"HowToSupply","name":"Wi-Fi connection"}],
+      "step": [
+        {"@type":"HowToStep","name":"Create your account","text":"Sign up free at flappit.com/panel (7-day trial, no card)."},
+        {"@type":"HowToStep","name":"Open Flappit on the TV","text":"In the TV browser, go to flappit.com/tv. The screen shows a 4-letter code."},
+        {"@type":"HowToStep","name":"Link the screen","text":"Type the 4-letter code into your control panel. The TV connects instantly."},
+        {"@type":"HowToStep","name":"Write your first message","text":"Type the text, pick colours and hit update: the letters flip on screen with their clack-clack."}
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type":"Question","name":"How much does a real airport split-flap board cost?","acceptedAnswer":{"@type":"Answer","text":"A new mechanical split-flap starts around €3,000 for small wall units and reaches tens of thousands for lobby sizes, plus maintenance. Recreating it in software on a TV you already own starts at €19/month."}},
+        {"@type":"Question","name":"Can I have the board on a regular TV?","acceptedAnswer":{"@type":"Answer","text":"Yes. Any Smart TV with a browser works; for older TVs, a pre-configured HDMI stick solves it. No installation, no technician."}},
+        {"@type":"Question","name":"Does it sound like the real boards?","acceptedAnswer":{"@type":"Answer","text":"Yes: the flap clack-clack is recreated and optional — turn it on for the full effect or keep it silent."}},
+        {"@type":"Question","name":"Does it work on vertical screens?","acceptedAnswer":{"@type":"Answer","text":"Yes, both landscape (lobby TVs) and portrait (reception totems), adapting the letter grid to the format."}}
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Flappit","item":"https://flappit.com/en"},
+        {"@type":"ListItem","position":2,"name":"How to create an airport-style board","item":"https://flappit.com/en/airport-style-board.html"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<div class="navBar">
+  <nav>
+    <a class="logo" href="/en" aria-label="Flappit"><img src="/flappit-logo.svg" alt="Flappit"></a>
+    <div class="links">
+      <a href="/en#try">Try it</a>
+      <a href="/en#prices">Pricing</a>
+      <a href="/en/split-flap-history.html">The history</a>
+      <a class="cta" href="/panel">Try free</a>
+    </div>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="ey">PRACTICAL GUIDE · 2026</div>
+    <h1>How to create an <em>airport-style board</em> on any screen</h1>
+    <p class="lead">The flipping-letter board from airports — the split-flap, or "Solari board" — can live today in a hotel, a restaurant, an office or your living room. There are three ways to get one. Here they are, with real prices and timings.</p>
+  </div>
+
+  <article>
+    <h2>First: what this thing is called</h2>
+    <p>The classic arrivals-and-departures board is called a <b>split-flap</b>: each cell is a drum holding dozens of half-cards that rotate until they stop at the right letter, producing the unmistakable <b>clack-clack</b>. It's also known as a <b>Solari board</b>, after the Italian company that invented it and shipped it around the world — if you enjoy that story, we tell it in <a href="/en/split-flap-history.html">the legendary airport board: a history of the split-flap</a>. Knowing the name matters: it's what you need to search for to buy, build or recreate one.</p>
+
+    <h2>The three ways (and who each one suits)</h2>
+
+    <div class="opt">
+      <div class="meta">OPTION 1 · REAL MECHANICAL</div>
+      <h3>Buy a physical split-flap board</h3>
+      <p>Modern manufacturers still make true mechanical boards, flaps and motors included. It's the most faithful option — and the most expensive: small wall units start around €3,000, lobby formats reach tens of thousands, and flaps and motors need maintenance. It makes sense as a sculptural piece in premium spaces with the budget for it.</p>
+    </div>
+
+    <div class="opt">
+      <div class="meta">OPTION 2 · DIY</div>
+      <h3>Build it with 3D printing and electronics</h3>
+      <p>Open-source projects offer plans for printable flaps, stepper motors and controller boards. It's a beautiful electronics project… and a weeks-to-months hobby: one module per character, calibration, upkeep. Perfect if the journey is what you enjoy; impractical if what you want is the result on your business's wall.</p>
+    </div>
+
+    <div class="opt best">
+      <div class="meta">OPTION 3 · ON THE TV YOU ALREADY OWN · 5 MINUTES</div>
+      <h3>Recreate it in software on any screen</h3>
+      <p>The third route turns a TV or screen you already own into a split-flap board that looks and sounds like the real thing: same flipping flaps, same cascading choreography, same clack-clack. No works, no technician, updatable from your phone. That's what <b style="color:var(--text);">Flappit</b> does, from €19/month with a 7-day free trial.</p>
+    </div>
+
+    <h2>Recreating it on your TV, step by step</h2>
+    <ol class="pasos">
+      <li><b>Create your account</b> at <a href="/panel">flappit.com/panel</a> — 7-day full trial, no card.</li>
+      <li><b>Open flappit.com/tv in the TV's browser.</b> No browser on your TV? A pre-configured HDMI stick fixes it: plug in and go. <a href="/en/instalacion.html">Installation in detail here</a>.</li>
+      <li><b>Link the screen</b>: the TV shows a 4-letter code; type it into your control panel and they're connected.</li>
+      <li><b>Write your first message</b>: choose lines, letter and flap colours, add your logo and a clock, and hit update. The letters flip across the screen, in cascade, until your text is composed.</li>
+    </ol>
+
+    <div class="note"><b>Want to see it before creating anything?</b> The homepage has an <a href="/en#try">interactive demo</a>: type your message, watch it flip with sound, and download a sample video to show whoever decides.</div>
+
+    <h2>What you actually need</h2>
+    <p>A screen (the lobby TV you already have, a monitor or a vertical totem), Wi-Fi and five minutes. Nothing else: no works, no new cabling, no technical skills — if your team can open a website on the TV, they can do this. And if the internet drops one day, the board keeps the last content on screen instead of going dark.</p>
+
+    <h2>Ideas for your space</h2>
+    <p><b>Hotels</b>: welcomes with the guest's name, breakfast hours, today's events, group farewells. <b>Restaurants and cafés</b>: today's menu, specials, "today we recommend…". <b>Clinics</b>: queue numbers and notices with a warmer look than a corporate screen. <b>Gyms</b>: today's classes and challenges. <b>Offices and events</b>: room agendas, visitor welcomes, launch countdowns. <b>At home</b>: a message flipping in the kitchen every morning — the ultimate retro treat.</p>
+
+    <h2>Frequently asked questions</h2>
+    <div class="faq">
+      <details><summary>How much does a real airport board cost?</summary>
+        <p>A new mechanical split-flap starts around €3,000 for small wall formats and climbs to tens of thousands for lobby sizes, plus flap-and-motor maintenance. The software recreation on an existing TV starts at €19/month.</p></details>
+      <details><summary>Can I have it on a regular TV?</summary>
+        <p>Yes. Any Smart TV with a browser works as-is; for older sets, an inexpensive pre-configured HDMI stick solves it.</p></details>
+      <details><summary>Does it sound like the real boards?</summary>
+        <p>Yes — the flap clack-clack is recreated and optional: turn it on for the full effect or silence it in quiet environments.</p></details>
+      <details><summary>Does it work on vertical screens?</summary>
+        <p>Yes: landscape for lobby TVs and portrait for reception totems, adapting the letter grid to the format.</p></details>
+      <details><summary>Who updates it day to day?</summary>
+        <p>Anyone on the team, from a phone or computer: type the message, hit update, and the flaps spin on the screen right away.</p></details>
+    </div>
+  </article>
+
+  <div class="final">
+    <h2>Your airport board could be flipping today.</h2>
+    <p>7-day free trial, no card, no commitment.</p>
+    <a class="cta" href="/panel">Create my board now</a>
+    <a class="cta ghost" style="margin-left:10px;" href="/en#try">See the demo</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b> · The split-flap board for any screen</div>
+    <div>
+      <a href="/en/split-flap-history.html">Split-flap history</a> ·
+      <a href="/en/instalacion.html">Installation</a> ·
+      <a href="/en/legal.html">Legal</a> ·
+      <a href="mailto:hello@flappit.com">hello@flappit.com</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

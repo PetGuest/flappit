@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{if(localStorage.getItem('flappitLang')==='en')location.replace('/en/split-flap-history.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El mítico panel de aeropuerto: historia del split-flap de Solari</title>
+<meta name="description" content="La historia del panel split-flap: los hermanos Solari, el diseño premiado de Gino Valle, el clac-clac que conquistó aeropuertos y estaciones de medio mundo, por qué desapareció y cómo revivirlo hoy en cualquier pantalla.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="canonical" href="https://flappit.com/historia-panel-split-flap.html">
+<link rel="alternate" hreflang="es" href="https://flappit.com/historia-panel-split-flap.html">
+<link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-history.html">
+<link rel="alternate" hreflang="x-default" href="https://flappit.com/historia-panel-split-flap.html">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Flappit">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="El mítico panel de aeropuerto: historia del split-flap de Solari">
+<meta property="og:description" content="De un taller de relojeros italianos al sonido más querido de los aeropuertos: la historia del split-flap, su desaparición y cómo revivirlo hoy.">
+<meta property="og:url" content="https://flappit.com/historia-panel-split-flap.html">
+<meta property="og:image" content="https://flappit.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://flappit.com/og-image.png">
+<style>
+  :root{
+    --bg:#0a0a0c; --panel:#131316; --line:#26262b;
+    --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth; color-scheme:dark;}
+  body{margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif; line-height:1.62;}
+  a{color:var(--brand); text-decoration:none;}
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px;}
+  .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
+  nav{display:flex; align-items:center; gap:16px; padding:12px 22px; max-width:1000px; margin:0 auto;}
+  .logo{display:flex; align-items:center;}
+  .logo img{height:26px; display:block;}
+  nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
+  nav .links a{color:var(--muted);}
+  nav .links a:hover{color:var(--text);}
+  @media(max-width:600px){ nav .links a:not(.cta){display:none;} }
+  .cta{background:var(--brand); color:#111; font-weight:800; border:none;
+    border-radius:10px; padding:11px 20px; font-size:14.5px; cursor:pointer; letter-spacing:.3px; display:inline-block;}
+  .cta:hover{filter:brightness(1.1);}
+  .cta.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand);}
+
+  .hero{text-align:center; padding:52px 0 8px;}
+  .hero .ey{font-family:ui-monospace,monospace; color:var(--brand); letter-spacing:2px; font-size:12.5px;}
+  h1{font-size:clamp(28px,4.6vw,44px); line-height:1.14; margin:12px 0 14px; font-weight:800; text-wrap:balance;}
+  h1 em{color:var(--brand); font-style:normal;}
+  .lead{color:var(--muted); font-size:clamp(15px,2vw,18px); max-width:640px; margin:0 auto;}
+  article{padding:26px 0 10px;}
+  article h2{font-size:clamp(21px,2.8vw,28px); margin:44px 0 12px; font-weight:800;}
+  article p{color:#c9c9c2; font-size:16px; margin:0 0 14px;}
+  article p b{color:var(--text);}
+  blockquote{margin:24px 0; padding:18px 22px; background:var(--panel); border:1px solid var(--line);
+    border-left:3px solid var(--brand); border-radius:12px; color:var(--muted); font-size:15px; font-style:italic;}
+  .fact{display:flex; gap:14px; align-items:flex-start; padding:13px 0; border-bottom:1px solid var(--line);}
+  .fact .y{font-family:ui-monospace,monospace; color:var(--brand); font-weight:800; min-width:64px; font-size:15px;}
+  .fact p{margin:0; font-size:14.5px; color:var(--muted);}
+  .fact p b{color:var(--text);}
+  .mech{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin:18px 0;}
+  .mech h3{margin:0 0 8px; font-size:16px; color:var(--brand); font-family:ui-monospace,monospace; letter-spacing:1px; font-weight:700;}
+  .mech p{font-size:14.5px; color:var(--muted); margin:0 0 10px;}
+  .final{text-align:center; padding:52px 0 24px;}
+  .final h2{font-size:clamp(21px,3vw,30px); margin:0 0 8px;}
+  .final p{color:var(--muted); margin:0 0 20px;}
+  footer{border-top:1px solid var(--line); margin-top:36px; padding:24px 0 36px; color:var(--muted); font-size:13px;}
+  footer .wrap{display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; max-width:1000px;}
+  footer a{color:var(--muted);}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "El mítico panel de aeropuerto: historia del split-flap de Solari",
+      "inLanguage": "es-ES",
+      "author": {"@type": "Organization", "name": "Flappit", "url": "https://flappit.com/"},
+      "publisher": {"@type": "Organization", "name": "Flappit", "logo": {"@type": "ImageObject", "url": "https://flappit.com/og-image.png"}},
+      "image": "https://flappit.com/og-image.png",
+      "datePublished": "2026-07-07",
+      "dateModified": "2026-07-07",
+      "mainEntityOfPage": "https://flappit.com/historia-panel-split-flap.html"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Flappit","item":"https://flappit.com/"},
+        {"@type":"ListItem","position":2,"name":"Historia del panel split-flap","item":"https://flappit.com/historia-panel-split-flap.html"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<div class="navBar">
+  <nav>
+    <a class="logo" href="/" aria-label="Flappit"><img src="/flappit-logo.svg" alt="Flappit"></a>
+    <div class="links">
+      <a href="/panel-tipo-aeropuerto.html">Cómo tener uno</a>
+      <a href="/#try">Pruébelo</a>
+      <a class="cta" href="/panel">Probar gratis</a>
+    </div>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="ey">LA HISTORIA · SPLIT-FLAP</div>
+    <h1>El mítico panel de aeropuerto: <em>la historia del split-flap</em></h1>
+    <p class="lead">Antes de las pantallas LED hubo un tablero que anunciaba los destinos girando letra a letra, con un clac-clac que hacía levantar la vista a toda la terminal. Esta es la historia de cómo nació, por qué desapareció — y cómo puede volver a girar en cualquier pantalla.</p>
+  </div>
+
+  <article>
+    <h2>Un taller de relojeros en los Alpes italianos</h2>
+    <p>La historia empieza mucho antes que los aeropuertos: en <b>1725</b>, en el norte de Italia, la familia Solari ya fabricaba relojes de torre. De aquella tradición relojera salieron dos hermanos, <b>Remigio y Fermo Solari</b>, que en <b>1948</b> fundaron su propia empresa en la ciudad de Udine: <b>Solari di Udine</b>.</p>
+    <p>Remigio era el mecánico visionario de la casa. Su invención: sustituir las agujas del reloj por <b>paletas giratorias</b> — pequeñas tarjetas partidas por la mitad, montadas en un tambor, que caen por gravedad y muestran números y letras con una claridad que ninguna aguja podía dar. Patentó el sistema y tuvo una segunda intuición aún mayor: aquello no servía solo para dar la hora, sino para <b>anunciar información que cambia</b> — trenes, vuelos, destinos.</p>
+
+    <h2>El diseño que conquistó el mundo</h2>
+    <p>En los años 50, Solari se alió con el arquitecto y diseñador <b>Gino Valle</b>, y de esa colaboración salió una pieza legendaria: el reloj <b>Cifra 5</b>, premiado con el <b>Compasso d'Oro en 1956</b> — el galardón de diseño más prestigioso de Italia. Su hermano pequeño, el Cifra 3, acabaría expuesto en las colecciones de diseño de museos de medio mundo. Aquel mismo año 1956, Solari vendió su primer gran panel informativo a la <b>estación de Lieja</b>, en Bélgica.</p>
+    <p>Lo que vino después fue una conquista silenciosa (bueno — bastante ruidosa): en los años 60 y 70, los "tableros Solari" se convirtieron en el estándar de <b>aeropuertos y estaciones de Europa, América, Asia y África</b>. Décadas antes de que existiera el píxel, el split-flap era la manera más moderna del planeta de mostrar información viva.</p>
+
+    <div class="mech">
+      <h3>CÓMO FUNCIONA LA MAGIA</h3>
+      <p><b>El tambor:</b> cada casilla contiene decenas de paletas con caracteres, montadas en un eje que solo gira hacia adelante. Para llegar a la "R", el tambor pasa por todas las letras intermedias.</p>
+      <p><b>El clac:</b> cuando una paleta supera el punto más alto del tambor, la gravedad la vence y cae de golpe sobre la anterior. Ese golpe seco, multiplicado por cientos de casillas, es el famoso clac-clac.</p>
+      <p><b>La coreografía:</b> al actualizarse el panel, todas las casillas arrancan a girar a la vez, pero cada una se detiene al alcanzar su letra — unas antes, otras después. Esa cascada de paradas, que termina en silencio cuando el mensaje queda compuesto, es el momento hipnótico que todo el mundo recuerda.</p>
+    </div>
+
+    <h2>La desaparición</h2>
+    <p>A partir de los años 90, las pantallas LED y LCD fueron ganando la batalla: sin piezas móviles, sin paletas que se atascan, sin motores que engrasar y con costes de mantenimiento mínimos. Aeropuerto a aeropuerto, estación a estación, los tableros mecánicos se fueron apagando. Hoy quedan poquísimos en servicio, convertidos en objetos de peregrinación: el más célebre, el panel Solari original de <b>1962 de la antigua terminal TWA del aeropuerto JFK</b> de Nueva York, restaurado con su mecánica auténtica para el TWA Hotel en 2019 — la gente va a verlo (y a escucharlo) como quien visita un monumento.</p>
+
+    <blockquote>Lo curioso es que las pantallas que los sustituyeron informan igual de bien… pero nadie levanta la vista por ellas. El split-flap no solo daba información: creaba un pequeño acontecimiento cada vez que algo cambiaba.</blockquote>
+
+    <h2>Por qué nos fascina todavía</h2>
+    <p>El secreto del split-flap es que se dirige a dos sentidos a la vez. El <b>movimiento</b> — cientos de paletas girando en cascada — atrapa la vista por puro instinto. Y el <b>sonido</b> anuncia el cambio antes de que puedas leerlo: el clac-clac es una promesa de novedad, un "atención, algo está a punto de decirse". Esa combinación de expectación y resolución es teatro puro, y ningún panel LED la ha replicado jamás.</p>
+
+    <h2>Cómo revivir el mito hoy (sin motores ni grasa)</h2>
+    <p>Comprar un panel mecánico real sigue siendo posible — y magnífico — si se dispone de varios miles de euros y ganas de mantenimiento. Construirlo con impresión 3D es un hobby precioso de meses. Pero hay una tercera vía que no existía hace unos años: <b>recrearlo por software en la pantalla que ya tiene</b>, con las mismas paletas girando, la misma coreografía en cascada y el mismo clac-clac — actualizable desde el móvil y sin una sola pieza que engrasar.</p>
+    <p>Es exactamente lo que hace <b>Flappit</b>: convierte cualquier televisor o pantalla en un panel split-flap vivo para hoteles, restaurantes, clínicas, oficinas o su propio salón. En nuestra guía le contamos <a href="/panel-tipo-aeropuerto.html">las tres maneras de tener un panel tipo aeropuerto</a>, con precios y pasos. O pruébelo ahora mismo: escriba un mensaje en <a href="/#try">la demo</a> y véalo girar con sonido.</p>
+  </article>
+
+  <div class="final">
+    <h2>El clac-clac puede volver a sonar en su recepción.</h2>
+    <p>Recree el panel mítico en la TV que ya tiene. 7 días gratis, sin tarjeta.</p>
+    <a class="cta" href="/panel">Probar Flappit gratis</a>
+    <a class="cta ghost" style="margin-left:10px;" href="/panel-tipo-aeropuerto.html">Leer la guía práctica</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b> · El panel split-flap para cualquier pantalla</div>
+    <div>
+      <a href="/panel-tipo-aeropuerto.html">Cómo crear un panel tipo aeropuerto</a> ·
+      <a href="/instalacion.html">Instalación</a> ·
+      <a href="/legal.html">Legal</a> ·
+      <a href="mailto:hello@flappit.com">hello@flappit.com</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
