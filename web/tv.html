@@ -116,7 +116,7 @@ function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor, weight){
   const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
   const half = fh/2, rad = Math.max(2, w*0.08);
   const cx = x+w/2;
-  const font = `${weight||400} ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+  const font = `${weight||500} ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
   if(LITE){
     // MODO LIGERO: solo rellenos planos (nada de degradados, clips, transformaciones ni
     // bisagras por celda, que es lo caro). Conserva los matices clave con rectángulos:
@@ -360,6 +360,11 @@ function stepAt(cell, e){
   return n;
 }
 
+/* COREOGRAFÍA SOLARI (por defecto desde jul 2026): ola de arranque izquierda→derecha,
+   velocidad de tambor única y cada ficha se DETIENE al llegar a su letra — la palabra
+   emerge progresivamente y el sonido decae solo. ?solari=0 recupera la coreografía antigua. */
+const SOLARI = new URLSearchParams(location.search).get("solari") !== "0";
+
 function transition(targets){
   const now = performance.now();
   const T = Math.max(800, (S.trans||3)*1000);
@@ -391,6 +396,32 @@ function transition(targets){
     any = true;
     if(tgt!==0) letterCells.push(cell);
   });
+  if(SOLARI){
+    // Coreografía Solari legible: ola de arranque de IZQUIERDA A DERECHA (la palabra se
+    // construye en orden de lectura), velocidad de tambor única y cada ficha se DETIENE
+    // al alcanzar su letra. Así el texto emerge progresivamente desde el primer momento,
+    // también al encadenar pantallas. Si la duración da para más, todas las fichas dan
+    // el mismo nº de vueltas extra (k igual), que no altera el orden de la cascada.
+    let maxD = 0;
+    cells.forEach(cell=>{ if(!cell.done) maxD = Math.max(maxD, cell._d); });
+    if(maxD>0){
+      const perCol = Math.min(69, (T*0.345)/Math.max(1, grid.cols)); // ola ≈ 34,5% de T (un 15% más lenta)
+      const wave = perCol*(grid.cols-1);
+      const budget = Math.max(600, T - wave);                 // tiempo de giro tras la ola
+      let base = 80;                                          // ms/paleta de partida (tambor real)
+      const k = Math.max(0, Math.round((budget/base - maxD)/LEN)); // vueltas, IGUALES para todas
+      const total = maxD + k*LEN;
+      base = Math.min(110, Math.max(45, budget/total));       // ajusta para respetar la duración elegida
+      cells.forEach((cell,i)=>{
+        if(cell.done) return;
+        const r = Math.floor(i/grid.cols), c = i%grid.cols;
+        cell.steps = cell._d + k*LEN;
+        cell.delay = c*perCol + r*10 + Math.random()*30;      // ola izquierda→derecha + jitter mecánico
+        cell.slowN = 0; cell._tail = 0;                       // sin frenados escenificados
+        cell.base = base;                                     // velocidad ÚNICA para todo el tablero
+      });
+    }
+  } else {
   for(let i=letterCells.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
     [letterCells[i],letterCells[j]] = [letterCells[j],letterCells[i]];
@@ -413,6 +444,7 @@ function transition(targets){
     const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
     cell.base = Math.min(200, Math.max(38, avail/(cell.steps + slowExtra)));
   });
+  }
   const wasFromPhoto = fromPhoto;
   fromPhoto = false; // bandera de un solo uso
   if(any && !animOn){ animOn=true; requestAnimationFrame(frame); }
@@ -536,12 +568,12 @@ function render(now){
         else { ctx.textAlign = "center"; ctx.fillText((S.logoTxt||"").toUpperCase(), bx+bw/2, by+bandH/2); }
       }
     }
-    // MARCA flappit (nuestra), discreta · derecha en horizontal, centro en vertical
+    // MARCA FLAPPIT.COM (nuestra), discreta · derecha en horizontal, centro en vertical
     ctx.fillStyle = "rgba(255,255,255,0.30)";
-    ctx.font = `400 ${bandH*0.34}px 'Helvetica Neue',Arial,sans-serif`;
+    ctx.font = `400 ${bandH*0.28}px 'Helvetica Neue',Arial,sans-serif`;
     ctx.textBaseline = "middle";
-    if(vertical){ ctx.textAlign = "center"; ctx.fillText("flappit.com", bx + bw/2, by+bandH/2); }
-    else { ctx.textAlign = "right"; ctx.fillText("flappit.com", bx + bw - bandH*0.4, by+bandH/2); }
+    if(vertical){ ctx.textAlign = "center"; ctx.fillText("FLAPPIT.COM", bx + bw/2, by+bandH/2); }
+    else { ctx.textAlign = "right"; ctx.fillText("FLAPPIT.COM", bx + bw - bandH*0.4, by+bandH/2); }
   }
 }
 
@@ -764,6 +796,7 @@ function transMsFor(cur){
   if(cur.type==="video") return 0;
   if(cur.type==="photo") return 600;                  // foto plena: fundido corto
   if(cur.type==="image") return LITE ? 600 : 9800;    // flapizada: en modo ligero se muestra directa
+  if(SOLARI) return Math.round(Math.max(800,(S.trans||3)*1000) + 600); // solari: termina ≈ en T (+ola)
   return Math.round(Math.max(800,(S.trans||3)*1000) * 1.7); // texto: giro + cola de suspense final
 }
 function scheduleRot(){

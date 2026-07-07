@@ -12,7 +12,18 @@ const Database = require("better-sqlite3");
 const { WebSocketServer } = require("ws");
 
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.SESSION_SECRET || "cambia-esto-en-produccion";
+/* SESSION_SECRET es obligatorio: sin él cualquiera podría forjar cookies de sesión.
+   En producción (Railway define RAILWAY_ENVIRONMENT) el proceso se niega a arrancar;
+   en desarrollo local se genera uno efímero (las sesiones caducan al reiniciar). */
+const SECRET = (()=>{
+  if(process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if(process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV==="production"){
+    console.error("FALTA la variable SESSION_SECRET. Defínela antes de arrancar en producción.");
+    process.exit(1);
+  }
+  console.warn("AVISO: SESSION_SECRET no definida; usando secret efímero de desarrollo.");
+  return crypto.randomBytes(32).toString("hex");
+})();
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, "flaps.db");
 // carpeta para vídeos subidos (foto plena viaja embebida; el vídeo no cabe).
 // por defecto junto a la base de datos, para que caiga en el mismo disco persistente.
@@ -83,6 +94,12 @@ function entitled(u){
 }
 const hash = (pass, salt) => crypto.scryptSync(pass, salt, 64).toString("hex");
 const hmac = (s) => crypto.createHmac("sha256", SECRET).update(s).digest("hex");
+/* comparación en tiempo constante (evita ataques de temporización sobre firmas/hashes) */
+function safeEqual(a, b){
+  const A = Buffer.from(String(a)), B = Buffer.from(String(b));
+  if(A.length !== B.length) return false;
+  return crypto.timingSafeEqual(A, B);
+}
 
 function makeSession(userId){
   const exp = now() + 1000*60*60*24*30; // 30 días
@@ -94,7 +111,7 @@ function readSession(sid){
   const parts = sid.split(".");
   if(parts.length!==3) return null;
   const body = parts[0]+"."+parts[1];
-  if(hmac(body)!==parts[2]) return null;
+  if(!safeEqual(hmac(body), parts[2])) return null;
   if(+parts[1] < now()) return null;
   return +parts[0];
 }
@@ -131,6 +148,34 @@ function requireAdmin(req, res, next){
   if(req.user && req.user.is_admin) return next();
   return res.status(403).json({error:"solo-admin"});
 }
+
+/* ---------- rate limiting (en memoria, sin dependencias) ----------
+   Protege login/register del ataque por fuerza bruta de contraseñas, y /api/pair
+   del barrido de códigos de 4 letras. Cuenta por IP en una ventana deslizante. */
+const rlBuckets = new Map(); // "prefijo:ip" -> {n, reset}
+function clientIp(req){
+  // Railway pone la IP real en X-Forwarded-For (primer valor)
+  const xff = (req.headers["x-forwarded-for"]||"").split(",")[0].trim();
+  return xff || req.socket.remoteAddress || "?";
+}
+function rateLimit(prefix, max, windowMs){
+  return (req, res, next)=>{
+    const key = prefix+":"+clientIp(req);
+    const t = Date.now();
+    let b = rlBuckets.get(key);
+    if(!b || b.reset < t){ b = {n:0, reset: t+windowMs}; rlBuckets.set(key, b); }
+    b.n++;
+    if(b.n > max){
+      res.set("Retry-After", String(Math.ceil((b.reset-t)/1000)));
+      return res.status(429).json({error:"demasiados-intentos"});
+    }
+    next();
+  };
+}
+setInterval(()=>{ // purga de cubos caducados
+  const t = Date.now();
+  rlBuckets.forEach((b,k)=>{ if(b.reset<t) rlBuckets.delete(k); });
+}, 60000).unref();
 
 /* ---------- app ---------- */
 const app = express();
@@ -217,7 +262,7 @@ app.get("/admin", (req,res)=>res.sendFile(path.join(__dirname,"web","admin.html"
 app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","index.html"))); // landing en inglés (URL limpia)
 
 /* ---- cuentas ---- */
-app.post("/api/register", (req,res)=>{
+app.post("/api/register", rateLimit("reg", 10, 60*60*1000), (req,res)=>{
   const {email, password, business, plan, bill} = req.body || {};
   if(!email || !password || password.length<8)
     return res.status(400).json({error:"datos-invalidos"});
@@ -235,10 +280,10 @@ app.post("/api/register", (req,res)=>{
   }
 });
 
-app.post("/api/login", (req,res)=>{
+app.post("/api/login", rateLimit("login", 20, 15*60*1000), (req,res)=>{
   const {email, password} = req.body || {};
   const u = db.prepare("SELECT * FROM users WHERE email=?").get((email||"").toLowerCase().trim());
-  if(!u || hash(password||"", u.salt)!==u.pass)
+  if(!u || !safeEqual(hash(password||"", u.salt), u.pass))
     return res.status(401).json({error:"credenciales"});
   setCookie(res, "sid", makeSession(u.id), 60*60*24*30);
   res.json({ok:true});
@@ -300,7 +345,7 @@ app.post("/api/screen/hello", (req,res)=>{
   res.json({token:t, code, paired:false, state:null});
 });
 
-app.post("/api/pair", auth, requirePaid, (req,res)=>{
+app.post("/api/pair", rateLimit("pair", 15, 15*60*1000), auth, requirePaid, (req,res)=>{
   const {code, name} = req.body || {};
   const s = db.prepare("SELECT * FROM screens WHERE code=? AND user_id IS NULL")
     .get((code||"").toUpperCase().trim());
@@ -440,6 +485,25 @@ app.get("/api/portal", auth, async (req,res)=>{
   }catch(e){
     res.status(500).json({error:"stripe", detail:String(e.message||e)});
   }
+});
+
+/* ---------- manejo de errores (evita que una excepción tumbe el proceso único) ---------- */
+// middleware de error de Express: SIEMPRE el último app.use, captura errores de rutas síncronas
+app.use((err, req, res, next)=>{
+  if(err && err.type==="entity.parse.failed") // JSON malformado del cliente
+    return res.status(400).json({error:"json-invalido"});
+  if(err && err.type==="entity.too.large")
+    return res.status(413).json({error:"demasiado-grande"});
+  console.error("Error en ruta", req.method, req.url, "-", err && (err.stack||err));
+  if(res.headersSent) return next(err);
+  res.status(500).json({error:"interno"});
+});
+// red de seguridad global: registra y sigue en pie (Railway solo reinicia si el proceso muere)
+process.on("uncaughtException", (err)=>{
+  console.error("uncaughtException:", err && (err.stack||err));
+});
+process.on("unhandledRejection", (err)=>{
+  console.error("unhandledRejection:", err && (err.stack||err));
 });
 
 /* ---------- websocket de pantallas ---------- */
