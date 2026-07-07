@@ -476,3 +476,18 @@ server.listen(PORT, ()=>{
   console.log("FLAPS backend escuchando en http://localhost:"+PORT);
   console.log("  Panel de control: /panel   Pantalla TV: /tv");
 });
+
+/* Apagado limpio. Al redesplegar, Railway envía SIGTERM para parar la versión anterior.
+   Si no lo gestionamos, Node termina "por señal" y Railway lo marca como crash (falso
+   positivo: los emails "Deploy Crashed"). Cerramos ordenadamente y salimos con código 0. */
+let shuttingDown = false;
+function shutdown(sig){
+  if(shuttingDown) return; shuttingDown = true;
+  console.log("Apagado limpio ("+sig+")…");
+  try{ wss.clients.forEach(ws=>{ try{ ws.close(); }catch(e){} }); }catch(e){}
+  try{ wss.close(); }catch(e){}
+  try{ server.close(()=>{ try{ db.close(); }catch(e){} process.exit(0); }); }catch(e){ process.exit(0); }
+  setTimeout(()=>{ try{ db.close(); }catch(e){} process.exit(0); }, 4000).unref(); // red de seguridad
+}
+process.on("SIGTERM", ()=>shutdown("SIGTERM"));
+process.on("SIGINT",  ()=>shutdown("SIGINT"));
