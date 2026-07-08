@@ -591,28 +591,36 @@ function ensureAudio(){
 }
 function click(g, dt){
   if(!audioCtx||audioCtx.state!=="running") return;
-  const t = audioCtx.currentTime + (dt||0);
-  if(tickBuf){ // muestra real grabada
+  const t0 = audioCtx.currentTime + (dt||0);
+  if(tickBuf){ // muestra real grabada (si algún día existe flaps-tick.mp3)
     const src=audioCtx.createBufferSource(); src.buffer=tickBuf;
     src.playbackRate.value=0.92+Math.random()*0.16;
     const gn=audioCtx.createGain(); gn.gain.value=g;
-    src.connect(gn).connect(master); src.start(t);
+    src.connect(gn).connect(master); src.start(t0);
     return;
   }
-  // capa 1: toque mecánico (más agudo, más corto)
-  const o=audioCtx.createOscillator(); o.type="triangle";
-  o.frequency.setValueAtTime(340+Math.random()*220, t);
-  const og=audioCtx.createGain();
-  og.gain.setValueAtTime(g*0.6, t);
-  og.gain.exponentialRampToValueAtTime(0.0001, t+0.02);
-  o.connect(og).connect(master); o.start(t); o.stop(t+0.035);
-  // capa 2: chasquido plástico agudo (dominante)
-  const src=audioCtx.createBufferSource(); src.buffer=noiseBuf;
-  src.playbackRate.value=1.5+Math.random()*0.7;
-  const bp=audioCtx.createBiquadFilter(); bp.type="bandpass";
-  bp.frequency.value=4800+Math.random()*2600; bp.Q.value=0.8;
-  const gn=audioCtx.createGain(); gn.gain.value=g;
-  src.connect(bp).connect(gn).connect(master); src.start(t);
+  /* clac-clac doble: la ficha golpea y asienta — dos toques secos y brillantes,
+     sin cuerpo grave (variante C elegida a oído en sonido-test.html) */
+  const hit = (t, gg)=>{
+    const n1=audioCtx.createBufferSource(); n1.buffer=noiseBuf;
+    n1.playbackRate.value=1.9+Math.random()*0.5;
+    const hp=audioCtx.createBiquadFilter(); hp.type="highpass";
+    hp.frequency.value=2800; hp.Q.value=0.7;
+    const g1=audioCtx.createGain();
+    g1.gain.setValueAtTime(gg, t);
+    g1.gain.exponentialRampToValueAtTime(0.0001, t+0.012);
+    n1.connect(hp).connect(g1).connect(master); n1.start(t);
+    const n2=audioCtx.createBufferSource(); n2.buffer=noiseBuf;
+    n2.playbackRate.value=2.1;
+    const bp=audioCtx.createBiquadFilter(); bp.type="bandpass";
+    bp.frequency.value=5800+Math.random()*1600; bp.Q.value=1.4;
+    const g2=audioCtx.createGain();
+    g2.gain.setValueAtTime(gg*0.7, t);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t+0.010);
+    n2.connect(bp).connect(g2).connect(master); n2.start(t);
+  };
+  hit(t0, g*1.05);
+  hit(t0 + 0.016 + Math.random()*0.006, g*0.65);
 }
 
 /* ---------- tablero flaps reutilizable ---------- */
