@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PGB79DSRXV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-PGB79DSRXV');
-</script>
+<script src="/cookies.js" defer></script>
 <meta charset="UTF-8">
 <script>(function(){try{if(localStorage.getItem('flappitLang')==='es')location.replace('/');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1195,8 +1188,8 @@ document.querySelectorAll("section h2, section .sub, .step, .ctype, .price, deta
   .forEach((el,i)=>{ el.classList.add("rv"); el.dataset.i = i%3; io.observe(el); });
 
 /* precios: mensual / anual */
-const PRICES = {m:{p1:"19€", p3:"39€", note:""},
-                y:{p1:"15€", p3:"31€", note:"Billed annually: 180€ and 372€ per year. Just over two months free."}};
+const PRICES = {m:{p1:"19€", p3:"39€", note:"Prices include VAT."},
+                y:{p1:"15€", p3:"31€", note:"Billed annually: 180€ and 372€ per year. Just over two months free. Prices include VAT."}};
 let bill = "m";
 document.querySelectorAll(".billing button").forEach(b=>{
   b.addEventListener("click", ()=>{

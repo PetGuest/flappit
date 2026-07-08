@@ -24,6 +24,8 @@ const SECRET = (()=>{
   console.warn("AVISO: SESSION_SECRET no definida; usando secret efímero de desarrollo.");
   return crypto.randomBytes(32).toString("hex");
 })();
+/* ¿estamos en producción? (Railway define RAILWAY_ENVIRONMENT) */
+const IS_PROD = !!(process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === "production");
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, "flaps.db");
 // carpeta para vídeos subidos (foto plena viaja embebida; el vídeo no cabe).
 // por defecto junto a la base de datos, para que caiga en el mismo disco persistente.
@@ -144,7 +146,8 @@ function getCookie(req, name){
 }
 function setCookie(res, name, val, maxAgeSec){
   res.append("Set-Cookie",
-    `${name}=${encodeURIComponent(val)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSec}`);
+    `${name}=${encodeURIComponent(val)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSec}`
+    + (IS_PROD ? "; Secure" : ""));
 }
 function pairCode(){
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // sin I/O para evitar confusión
@@ -202,6 +205,16 @@ setInterval(()=>{ // purga de cubos caducados y de tokens de reset vencidos
 
 /* ---------- app ---------- */
 const app = express();
+
+/* cabeceras de seguridad en todas las respuestas */
+app.use((req, res, next)=>{
+  if(IS_PROD) res.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "SAMEORIGIN"); // el panel embebe /tv en un iframe del mismo origen
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  next();
+});
 
 /* ---- webhook de Stripe (ANTES del parser JSON: necesita el cuerpo en crudo
    para verificar la firma) ---- */
