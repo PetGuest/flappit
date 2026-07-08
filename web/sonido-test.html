@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Flappit · Prueba de sonidos clac-clac</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root{--bg:#0a0a0c; --panel:#131316; --line:#26262b; --accent:#d7e021; --text:#f4f4f0; --muted:#9a9aa2; --ink:#0a0a0c;}
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif; line-height:1.5;}
+  .wrap{max-width:640px; margin:0 auto; padding:30px 20px 80px;}
+  h1{font-size:22px;}
+  p.sub{color:var(--muted); font-size:14px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:14px;
+    display:flex; gap:14px; align-items:center; flex-wrap:wrap;}
+  .card h2{font-size:16px; margin:0; flex:1 1 180px;}
+  .card small{display:block; color:var(--muted); font-weight:400; margin-top:3px; font-size:12.5px;}
+  button{border:none; border-radius:9px; padding:10px 16px; font-weight:800; cursor:pointer;
+    font-family:ui-monospace,monospace; font-size:13px;}
+  .one{background:#26262b; color:var(--text);}
+  .one:hover{background:#33333a;}
+  .burst{background:var(--accent); color:var(--ink);}
+  .hint{border:1px dashed var(--line); border-radius:12px; padding:12px 16px; color:var(--muted); font-size:13px; margin:18px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Prueba de sonidos · clac-clac</h1>
+  <p class="sub">CLAC = un giro de ficha suelto · RÁFAGA = el tablero entero girando (~1,5 s).
+  Sube el volumen y compara. Dime la letra ganadora.</p>
+  <div id="cards"></div>
+  <div class="hint">Consejo: pruébalo también en la tele o en un altavoz normal, no solo con auriculares —
+  el panel se escuchará casi siempre en el altavoz de la TV.</div>
+</div>
+
+<script>
+"use strict";
+let ctx=null, master=null, noiseBuf=null;
+function ensure(){
+  if(ctx){ ctx.resume(); return; }
+  ctx = new (window.AudioContext||window.webkitAudioContext)();
+  master = ctx.createGain(); master.gain.value = 0.9;
+  master.connect(ctx.destination);
+  const len = Math.floor(ctx.sampleRate*0.03);
+  noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 2.2);
+}
+/* util: ráfaga de ruido filtrado */
+function burstNoise(t, g, type, freq, q, rate, dur){
+  const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+  src.playbackRate.value = rate;
+  const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const gn = ctx.createGain();
+  gn.gain.setValueAtTime(g, t);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f).connect(gn).connect(master);
+  src.start(t); src.stop(t + dur + 0.01);
+}
+/* util: tono corto */
+function ping(t, g, type, f0, f1, dur){
+  const o = ctx.createOscillator(); o.type = type;
+  o.frequency.setValueAtTime(f0, t);
+  if(f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const gn = ctx.createGain();
+  gn.gain.setValueAtTime(g, t);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(gn).connect(master);
+  o.start(t); o.stop(t + dur + 0.01);
+}
+
+const VARIANTS = {
+  A: { name:"A · Actual", desc:"El de ahora: tono grave 340-560 Hz + soplo agudo",
+    fn:(t,g)=>{
+      ping(t, g*0.6, "triangle", 340+Math.random()*220, null, 0.02);
+      burstNoise(t, g, "bandpass", 4800+Math.random()*2600, 0.8, 1.5+Math.random()*0.7, 0.03);
+    }},
+  B: { name:"B · Clac seco", desc:"Golpe de plástico corto y brillante, sin cuerpo grave",
+    fn:(t,g)=>{
+      burstNoise(t, g*1.1, "highpass", 2600, 0.7, 1.8+Math.random()*0.5, 0.014);
+      burstNoise(t, g*0.8, "bandpass", 5200+Math.random()*1500, 1.2, 2.0+Math.random()*0.5, 0.012);
+      ping(t, g*0.16, "triangle", 900+Math.random()*250, 500, 0.010);
+    }},
+  C: { name:"C · Clac-clac doble", desc:"La ficha golpea y asienta: dos toques secos seguidos",
+    fn:(t,g)=>{
+      const hit=(tt,gg)=>{
+        burstNoise(tt, gg, "highpass", 2800, 0.7, 1.9+Math.random()*0.5, 0.012);
+        burstNoise(tt, gg*0.7, "bandpass", 5800+Math.random()*1600, 1.4, 2.1, 0.010);
+      };
+      hit(t, g*1.05);
+      hit(t+0.016+Math.random()*0.006, g*0.65);
+    }},
+  D: { name:"D · Tac plástico", desc:"Chasquido con caída de tono rápida, tipo ficha rígida",
+    fn:(t,g)=>{
+      ping(t, g*0.5, "square", 1900+Math.random()*400, 800, 0.010);
+      burstNoise(t, g*0.9, "highpass", 3800, 0.8, 2.2+Math.random()*0.4, 0.012);
+    }},
+  E: { name:"E · Solari metálico", desc:"Golpe con resonancia metálica suave, más 'mecánico'",
+    fn:(t,g)=>{
+      burstNoise(t, g, "bandpass", 3200+Math.random()*600, 3.0, 1.7+Math.random()*0.4, 0.022);
+      ping(t, g*0.12, "sine", 2600+Math.random()*500, null, 0.015);
+      burstNoise(t, g*0.5, "highpass", 5500, 0.8, 2.0, 0.010);
+    }},
+};
+
+function playOne(key){
+  ensure();
+  VARIANTS[key].fn(ctx.currentTime + 0.02, 0.5);
+}
+function playBurst(key){
+  ensure();
+  const t0 = ctx.currentTime + 0.05;
+  /* simula el tablero: ~46 giros en 1,5 s con densidad decreciente */
+  let t = 0;
+  for(let i=0;i<46;i++){
+    const decay = i/46;
+    VARIANTS[key].fn(t0 + t, 0.32*(1-decay*0.4)*(0.75+Math.random()*0.5));
+    t += 0.018 + decay*0.05*Math.random() + Math.random()*0.014;
+  }
+}
+
+const cards = document.getElementById("cards");
+Object.keys(VARIANTS).forEach(k=>{
+  const v = VARIANTS[k];
+  const div = document.createElement("div"); div.className = "card";
+  div.innerHTML = '<h2>'+v.name+'<small>'+v.desc+'</small></h2>';
+  const b1 = document.createElement("button"); b1.className = "one"; b1.textContent = "CLAC";
+  b1.addEventListener("click", ()=>playOne(k));
+  const b2 = document.createElement("button"); b2.className = "burst"; b2.textContent = "RÁFAGA";
+  b2.addEventListener("click", ()=>playBurst(k));
+  div.appendChild(b1); div.appendChild(b2);
+  cards.appendChild(div);
+});
+</script>
+</body>
+</html>

@@ -230,6 +230,8 @@
     border:none; color:var(--accent); font-family:ui-monospace,monospace; font-weight:700;
     font-size:14px; padding:8px 0; -moz-appearance:textfield; appearance:textfield;}
   .stepper input[type=number]:focus{outline:none; border:none; box-shadow:none;}
+  .durStep{display:inline-flex; height:30px; vertical-align:middle;}
+  .durStep input[type=number]{width:40px;}
   .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button{
     -webkit-appearance:none; margin:0;}
 
@@ -562,8 +564,8 @@ const I18N = {
     /* tarjeta pantallas */
     cardScreens: "Sus pantallas",
     previewHere: "PREVISUALIZAR AQUÍ",
-    connectTv: "CONECTAR MI TV REAL",
-    connectAnotherTv: "CONECTAR OTRA TV",
+    connectTv: "CONECTAR MI PANTALLA",
+    connectAnotherTv: "CONECTAR OTRA PANTALLA",
     pairSteps: '<b>1.</b> En el televisor, abra el navegador y entre en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:',
     pairCodePh: "CÓDIGO",
     pairBtn: "Vincular",
@@ -637,23 +639,23 @@ const I18N = {
     tabPhotoFlap: "Foto flap {n}",
     tabPhoto: "Foto {n}",
     tabVideo: "Vídeo {n}",
-    tabScreen: "Pantalla {n}",
-    deleteScreenTitle: "Eliminar esta pantalla",
-    deleteScreenConfirm: "¿Eliminar esta pantalla de la secuencia?",
+    tabScreen: "Animación {n}",
+    deleteScreenTitle: "Eliminar esta animación",
+    deleteScreenConfirm: "¿Eliminar esta animación de la secuencia?",
     addTab: "Añadir",
     addTabTitle: "Añadir contenido a la secuencia",
     durVideoFull: "Vídeo completo",
-    durLabel: "Duración de la pantalla",
-    durHelp: "Tiempo que la pantalla permanece una vez completada la transición. La transición no cuenta: transición + duración = tiempo total en pantalla.",
+    durLabel: "Duración de la animación",
+    durHelp: "Tiempo que la animación permanece una vez completada la transición. La transición no cuenta: transición + duración = tiempo total en pantalla.",
     durMin: "min",
     durSec: "s",
     /* menú añadir */
     addMsgTitle: "Mensaje",
     addMsgDesc: "Texto escrito en el panel split-flap",
     addPhotoTitle: "Foto",
-    addPhotoDesc: "Se muestra a pantalla completa, tal cual",
+    addPhotoDesc: "Se muestra a pantalla completa, tal cual. Recomendada: foto de alta resolución en 16:9",
     addFlapTitle: "Foto flapizada",
-    addFlapDesc: "La foto se construye flap a flap (efecto FLAPS)",
+    addFlapDesc: "La foto se construye flap a flap (efecto FLAPS). Recomendada: foto de alta resolución en 16:9",
     addVideoTitle: "Vídeo",
     addVideoDesc: "Se reproduce a pantalla completa",
     uploadingVideo: "Subiendo vídeo…",
@@ -716,8 +718,8 @@ const I18N = {
     close: "Close",
     cardScreens: "Your screens",
     previewHere: "PREVIEW HERE",
-    connectTv: "CONNECT MY REAL TV",
-    connectAnotherTv: "CONNECT ANOTHER TV",
+    connectTv: "CONNECT MY SCREEN",
+    connectAnotherTv: "CONNECT ANOTHER SCREEN",
     pairSteps: '<b>1.</b> On the TV, open the browser and go to <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> The screen will show a <b>4-letter code</b>. Type it here:',
     pairCodePh: "CODE",
     pairBtn: "Link",
@@ -782,22 +784,22 @@ const I18N = {
     tabPhotoFlap: "Flap photo {n}",
     tabPhoto: "Photo {n}",
     tabVideo: "Video {n}",
-    tabScreen: "Screen {n}",
-    deleteScreenTitle: "Remove this screen",
-    deleteScreenConfirm: "Remove this screen from the sequence?",
+    tabScreen: "Animation {n}",
+    deleteScreenTitle: "Remove this animation",
+    deleteScreenConfirm: "Remove this animation from the sequence?",
     addTab: "Add",
     addTabTitle: "Add content to the sequence",
     durVideoFull: "Full video",
-    durLabel: "Screen duration",
-    durHelp: "How long the screen stays once the transition has finished. The transition doesn't count: transition + duration = total time on screen.",
+    durLabel: "Animation duration",
+    durHelp: "How long the animation stays once the transition has finished. The transition doesn't count: transition + duration = total time on screen.",
     durMin: "min",
     durSec: "s",
     addMsgTitle: "Message",
     addMsgDesc: "Text written on the split-flap panel",
     addPhotoTitle: "Photo",
-    addPhotoDesc: "Shown full-screen, as is",
+    addPhotoDesc: "Shown full-screen, as is. Best: high-resolution photo, 16:9",
     addFlapTitle: "Flapized photo",
-    addFlapDesc: "The photo is built flap by flap (FLAPS effect)",
+    addFlapDesc: "The photo is built flap by flap (FLAPS effect). Best: high-resolution photo, 16:9",
     addVideoTitle: "Video",
     addVideoDesc: "Plays full-screen",
     uploadingVideo: "Uploading video…",
@@ -1628,9 +1630,24 @@ function renderTabs(){
     };
     mIn.addEventListener("input", applyDur);
     sIn.addEventListener("input", applyDur);
+    // flechas −/+ alrededor de cada campo (mismo patrón que Líneas/Letras)
+    const mkStep = (inp)=>{
+      const box = document.createElement("div"); box.className = "stepper durStep";
+      const minus = document.createElement("button"); minus.type = "button"; minus.textContent = "−"; minus.title = t("stepLess");
+      const plus  = document.createElement("button"); plus.type  = "button"; plus.textContent  = "+"; plus.title  = t("stepMore");
+      const bump = d=>{
+        const mn = +inp.min, mx = +inp.max;
+        inp.value = Math.max(mn, Math.min(mx, (Math.round(+inp.value)||0) + d));
+        inp.dispatchEvent(new Event("input"));
+      };
+      minus.addEventListener("click", ()=>bump(-1));
+      plus.addEventListener("click",  ()=>bump(1));
+      box.appendChild(minus); box.appendChild(inp); box.appendChild(plus);
+      return box;
+    };
     meta.appendChild(lbl);
-    meta.appendChild(mIn); meta.appendChild(mLbl);
-    meta.appendChild(sIn); meta.appendChild(sLbl);
+    meta.appendChild(mkStep(mIn)); meta.appendChild(mLbl);
+    meta.appendChild(mkStep(sIn)); meta.appendChild(sLbl);
   }
   tabs.appendChild(meta);
 }
