@@ -381,6 +381,7 @@
     <div id="authErr"></div>
     <button class="go" id="authGo" data-i18n="authGoLogin">Entrar</button>
     <div class="alt" id="authAlt" data-i18n-html="authAltLogin">¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a></div>
+    <div class="alt" id="authForgotRow"><a id="authForgot" data-i18n="authForgot">¿Olvidó su contraseña?</a></div>
   </div>
 </div>
 
@@ -543,6 +544,11 @@ const I18N = {
     authErrLogin: "Correo o contraseña incorrectos.",
     authErrEmailExists: "Ese correo ya tiene cuenta.",
     authErrRegister: "Revise los datos (contraseña: mínimo 8).",
+    authForgot: "¿Olvidó su contraseña?",
+    authForgotNeedMail: "Escriba arriba su correo y pulse de nuevo el enlace.",
+    authForgotSent: "Si ese correo tiene cuenta, le hemos enviado un enlace para crear una contraseña nueva. Revise su bandeja (y el spam).",
+    authForgotUnavailable: "Ahora mismo no podemos enviar el correo. Escríbanos a hello@flappit.com y le ayudamos.",
+    authForgotWait: "Demasiados intentos. Espere unos minutos y pruebe de nuevo.",
     /* paywall */
     payTitleTrial: "Tu prueba ha terminado",
     payTitlePastDue: "Hay un pago pendiente",
@@ -695,6 +701,11 @@ const I18N = {
     authErrLogin: "Wrong email or password.",
     authErrEmailExists: "That email already has an account.",
     authErrRegister: "Check your details (password: at least 8).",
+    authForgot: "Forgot your password?",
+    authForgotNeedMail: "Type your email above and click the link again.",
+    authForgotSent: "If that email has an account, we've sent a link to set a new password. Check your inbox (and spam).",
+    authForgotUnavailable: "We can't send the email right now. Write to hello@flappit.com and we'll help.",
+    authForgotWait: "Too many attempts. Wait a few minutes and try again.",
     payTitleTrial: "Your trial has ended",
     payTitlePastDue: "There's a payment pending",
     payMsgTrial: "Subscribe to keep broadcasting on your screens. Your content and linked screens are kept.",
@@ -918,6 +929,8 @@ function setAuthMode(m){
   document.getElementById("authAlt").innerHTML = m==="login"
     ? t("authAltLogin")
     : t("authAltRegister");
+  document.getElementById("authForgotRow").style.display = m==="login" ? "" : "none";
+  document.getElementById("authErr").textContent = "";
   document.getElementById("authSwitch").addEventListener("click",
     ()=>setAuthMode(authMode==="login"?"register":"login"));
 }
@@ -938,6 +951,23 @@ document.getElementById("authGo").addEventListener("click", async ()=>{
       : (e.data && e.data.error==="email-existe" ? t("authErrEmailExists") : t("authErrRegister"));
   }
 });
+/* "olvidé mi contraseña": pide el enlace por email; nunca revela si la cuenta existe */
+document.getElementById("authForgot").addEventListener("click", async ()=>{
+  const email = document.getElementById("aMail").value.trim();
+  const err = document.getElementById("authErr");
+  err.style.color = "";
+  if(!email || !email.includes("@")){ err.textContent = t("authForgotNeedMail"); return; }
+  try{
+    const r = await fetch("/api/forgot", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email, lang: LANG})});
+    if(r.ok){ err.style.color = "#3dff6e"; err.textContent = t("authForgotSent"); }
+    else if(r.status===503) err.textContent = t("authForgotUnavailable");
+    else if(r.status===429) err.textContent = t("authForgotWait");
+    else err.textContent = t("authForgotUnavailable");
+  }catch(e){ err.textContent = t("authForgotUnavailable"); }
+});
+
 document.getElementById("logoutBtn").addEventListener("click", async ()=>{
   try{ await api("POST","/api/logout"); }catch(e){}
   location.reload();

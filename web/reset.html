@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Flappit · Nueva contraseña</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root{--bg:#0a0a0c; --panel:#131316; --line:#26262b; --accent:#d7e021; --text:#f4f4f0;
+    --muted:#9a9aa2; --ink:#0a0a0c; --red:#ff5c5c; --green:#3dff6e;}
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); line-height:1.5;
+    font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
+  .box{max-width:380px; margin:10vh auto 0; background:var(--panel); border:1px solid var(--line);
+    border-radius:14px; padding:28px 26px;}
+  .logo{display:inline-block; background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
+    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:14px; margin-bottom:18px;}
+  h1{font-size:19px; margin:0 0 6px;}
+  p{color:var(--muted); font-size:13.5px; margin:0 0 12px;}
+  label{display:block; font-size:12px; color:var(--muted); margin:14px 0 5px;}
+  input{width:100%; background:#0a0c05; color:var(--text); border:1px solid var(--line);
+    border-radius:9px; padding:11px 12px; font-size:14px; font-family:inherit;}
+  input:focus{outline:none; border-color:var(--accent);}
+  button.go{width:100%; margin-top:20px; background:var(--accent); color:var(--ink); border:none;
+    border-radius:9px; padding:12px; font-weight:800; cursor:pointer; font-size:14px;
+    font-family:ui-monospace,monospace;}
+  button.go:disabled{opacity:.6; cursor:default;}
+  .err{color:var(--red); font-size:13px; margin-top:12px; min-height:16px;}
+  .ok{color:var(--green); font-size:14px; margin-top:4px;}
+  a.panel{display:inline-block; margin-top:16px; color:var(--accent); font-weight:700; text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="box" id="box"></div>
+<script>
+"use strict";
+const q = new URLSearchParams(location.search);
+const TOKEN = q.get("token") || "";
+const LANG = q.get("lang")==="en" ? "en" : "es";
+const T = {
+  es: {
+    title:"Cree una contraseña nueva",
+    intro:"Escríbala dos veces. Después entrará directamente en su panel.",
+    l1:"Nueva contraseña", ph1:"Mínimo 8 caracteres",
+    l2:"Repita la contraseña", ph2:"La misma otra vez",
+    go:"Guardar y entrar",
+    errShort:"La contraseña debe tener al menos 8 caracteres.",
+    errMatch:"Las dos contraseñas no coinciden.",
+    errLink:"Este enlace ya no es válido (caduca en 1 hora y es de un solo uso).",
+    errNet:"Sin conexión. Inténtelo de nuevo.",
+    noToken:"Falta el enlace de recuperación. Pida uno nuevo desde el panel.",
+    again:"Pedir otro enlace",
+    okTitle:"Contraseña cambiada",
+    okMsg:"Ya tiene la sesión iniciada.",
+    okBtn:"Ir al panel"
+  },
+  en: {
+    title:"Create a new password",
+    intro:"Type it twice. You'll then go straight to your panel.",
+    l1:"New password", ph1:"At least 8 characters",
+    l2:"Repeat password", ph2:"Same one again",
+    go:"Save and sign in",
+    errShort:"The password must be at least 8 characters.",
+    errMatch:"The two passwords don't match.",
+    errLink:"This link is no longer valid (it expires in 1 hour and works only once).",
+    errNet:"No connection. Try again.",
+    noToken:"The recovery link is missing. Request a new one from the panel.",
+    again:"Request another link",
+    okTitle:"Password changed",
+    okMsg:"You're now signed in.",
+    okBtn:"Go to panel"
+  }
+}[LANG];
+document.documentElement.lang = LANG;
+const box = document.getElementById("box");
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  if(!TOKEN){
+    box.innerHTML = '<div class="logo">FLAPPIT</div><h1>'+esc(T.title)+'</h1><p>'+esc(T.noToken)+'</p>'
+      + '<a class="panel" href="/panel">'+esc(T.again)+'</a>';
+    return;
+  }
+  box.innerHTML =
+      '<div class="logo">FLAPPIT</div>'
+    + '<h1>'+esc(T.title)+'</h1><p>'+esc(T.intro)+'</p>'
+    + '<label>'+esc(T.l1)+'</label><input id="p1" type="password" autocomplete="new-password" placeholder="'+esc(T.ph1)+'">'
+    + '<label>'+esc(T.l2)+'</label><input id="p2" type="password" autocomplete="new-password" placeholder="'+esc(T.ph2)+'">'
+    + '<button class="go" id="go">'+esc(T.go)+'</button>'
+    + '<div class="err" id="err"></div>';
+  const err = document.getElementById("err");
+  const submit = async ()=>{
+    const p1 = document.getElementById("p1").value, p2 = document.getElementById("p2").value;
+    err.textContent = "";
+    if(p1.length<8){ err.textContent = T.errShort; return; }
+    if(p1!==p2){ err.textContent = T.errMatch; return; }
+    const go = document.getElementById("go"); go.disabled = true;
+    try{
+      const r = await fetch("/api/reset", {method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({token:TOKEN, password:p1})});
+      if(!r.ok){
+        err.textContent = r.status===400 ? T.errLink : T.errNet;
+        go.disabled = false; return;
+      }
+      box.innerHTML = '<div class="logo">FLAPPIT</div><h1>'+esc(T.okTitle)+'</h1>'
+        + '<p class="ok">'+esc(T.okMsg)+'</p>'
+        + '<a class="panel" href="/panel">'+esc(T.okBtn)+' →</a>';
+    }catch(e){ err.textContent = T.errNet; go.disabled = false; }
+  };
+  document.getElementById("go").addEventListener("click", submit);
+  document.getElementById("p2").addEventListener("keydown", e=>{ if(e.key==="Enter") submit(); });
+}
+render();
+</script>
+</body>
+</html>

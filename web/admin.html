@@ -43,6 +43,19 @@
   .pill.yellow{background:rgba(255,212,0,.14); color:var(--yellow);}
   .pill.red{background:rgba(255,92,92,.16); color:var(--red);}
   .pill.plan{background:rgba(215,224,33,.14); color:var(--accent);}
+  button.act{background:#1d1d22; color:var(--text); border:1px solid var(--line); border-radius:8px;
+    padding:5px 10px; font-size:12px; cursor:pointer; font-family:ui-monospace,monospace; margin-right:6px;}
+  button.act:hover{border-color:var(--accent); color:var(--accent);}
+  button.act.danger:hover{border-color:var(--red); color:var(--red);}
+  tr.detail td{background:#0f0f12; white-space:normal; padding:14px 16px;}
+  .tempPw{font-family:ui-monospace,monospace; font-size:16px; font-weight:800; color:var(--accent);
+    background:#000; border:1px dashed var(--accent); border-radius:8px; padding:6px 12px;
+    display:inline-block; letter-spacing:1px; user-select:all;}
+  .detail .note{color:var(--muted); font-size:12px; margin-top:8px;}
+  .scrRow{display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px dashed var(--line);}
+  .scrRow:last-of-type{border-bottom:none;}
+  .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+  .dot.on{background:var(--green);} .dot.off{background:#555;}
   .msg{background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:34px 26px;
     text-align:center; color:var(--muted);}
   .msg h2{color:var(--text); margin:0 0 8px; font-size:18px;}
@@ -182,9 +195,10 @@ function render(users){
   html += '<div class="tableBox"><table><thead><tr>'
     + '<th>Email</th><th>Negocio</th><th>Plan</th><th>Estado</th>'
     + '<th class="colHide">Suscripción</th><th>Pantallas</th><th class="colHide">Alta</th>'
+    + '<th>Acciones</th>'
     + '</tr></thead><tbody>';
   for(const u of users){
-    html += '<tr>'
+    html += '<tr id="u'+u.id+'">'
       + '<td class="email">'+esc(u.email)+'</td>'
       + '<td class="wrap-ok">'+esc(u.business||"—")+'</td>'
       + '<td><span class="pill plan">'+planName(u.plan)+'</span></td>'
@@ -192,6 +206,8 @@ function render(users){
       + '<td class="colHide">'+esc(whenCol(u))+'</td>'
       + '<td>'+(u.screens||0)+' / '+(u.screens_limit||1)+'</td>'
       + '<td class="colHide">'+fmtDate(u.created)+'</td>'
+      + '<td><button class="act" data-pw="'+u.id+'" data-mail="'+esc(u.email)+'">Contraseña</button>'
+      + '<button class="act" data-scr="'+u.id+'">Pantallas</button></td>'
       + '</tr>';
   }
   html += '</tbody></table></div>';
@@ -200,6 +216,86 @@ function render(users){
 }
 function card(k,v,accent){ return '<div class="card"><div class="k">'+k+'</div><div class="v'+(accent?" accent":"")+'">'+v+'</div></div>'; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---- acciones por usuario: contraseña temporal y pantallas ---- */
+const COLS = 8; // columnas de la tabla (para el colspan de la fila de detalle)
+
+function detailRow(uid){ // devuelve (creándola si hace falta) la fila de detalle bajo el usuario
+  let tr = document.getElementById("d"+uid);
+  if(tr) return tr;
+  tr = document.createElement("tr");
+  tr.className = "detail"; tr.id = "d"+uid;
+  tr.innerHTML = '<td colspan="'+COLS+'"></td>';
+  const anchor = document.getElementById("u"+uid);
+  anchor.parentNode.insertBefore(tr, anchor.nextSibling);
+  return tr;
+}
+function closeDetail(uid){ const tr = document.getElementById("d"+uid); if(tr) tr.remove(); }
+
+async function resetPw(uid, email){
+  if(!confirm("Generar una contraseña temporal para "+email+"?\nLa actual dejará de funcionar.")) return;
+  const td = detailRow(uid).firstChild;
+  td.innerHTML = "Generando…";
+  try{
+    const r = await fetch("/api/admin/users/"+uid+"/reset-password", {method:"POST"});
+    if(!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    td.innerHTML = 'Contraseña temporal de <b>'+esc(d.email)+'</b>: '
+      + '<span class="tempPw" id="pw'+uid+'">'+esc(d.password)+'</span> '
+      + '<button class="act" data-copy="'+uid+'">Copiar</button>'
+      + '<button class="act" data-close="'+uid+'">Cerrar</button>'
+      + '<div class="note">Se muestra solo esta vez. Pásasela al cliente y recomiéndale cambiarla desde un ordenador suyo (enlace "¿Olvidó su contraseña?" del panel).</div>';
+  }catch(e){ td.innerHTML = 'Error al generar la contraseña. <button class="act" data-close="'+uid+'">Cerrar</button>'; }
+}
+
+async function showScreens(uid){
+  const existing = document.getElementById("d"+uid);
+  if(existing && existing.dataset.kind==="scr"){ existing.remove(); return; } // toggle
+  const tr = detailRow(uid); tr.dataset.kind = "scr";
+  const td = tr.firstChild;
+  td.innerHTML = "Cargando pantallas…";
+  try{
+    const r = await fetch("/api/admin/users/"+uid+"/screens");
+    if(!r.ok) throw new Error(r.status);
+    const list = await r.json();
+    if(!list.length){ td.innerHTML = 'Esta cuenta no tiene pantallas vinculadas. <button class="act" data-close="'+uid+'">Cerrar</button>'; return; }
+    let h = "";
+    for(const s of list){
+      h += '<div class="scrRow"><span class="dot '+(s.online?"on":"off")+'"></span>'
+        + '<b>'+esc(s.name)+'</b>'
+        + '<span style="color:var(--muted); font-size:12px;">'
+        + (s.online ? "conectada ahora" : "última señal: "+fmtDate(s.last_seen)) + '</span>'
+        + '<button class="act danger" style="margin-left:auto;" data-unpair="'+s.id+'" data-uid="'+uid+'">Desvincular</button>'
+        + '</div>';
+    }
+    h += '<div class="note">Al desvincular, la TV borra su vínculo y muestra al momento un código nuevo de 4 letras para volver a emparejarla desde el panel del cliente.</div>'
+      + '<button class="act" data-close="'+uid+'" style="margin-top:8px;">Cerrar</button>';
+    td.innerHTML = h;
+  }catch(e){ td.innerHTML = 'Error al cargar las pantallas. <button class="act" data-close="'+uid+'">Cerrar</button>'; }
+}
+
+async function unpairScreen(sid, uid){
+  if(!confirm("¿Desvincular esta pantalla? La TV pasará a mostrar un código de emparejamiento nuevo.")) return;
+  try{
+    const r = await fetch("/api/admin/screens/"+sid, {method:"DELETE"});
+    if(!r.ok) throw new Error(r.status);
+    closeDetail(uid);
+    await showScreens(uid); // recarga la lista
+  }catch(e){ alert("No se pudo desvincular (error "+e.message+")."); }
+}
+
+content.addEventListener("click", (e)=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.pw)     resetPw(+b.dataset.pw, b.dataset.mail);
+  else if(b.dataset.scr)    showScreens(+b.dataset.scr);
+  else if(b.dataset.unpair) unpairScreen(+b.dataset.unpair, +b.dataset.uid);
+  else if(b.dataset.copy){
+    const el = document.getElementById("pw"+b.dataset.copy);
+    if(el) navigator.clipboard && navigator.clipboard.writeText(el.textContent)
+      .then(()=>{ b.textContent = "Copiada ✓"; setTimeout(()=>b.textContent="Copiar", 1500); });
+  }
+  else if(b.dataset.close)  closeDetail(+b.dataset.close);
+});
 
 async function load(){
   content.innerHTML = '<div class="msg">Cargando…</div>';

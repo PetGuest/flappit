@@ -60,6 +60,11 @@ CREATE TABLE IF NOT EXISTS screens(
   last_seen INTEGER,
   created INTEGER
 );
+CREATE TABLE IF NOT EXISTS resets(
+  token_hash TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  expires INTEGER NOT NULL
+);
 `);
 // columnas de suscripción (se añaden si faltan, para bases de datos ya existentes)
 {
@@ -81,6 +86,23 @@ function stripe(){
   if(!key) return null;
   if(!_stripe) _stripe = require("stripe")(key);
   return _stripe;
+}
+
+/* ---------- email (SMTP, para recuperación de contraseña) ----------
+   Se configura con SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (+ MAIL_FROM opcional).
+   Con DonDominio: SMTP_HOST=mailsrv1.dondominio.com, SMTP_PORT=465, SMTP_USER=hello@flappit.com.
+   Si no está configurado, /api/forgot responde 503 y el panel muestra el email de contacto. */
+let _mailer = null;
+function mailer(){
+  if(!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  if(!_mailer){
+    const port = +process.env.SMTP_PORT || 465;
+    _mailer = require("nodemailer").createTransport({
+      host: process.env.SMTP_HOST, port, secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+    });
+  }
+  return _mailer;
 }
 
 /* ---------- utilidades ---------- */
@@ -172,9 +194,10 @@ function rateLimit(prefix, max, windowMs){
     next();
   };
 }
-setInterval(()=>{ // purga de cubos caducados
+setInterval(()=>{ // purga de cubos caducados y de tokens de reset vencidos
   const t = Date.now();
   rlBuckets.forEach((b,k)=>{ if(b.reset<t) rlBuckets.delete(k); });
+  try{ db.prepare("DELETE FROM resets WHERE expires<?").run(t); }catch(e){}
 }, 60000).unref();
 
 /* ---------- app ---------- */
@@ -259,6 +282,7 @@ app.use("/media", express.static(MEDIA_DIR, {maxAge:"7d", immutable:true})); // 
 app.get("/tv", (req,res)=>res.sendFile(path.join(__dirname,"web","tv.html")));
 app.get("/panel", (req,res)=>res.sendFile(path.join(__dirname,"web","panel.html")));
 app.get("/admin", (req,res)=>res.sendFile(path.join(__dirname,"web","admin.html"))); // panel interno (protegido por API)
+app.get("/reset", (req,res)=>res.sendFile(path.join(__dirname,"web","reset.html"))); // nueva contraseña (enlace del email)
 app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","index.html"))); // landing en inglés (URL limpia)
 
 /* ---- cuentas ---- */
@@ -294,6 +318,54 @@ app.post("/api/logout", (req,res)=>{
   res.json({ok:true});
 });
 
+/* ---- recuperación de contraseña ----
+   /api/forgot responde SIEMPRE ok si el email es válido (no revela si existe cuenta);
+   el token viaja por email y en la BD solo se guarda su HMAC (un volcado de la BD
+   no permite restablecer contraseñas ajenas). Caduca en 1 hora y es de un solo uso. */
+const RESET_TTL = 60*60*1000;
+app.post("/api/forgot", rateLimit("forgot", 5, 15*60*1000), (req,res)=>{
+  const m = mailer();
+  if(!m) return res.status(503).json({error:"email-no-configurado"});
+  const email = ((req.body||{}).email || "").toLowerCase().trim();
+  const lang = (req.body||{}).lang === "en" ? "en" : "es";
+  if(!email || !email.includes("@")) return res.status(400).json({error:"datos-invalidos"});
+  res.json({ok:true}); // respuesta inmediata: ni el timing delata si la cuenta existe
+  const u = db.prepare("SELECT id,email FROM users WHERE email=?").get(email);
+  if(!u) return;
+  const token = crypto.randomBytes(32).toString("hex");
+  db.prepare("DELETE FROM resets WHERE user_id=?").run(u.id); // un enlace vigente por usuario
+  db.prepare("INSERT INTO resets(token_hash,user_id,expires) VALUES(?,?,?)")
+    .run(hmac(token), u.id, now()+RESET_TTL);
+  const base = process.env.BASE_URL || "https://flappit.com";
+  const link = base+"/reset?token="+token+(lang==="en" ? "&lang=en" : "");
+  const subject = lang==="en" ? "Reset your Flappit password"
+                              : "Restablecer su contraseña de Flappit";
+  const text = lang==="en"
+    ? "Someone (hopefully you) asked to reset the password of this Flappit account.\n\n"
+      +"Open this link to set a new password (valid for 1 hour):\n"+link+"\n\n"
+      +"If you didn't request it, ignore this email; your password stays the same."
+    : "Alguien (esperamos que usted) ha pedido restablecer la contraseña de esta cuenta de Flappit.\n\n"
+      +"Abra este enlace para crear una contraseña nueva (caduca en 1 hora):\n"+link+"\n\n"
+      +"Si no lo ha pedido usted, ignore este correo; su contraseña seguirá siendo la misma.";
+  m.sendMail({
+    from: process.env.MAIL_FROM || ('"Flappit" <'+process.env.SMTP_USER+'>'),
+    to: u.email, subject, text
+  }).catch(e=>console.error("email de reset:", e && (e.message||e)));
+});
+
+app.post("/api/reset", rateLimit("reset", 10, 15*60*1000), (req,res)=>{
+  const {token, password} = req.body || {};
+  if(!token || !password || password.length<8)
+    return res.status(400).json({error:"datos-invalidos"});
+  const r = db.prepare("SELECT * FROM resets WHERE token_hash=?").get(hmac(String(token)));
+  if(!r || r.expires < now()) return res.status(400).json({error:"enlace-invalido"});
+  const salt = crypto.randomBytes(16).toString("hex");
+  db.prepare("UPDATE users SET pass=?, salt=? WHERE id=?").run(hash(password,salt), salt, r.user_id);
+  db.prepare("DELETE FROM resets WHERE user_id=?").run(r.user_id);
+  setCookie(res, "sid", makeSession(r.user_id), 60*60*24*30); // entra directamente al panel
+  res.json({ok:true});
+});
+
 app.get("/api/me", auth, (req,res)=>{
   const u = req.user;
   res.json({
@@ -324,6 +396,35 @@ app.get("/api/admin/users", auth, requireAdmin, (req,res)=>{
   }));
   const stats = db.prepare("SELECT key, n FROM stats").all();
   res.json({ users, now: now(), stats });
+});
+
+/* admin: genera una contraseña temporal para un usuario (se muestra UNA vez;
+   pensado para hoteles que pierden el acceso y llaman/escriben) */
+app.post("/api/admin/users/:id/reset-password", auth, requireAdmin, (req,res)=>{
+  const u = db.prepare("SELECT id,email FROM users WHERE id=?").get(+req.params.id);
+  if(!u) return res.status(404).json({error:"usuario-no-encontrado"});
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"; // sin 0/O/1/l/I
+  let pw = "";
+  for(let i=0;i<12;i++) pw += chars[crypto.randomInt(chars.length)];
+  const salt = crypto.randomBytes(16).toString("hex");
+  db.prepare("UPDATE users SET pass=?, salt=? WHERE id=?").run(hash(pw,salt), salt, u.id);
+  db.prepare("DELETE FROM resets WHERE user_id=?").run(u.id); // invalida enlaces de email pendientes
+  res.json({ok:true, email:u.email, password:pw});
+});
+
+/* admin: pantallas de cualquier cuenta, con desvinculación */
+app.get("/api/admin/users/:id/screens", auth, requireAdmin, (req,res)=>{
+  const rows = db.prepare("SELECT id,name,last_seen,created FROM screens WHERE user_id=? ORDER BY id")
+    .all(+req.params.id);
+  res.json(rows.map(r=>({...r, online: sockets.has(tokenOf(r.id)) })));
+});
+
+app.delete("/api/admin/screens/:id", auth, requireAdmin, (req,res)=>{
+  const s = db.prepare("SELECT * FROM screens WHERE id=? AND user_id IS NOT NULL").get(+req.params.id);
+  if(!s) return res.status(404).json({error:"pantalla-no-encontrada"});
+  db.prepare("DELETE FROM screens WHERE id=?").run(s.id);
+  wsSend(s.token, {type:"unpaired"}); // la TV borra su token y muestra código nuevo al instante
+  res.json({ok:true});
 });
 
 /* ---- estadística mínima: cuántos vídeos genera la gente en la landing ---- */
