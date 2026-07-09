@@ -1033,13 +1033,32 @@ const cvIO = new IntersectionObserver(function(es){ es.forEach(function(e){ cvVi
 function cvOn(id){ return cvVis.get(document.getElementById(id)) !== false; }
 const hero = FlapBoard(document.getElementById("heroCv"), 33, 11, {aspect:16/9, band:true});
 const HERO_MSGS = [
-  "WELCOME TO THE GRAND HOTEL",
-  {align:"left", lines:["TODAY'S SPECIALS","FLAT WHITE        3.50","CINNAMON ROLL     4.20","AVOCADO TOAST     8.90"]},
-  "BREAKFAST SERVED DAILY 7 TO 11",
-  {img:"room.jpg"},
-  "WELCOME MR & MRS SMITH ENJOY YOUR STAY",
-  "ROOM MATISSE: MEETING NOVATECH SALES SUMMIT 2026",
-  {align:"left", lines:["HAPPY HOUR 5 TO 7","LIVE JAZZ FRIDAY 9PM","SUNDAY BRUNCH 11 TO 3"]}
+  "WELCOME TO THE GRAND HOTEL MATISSE",
+  {align:"left", lines:[
+    "TODAY'S COFFEE SPECIALS",
+    "ESPRESSO          2.80€",
+    "FLAT WHITE        3.80€",
+    "CAPPUCCINO        3.40€",
+    "CORTADO           2.50€",
+    "AMERICANO         2.80€",
+    "COLD BREW         4.50€",
+    "MATCHA TEA        4.80€"
+  ]},
+  {align:"left", lines:[
+    "GYM ACTIVITIES",
+    "08:00 YOGA MASTERCLASS",
+    "09:30 SPINNING / CYCLING",
+    "11:00 FUNCTIONAL TRAINING",
+    "12:00 ZUMBA / DANCE FITNESS",
+    "13:00 MASTERCLASS FITNESS",
+    "15:00 PILATES FORMULA",
+    "16:00 BODY PUMP",
+    "17:30 BODY COMBAT"
+  ]},
+  "VISIT OUR ROOFTOP BAR FROM 18:00 TO 24:00 - HAPPY HOUR FROM 18:00 TILL 19:00",
+  {img:"/rooftop.webp"},
+  "ROOM MATISSE: NOVATECH SALES CONVENTION 2026",
+  "BREAKFAST FROM 07:00 TILL 10:30 AT BLUE TERRACE"
 ];
 let heroIdx = 0;
 function heroTick(){
