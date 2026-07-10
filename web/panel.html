@@ -1195,8 +1195,10 @@ function migrate(S){
   // migración: las pantallas con el antiguo 31×11 (16:9) saltan al nuevo 33×11 por defecto
   migratedGrid = false;
   if(S.format!=="9:16" && S.format!=="redes" && S.cols===31 && S.rows===11){ S.cols = 33; migratedGrid = true; }
-  // migración: pantallas Redes con la rejilla inicial 11×9 pasan a la nueva 12×10
-  if(S.format==="redes" && S.cols===11 && S.rows===9){ S.cols = 12; S.rows = 10; migratedGrid = true; }
+  // migración: pantallas Redes con rejillas iniciales (11×9, 12×10) pasan a la actual 13×11
+  if(S.format==="redes" && ((S.cols===11 && S.rows===9) || (S.cols===12 && S.rows===10))){
+    S.cols = 13; S.rows = 11; migratedGrid = true;
+  }
   if(S.loop===undefined) S.loop = true;
   const n = linesPer(S);
   S.messages = (S.messages||[]).map(m=>{
@@ -1527,7 +1529,7 @@ function buildRedesBoard(W, H){
   fp.style.cssText = "position:absolute;left:50%;transform:translateX(-50%);z-index:5;"
     +"bottom:"+Math.max(2, H - byMark - H*0.007)+"px;"
     +"font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;"
-    +"font-size:"+(H*0.012)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
+    +"font-size:"+(H*0.0132)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
   board.appendChild(fp);
   renderAll();
 }
@@ -1941,7 +1943,7 @@ document.getElementById("format").addEventListener("click", e=>{
   b.classList.add("on"); S.format=b.dataset.v;
   // defaults por orientación al cambiar de formato
   if(S.format==="9:16"){ S.cols=12; S.rows=14; }
-  else if(S.format==="redes"){ S.cols=12; S.rows=10; }
+  else if(S.format==="redes"){ S.cols=13; S.rows=11; }
   else { S.cols=33; S.rows=11; }
   syncControls();
   selLine=-1; buildBoard(); push();
@@ -2183,6 +2185,7 @@ async function makeShareVideo(){
        las letras se desvelan hacia el final (55%→93% del vídeo) en orden aleatorio
        y las últimas frenan una a una. Las casillas vacías se asientan antes. */
     const T = 10000;
+    const LEAD_CUT = 2000;   // 2 s menos de tambor inicial; el tempo del desvelado no cambia
     const BASE_NOMINAL = 80;
     const letters = [];
     const cells = targets.map(tg=>{
@@ -2204,6 +2207,7 @@ async function makeShareVideo(){
     });
     cells.forEach(cell=>{
       if(cell.tg===0) cell.F = T*(0.35 + Math.random()*0.35);
+      cell.F = Math.max(1400, cell.F - LEAD_CUT);
       const Tc = Math.max(1200, cell.F - cell.delay);
       const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
       let k = Math.max(0, Math.round((Tc/BASE_NOMINAL - cell.d - slowExtra)/LEN));
@@ -2259,7 +2263,7 @@ async function makeShareVideo(){
         else ctx.rect(offX-m2, g.editTop-m2, innerW+2*m2, S.rows*g.cellH+2*m2);
         ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
       ctx.fillStyle = "rgba(255,255,255,0.30)";
-      ctx.font = `400 ${H*0.012}px 'Helvetica Neue',Arial,sans-serif`;
+      ctx.font = `400 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillText("FLAPPIT.COM", W/2, g.top0 + (total-1)*g.cellH);
       return {sum, active};
