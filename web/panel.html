@@ -1520,13 +1520,14 @@ function buildRedesBoard(W, H){
   };
   zone("top:0;height:"+g.safeTop+"px;border-bottom:1px dashed rgba(215,224,33,0.30);", true);
   zone("top:"+g.safeBotY+"px;bottom:0;border-top:1px dashed rgba(215,224,33,0.30);", true);
-  // marca FLAPPIT.COM al pie de la zona segura (visible en la story)
+  // marca FLAPPIT.COM, pequeña, abajo del todo: entre la penúltima y la última fila
+  const byMark = g.top0 + (total-1)*g.cellH;   // frontera entre las dos últimas filas
   const fp = document.createElement("span");
   fp.textContent = "FLAPPIT.COM";
   fp.style.cssText = "position:absolute;left:50%;transform:translateX(-50%);z-index:5;"
-    +"bottom:"+(H - g.safeBotY + H*0.006)+"px;"
+    +"bottom:"+Math.max(2, H - byMark - H*0.007)+"px;"
     +"font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;"
-    +"font-size:"+(H*0.016)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
+    +"font-size:"+(H*0.012)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
   board.appendChild(fp);
   renderAll();
 }
@@ -2178,23 +2179,52 @@ async function makeShareVideo(){
         if(k>0) targets[(g.nTop+j)*cols+st+c2] = k;
       }
     }
-    // TODAS las casillas giran: arrancan en blanco y dan la vuelta completa
+    /* Coreografía "misterio" (solo para el vídeo de redes): 10 s de tambor,
+       las letras se desvelan hacia el final (55%→93% del vídeo) en orden aleatorio
+       y las últimas frenan una a una. Las casillas vacías se asientan antes. */
+    const T = 10000;
+    const BASE_NOMINAL = 80;
+    const letters = [];
     const cells = targets.map(tg=>{
-      const d = tg===0 ? LEN : tg;
-      return {from:0, tg, d, steps:d, base:60, delay:0};
+      const d = tg===0 ? LEN : tg;   // arrancan en blanco; las vacías dan la vuelta completa
+      const cell = {from:0, tg, d, steps:d, base:60, delay:Math.random()*350, slowN:0, F:0};
+      if(tg>0) letters.push(cell);
+      return cell;
     });
-    const T = Math.min(12, Math.max(3, S.trans||5))*1000;
-    { // coreografía Solari, como la TV: ola izq→dcha, tambor a velocidad única
-      let maxD = 0; cells.forEach(c=>{ maxD = Math.max(maxD, c.d); });
-      const perCol = Math.min(69, (T*0.345)/Math.max(1, cols));
-      const budget = Math.max(500, T - perCol*(cols-1));
-      const k = Math.max(0, Math.ceil((budget/110 - maxD)/LEN));
-      const base = Math.min(110, Math.max(36, budget/(maxD + k*LEN)));
-      cells.forEach((c,i)=>{
-        c.steps = c.d + k*LEN;
-        c.base = base;
-        c.delay = (i%cols)*perCol + Math.floor(i/cols)*10 + Math.random()*30;
-      });
+    for(let i=letters.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [letters[i],letters[j]]=[letters[j],letters[i]]; }
+    const nFin = Math.min(8, Math.max(3, Math.round(letters.length*0.3)));
+    letters.forEach((cell,i)=>{
+      if(i >= letters.length - nFin){
+        const k2 = i - (letters.length - nFin);
+        cell.F = T*(0.78 + 0.15*(k2+1)/nFin);          // las últimas, una a una, frenando
+        cell.slowN = 4 + Math.floor(Math.random()*4);
+      } else {
+        cell.F = T*(0.55 + 0.23*(i/Math.max(1, letters.length - nFin)));
+      }
+    });
+    cells.forEach(cell=>{
+      if(cell.tg===0) cell.F = T*(0.35 + Math.random()*0.35);
+      const Tc = Math.max(1200, cell.F - cell.delay);
+      const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
+      let k = Math.max(0, Math.round((Tc/BASE_NOMINAL - cell.d - slowExtra)/LEN));
+      cell.steps = cell.d + k*LEN;
+      cell.base = Tc/(cell.steps + slowExtra);
+      if(cell.base<50 && cell.steps>cell.d){ cell.steps -= LEN; cell.base = Tc/(cell.steps + slowExtra); }
+      cell.base = Math.min(150, Math.max(45, cell.base));
+      cell.slowN = Math.min(cell.slowN, Math.max(0, cell.steps-1));
+    });
+    function stepTime(cell,n){
+      const n0 = cell.steps - cell.slowN;
+      if(n<=n0) return n*cell.base;
+      const k2 = n - n0;
+      return n0*cell.base + cell.base*(k2 + 0.3*k2*(k2+1));
+    }
+    function stepAt(cell,e2){
+      const n0 = cell.steps - cell.slowN;
+      if(e2<=n0*cell.base) return Math.min(n0, Math.floor(e2/cell.base));
+      let n = n0;
+      while(n<cell.steps && stepTime(cell,n+1)<=e2) n++;
+      return n;
     }
     const innerW = cols*g.cellW;
     const offX = (W-innerW)/2;
@@ -2212,9 +2242,9 @@ async function makeShareVideo(){
         let step, p;
         if(ec<=0){ step=0; p=1; active=true; }  // aún no ha empezado a girar: sigue viva
         else{
-          step = Math.min(cell.steps, Math.floor(ec/cell.base));
-          p = Math.min(1,(ec-step*cell.base)/FLIP_ANIM);
-          if(step<cell.steps || ec < cell.steps*cell.base + FLIP_ANIM) active=true;
+          step = Math.min(cell.steps, stepAt(cell, ec));
+          p = Math.min(1,(ec-stepTime(cell,step))/FLIP_ANIM);
+          if(step<cell.steps || ec < stepTime(cell,cell.steps) + FLIP_ANIM) active=true;
         }
         sum += step;
         const curc=(cell.from+step)%LEN;
@@ -2229,9 +2259,9 @@ async function makeShareVideo(){
         else ctx.rect(offX-m2, g.editTop-m2, innerW+2*m2, S.rows*g.cellH+2*m2);
         ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
       ctx.fillStyle = "rgba(255,255,255,0.30)";
-      ctx.font = `400 ${H*0.016}px 'Helvetica Neue',Arial,sans-serif`;
-      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      ctx.font = `400 ${H*0.012}px 'Helvetica Neue',Arial,sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("FLAPPIT.COM", W/2, g.top0 + (total-1)*g.cellH);
       return {sum, active};
     }
     shareEnsureAudio();
