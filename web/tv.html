@@ -299,7 +299,7 @@ function setup(){
   // dentro, adaptándose automáticamente a cualquier resolución/tele (16:9, 21:9, móvil…)
   const sx = 0, sy = 0, sw = W, sh = H;
   const cols = S.cols, rows = S.rows;
-  const hasBand = (S.logoOn || S.clock);
+  const hasBand = (S.logoOn || S.clock) && S.format!=="redes"; // el formato Redes/Stories no lleva franja
   // La rejilla + la franja forman UN bloque que se escala manteniendo la proporción
   // de celda (0.74) y se centra en la pantalla; el resto es carcasa negra. La franja
   // queda del ancho exacto de la rejilla (a caja) y pegada debajo.

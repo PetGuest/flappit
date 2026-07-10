@@ -358,6 +358,19 @@
   #scrMeta input::-webkit-outer-spin-button, #scrMeta input::-webkit-inner-spin-button{margin-left:2px;}
   #scrMeta span{font-size:12px; color:var(--muted);}
 
+  /* compartir en redes (solo formato Redes/Stories) */
+  #shareRow{display:none; align-items:center; justify-content:center; gap:12px;}
+  #shareBtn{border:1px solid var(--accent); border-radius:10px; padding:10px 22px;
+    background:transparent; color:var(--accent); font-size:13px; font-weight:800; cursor:pointer;
+    letter-spacing:1px; font-family:ui-monospace,monospace;
+    transition:background .18s, box-shadow .18s, transform .12s, filter .18s;}
+  #shareBtn:hover{background:rgba(215,224,33,0.08); box-shadow:0 0 12px rgba(215,224,33,0.18);}
+  #shareBtn:active{transform:scale(0.96);}
+  #shareBtn:disabled{opacity:.5; cursor:default;}
+  #shareBtn.ready{background:linear-gradient(180deg, #e6ef3a, var(--accent)); color:var(--accent-ink);
+    border-color:transparent; box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,0.35);}
+  #shareStatus{font-size:12px; color:var(--muted);}
+
   /* selector de idioma */
   .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
   .langSel a{color:#9a9aa2;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid transparent;line-height:1;cursor:pointer;}
@@ -445,8 +458,10 @@
         <div class="chips" id="format">
           <button class="chip on" data-v="16:9" data-i18n="fmtTv">TV 16:9</button>
           <button class="chip" data-v="9:16" data-i18n="fmtTotem">Tótem 9:16</button>
+          <button class="chip" data-v="redes" data-i18n="fmtRedes">Redes / Stories</button>
         </div>
       </div>
+      <p class="cap" id="redesHint" style="display:none;" data-i18n="redesHint">Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.</p>
       <div class="row" id="gridDims">
         <div>
           <span class="dimLbl" data-i18n="lblLines">Líneas</span>
@@ -504,6 +519,10 @@
     <div id="scrTabs"></div>
     <div id="editHint"></div>
     <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div><div id="sentBadge"></div></div></div>
+    <div id="shareRow">
+      <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1.8 1.8 0 0 0 1.8 1.8h12.4A1.8 1.8 0 0 0 20 19v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span id="shareBtnTxt">COMPARTIR EN REDES</span></button>
+      <span id="shareStatus"></span>
+    </div>
     <div id="toolbar">
       <span id="lineInfo">Haz clic en una línea del tablero</span>
       <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span data-i18n="alignLeft">Izq</span></button>
@@ -575,6 +594,14 @@ const I18N = {
     cardConfig: "Configura el panel",
     fmtTv: "TV 16:9",
     fmtTotem: "Tótem 9:16",
+    fmtRedes: "Redes / Stories",
+    redesHint: "Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.",
+    shareBtn: "COMPARTIR EN REDES",
+    shareMaking: "Generando vídeo…",
+    shareSend: "ENVIAR A INSTAGRAM / TIKTOK",
+    shareDownloaded: "Vídeo descargado — súbalo a su story de Instagram o TikTok.",
+    shareOnlyText: "Compartir funciona con animaciones de texto (no con fotos ni vídeos).",
+    shareFail: "Este navegador no permite grabar el vídeo. Pruebe con Chrome o Safari actualizados.",
     lblLines: "Líneas",
     lblCols: "Letras/línea",
     stepLess: "Menos",
@@ -728,6 +755,14 @@ const I18N = {
     cardConfig: "Set up the panel",
     fmtTv: "TV 16:9",
     fmtTotem: "Totem 9:16",
+    fmtRedes: "Social / Stories",
+    redesHint: "9:16 story format for Instagram and TikTok. The app's interface covers the top and bottom bands: write in the central area.",
+    shareBtn: "SHARE TO SOCIAL",
+    shareMaking: "Generating video…",
+    shareSend: "SEND TO INSTAGRAM / TIKTOK",
+    shareDownloaded: "Video downloaded — upload it to your Instagram or TikTok story.",
+    shareOnlyText: "Sharing works with text animations (not photos or videos).",
+    shareFail: "This browser can't record the video. Try an up-to-date Chrome or Safari.",
     lblLines: "Lines",
     lblCols: "Letters/line",
     stepLess: "Fewer",
@@ -1282,10 +1317,11 @@ function buildBoard(){
   const wrap = board.parentElement;
   const boxW = (wrap.clientWidth || 700) - 4;
   const boxH = Math.max(280, (wrap.clientHeight || 460) - 4);
-  const aspect = S.format==="9:16" ? 9/16 : 16/9;
+  const redes = S.format==="redes";
+  const aspect = (S.format==="9:16" || redes) ? 9/16 : 16/9;
   let W = Math.min(boxW, boxH*aspect), H = W/aspect;
   if(H>boxH){ H = boxH; W = H*aspect; }
-  const bandH = (S.logoOn || S.clock) ? H*0.08 : 0;
+  const bandH = (!redes && (S.logoOn || S.clock)) ? H*0.08 : 0;
   // marco de carcasa: margen negro arriba y a los lados, y separación con la franja del reloj
   const pad = Math.max(5, Math.round(Math.min(W, H)*0.022));
   const gapBand = bandH>0 ? Math.round(pad*1.2) : pad;
@@ -1302,6 +1338,8 @@ function buildBoard(){
     "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.008) 12%, rgba(255,255,255,0) 60%, rgba(0,0,0,0.28) 100%), #000";
   [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput" && ch.id!=="sentFlash" && ch.id!=="sentBadge") ch.remove(); });
   rowEls = []; clockEl = null; bandEl = null;
+
+  if(redes){ buildRedesBoard(W, H); return; }
 
   const gridArea = document.createElement("div");
   gridArea.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;"
@@ -1375,6 +1413,88 @@ function buildBoard(){
     bandEl.appendChild(fp);
     board.appendChild(bandEl);
   }
+  renderAll();
+}
+
+/* ---------- formato Redes/Stories: 9:16 lleno de flaps de arriba abajo ----------
+   Las stories de Instagram/TikTok tapan las franjas superior (~13%) e inferior (~16%)
+   con su interfaz: el texto vive en la zona segura central; el resto son flaps vacíos. */
+const REDES_SAFE_TOP = 0.13, REDES_SAFE_BOT = 0.16;
+
+function redesGeom(W, H, cols, rows){
+  const pad = Math.max(5, Math.round(Math.min(W, H)*0.022));
+  const safeTop = H*REDES_SAFE_TOP;
+  const safeH = H*(1 - REDES_SAFE_TOP - REDES_SAFE_BOT);
+  const availW = W - 2*pad, availH = safeH - 2*pad;
+  let cellW = availW/cols, cellH = availH/rows;
+  if(cellW/cellH > CELL_AR) cellW = cellH*CELL_AR;
+  else cellH = cellW/CELL_AR;
+  const editTop = safeTop + (safeH - rows*cellH)/2;   // borde superior de la zona editable
+  const nTop = Math.ceil(editTop/cellH);              // filas de relleno por encima
+  const nBot = Math.ceil((H - (editTop + rows*cellH))/cellH); // y por debajo
+  return {pad, cellW, cellH, editTop, nTop, nBot,
+          top0: editTop - nTop*cellH, safeTop, safeBotY: H*(1 - REDES_SAFE_BOT)};
+}
+
+function buildRedesBoard(W, H){
+  const g = redesGeom(W, H, S.cols, S.rows);
+  geom = {W, H, cellW:g.cellW, cellH:g.cellH, bandH:0, r0:0};
+  const innerW = S.cols*g.cellW;
+  const total = g.nTop + S.rows + g.nBot;
+  const gridArea = document.createElement("div");
+  gridArea.style.cssText = "margin-top:"+g.top0+"px;width:"+W+"px;"
+    +"display:flex;flex-direction:column;align-items:center;";
+  for(let k=0;k<total;k++){
+    const row = document.createElement("div");
+    row.className = "bRow";
+    row.style.cssText = "display:flex;align-items:center;justify-content:center;height:"+g.cellH+"px;width:"+innerW+"px;";
+    for(let c=0;c<S.cols;c++){
+      const cell = document.createElement("div");
+      cell.className = "bCell";
+      cellStyle(cell, g.cellW - Math.max(1, g.cellW*0.044), g.cellH - Math.max(1, g.cellH*0.06));
+      row.appendChild(cell);
+    }
+    const j = k - g.nTop;
+    if(j>=0 && j<S.rows){
+      row.classList.add("editable");
+      row.addEventListener("mousedown", e=>{ e.preventDefault(); selectLine(j); });
+      rowEls[j] = row;
+    }
+    gridArea.appendChild(row);
+  }
+  board.appendChild(gridArea);
+  // filete sutil alrededor de la zona editable (la zona segura de la story)
+  { const m2 = Math.max(3, Math.round(g.cellW*0.28));
+    const frame = document.createElement("div");
+    frame.style.cssText = "position:absolute;pointer-events:none;z-index:1;"
+      +"left:"+((W-innerW)/2 - m2)+"px;top:"+(g.editTop - m2)+"px;"
+      +"width:"+(innerW+2*m2)+"px;height:"+(S.rows*g.cellH+2*m2)+"px;"
+      +"border:1px solid rgba(255,255,255,0.06);border-radius:"+Math.max(6,Math.round(g.cellW*0.5))+"px;";
+    board.appendChild(frame); }
+  // sombreado SOLO en el editor: lo que tapará la interfaz de Instagram/TikTok
+  const zone = (css, label)=>{
+    const z = document.createElement("div");
+    z.style.cssText = "position:absolute;left:0;right:0;pointer-events:none;z-index:4;"
+      +"background:rgba(4,5,2,0.55);display:flex;align-items:center;justify-content:center;"+css;
+    if(label){
+      const s = document.createElement("span");
+      s.textContent = "INSTAGRAM · TIKTOK";
+      s.style.cssText = "font-size:"+Math.max(8, H*0.011)+"px;letter-spacing:2px;color:rgba(255,255,255,0.28);"
+        +"font-family:ui-monospace,monospace;";
+      z.appendChild(s);
+    }
+    board.appendChild(z);
+  };
+  zone("top:0;height:"+g.safeTop+"px;border-bottom:1px dashed rgba(215,224,33,0.30);", true);
+  zone("top:"+g.safeBotY+"px;bottom:0;border-top:1px dashed rgba(215,224,33,0.30);", true);
+  // marca FLAPPIT.COM al pie de la zona segura (visible en la story)
+  const fp = document.createElement("span");
+  fp.textContent = "FLAPPIT.COM";
+  fp.style.cssText = "position:absolute;left:50%;transform:translateX(-50%);z-index:5;"
+    +"bottom:"+(H - g.safeBotY + H*0.006)+"px;"
+    +"font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;"
+    +"font-size:"+(H*0.016)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
+  board.appendChild(fp);
   renderAll();
 }
 
@@ -1732,6 +1852,20 @@ function syncControls(){
   document.querySelectorAll("#flapCol .sw").forEach(sw=>
     sw.classList.toggle("on", sw.dataset.c===S.flapColor));
   syncLogoUI();
+  // formato Redes: sin reloj/logo (no hay franja) + botón Compartir + aviso de zonas
+  const redes = S.format==="redes";
+  const hint = document.getElementById("redesHint");
+  if(hint) hint.style.display = redes ? "block" : "none";
+  const sr = document.getElementById("shareRow");
+  if(sr){
+    sr.style.display = redes ? "flex" : "none";
+    if(redes && sharePhase==="make") document.getElementById("shareBtnTxt").textContent = t("shareBtn");
+  }
+  [document.getElementById("clock").closest(".row"),
+   document.getElementById("logoOn").closest(".row"),
+   document.getElementById("logoImgRow")].forEach(el=>{
+    if(el) el.style.display = redes ? "none" : "";
+  });
 }
 
 function bindRange(id, valId, key, suffix, structural){
@@ -1772,7 +1906,9 @@ document.getElementById("format").addEventListener("click", e=>{
   document.querySelectorAll("#format .chip").forEach(c=>c.classList.remove("on"));
   b.classList.add("on"); S.format=b.dataset.v;
   // defaults por orientación al cambiar de formato
-  if(S.format==="9:16"){ S.cols=12; S.rows=14; } else { S.cols=33; S.rows=11; }
+  if(S.format==="9:16"){ S.cols=12; S.rows=14; }
+  else if(S.format==="redes"){ S.cols=11; S.rows=9; }
+  else { S.cols=33; S.rows=11; }
   syncControls();
   selLine=-1; buildBoard(); push();
 });
@@ -1842,6 +1978,300 @@ document.getElementById("logoClear").addEventListener("click", ()=>{
 
 window.addEventListener("resize", ()=>{ if(S){ selLine=-1; buildBoard(); } });
 setInterval(()=>{ if(clockEl) clockEl.textContent = clockLine(); }, 30000);
+
+/* ================= compartir en redes: vídeo 9:16 generado en el navegador =================
+   Mismo esquema que el vídeo de la landing: canvas + captureStream + MediaRecorder,
+   coreografía Solari y sonido clac-clac (variante C). Coste servidor: 0.
+   En móvil se abre la hoja nativa de compartir (Instagram/TikTok/WhatsApp);
+   en escritorio se descarga el archivo. */
+const FLIP_ANIM = 70;
+let shareAudioCtx=null, shareMaster=null, shareNoise=null;
+function shareEnsureAudio(){
+  if(shareAudioCtx){ shareAudioCtx.resume(); return; }
+  shareAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  shareMaster = shareAudioCtx.createGain(); shareMaster.gain.value=0.8;
+  shareMaster.connect(shareAudioCtx.destination);
+  const len=Math.floor(shareAudioCtx.sampleRate*0.025);
+  shareNoise=shareAudioCtx.createBuffer(1,len,shareAudioCtx.sampleRate);
+  const d=shareNoise.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+}
+function shareClickSnd(g, dt){
+  if(!shareAudioCtx||shareAudioCtx.state!=="running") return;
+  const t0 = shareAudioCtx.currentTime + (dt||0);
+  const hit = (tt, gg)=>{
+    const n1=shareAudioCtx.createBufferSource(); n1.buffer=shareNoise;
+    n1.playbackRate.value=1.9+Math.random()*0.5;
+    const hp=shareAudioCtx.createBiquadFilter(); hp.type="highpass";
+    hp.frequency.value=2800; hp.Q.value=0.7;
+    const g1=shareAudioCtx.createGain();
+    g1.gain.setValueAtTime(gg, tt);
+    g1.gain.exponentialRampToValueAtTime(0.0001, tt+0.012);
+    n1.connect(hp).connect(g1).connect(shareMaster); n1.start(tt);
+    const n2=shareAudioCtx.createBufferSource(); n2.buffer=shareNoise;
+    n2.playbackRate.value=2.1;
+    const bp=shareAudioCtx.createBiquadFilter(); bp.type="bandpass";
+    bp.frequency.value=5800+Math.random()*1600; bp.Q.value=1.4;
+    const g2=shareAudioCtx.createGain();
+    g2.gain.setValueAtTime(gg*0.7, tt);
+    g2.gain.exponentialRampToValueAtTime(0.0001, tt+0.010);
+    n2.connect(bp).connect(g2).connect(shareMaster); n2.start(tt);
+  };
+  hit(t0, g*1.05);
+  hit(t0 + 0.016 + Math.random()*0.006, g*0.65);
+}
+
+/* casilla split-flap en canvas (mismo acabado que la landing/TV) */
+function drawShareCell(ctx,x,y,w,h,prevC,curC,p){
+  const flap = S.flapColor, txt = S.textColor;
+  const gap=w*0.045;
+  const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
+  const half=fh/2, rad=Math.max(2,w*0.08), cx=x+w/2;
+  const font=`500 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+  function halfPath(top){
+    ctx.beginPath();
+    if(top){
+      ctx.moveTo(fx,fy+half); ctx.lineTo(fx,fy+rad);
+      ctx.arcTo(fx,fy,fx+rad,fy,rad); ctx.lineTo(fx+fw-rad,fy);
+      ctx.arcTo(fx+fw,fy,fx+fw,fy+rad,rad); ctx.lineTo(fx+fw,fy+half);
+    }else{
+      ctx.moveTo(fx+fw,fy+half+1); ctx.lineTo(fx+fw,fy+fh-rad);
+      ctx.arcTo(fx+fw,fy+fh,fx+fw-rad,fy+fh,rad); ctx.lineTo(fx+rad,fy+fh);
+      ctx.arcTo(fx,fy+fh,fx,fy+fh-rad,rad); ctx.lineTo(fx,fy+half+1);
+    }
+    ctx.closePath();
+  }
+  function drawHalf(top,ch,dim){
+    halfPath(top);
+    ctx.fillStyle = shade(flap, (top ? 1.05 : 1.2) * dim);
+    ctx.fill();
+    ctx.save(); ctx.clip();
+    ctx.fillStyle=txt;
+    ctx.font=font; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.save();
+    ctx.translate(cx, fy+half+fh*0.02);
+    ctx.scale(0.74, 1);
+    ctx.fillText(ch, 0, 0);
+    ctx.restore();
+    if(top){
+      const sh=ctx.createLinearGradient(0,fy,0,fy+half);
+      sh.addColorStop(0,"rgba(0,0,0,0.66)");
+      sh.addColorStop(0.55,"rgba(0,0,0,0.32)");
+      sh.addColorStop(1,"rgba(0,0,0,0.12)");
+      ctx.fillStyle=sh; ctx.fillRect(fx,fy,fw,half);
+    }
+    ctx.restore();
+    if(top){
+      halfPath(true);
+      ctx.lineWidth = Math.max(0.6, w*0.012);
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.stroke();
+    }
+  }
+  if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
+  else{
+    drawHalf(true,curC,1); drawHalf(false,prevC,1);
+    const ang = p<0.5 ? (1-2*p) : (2*p-1);
+    const shH = half*(1-ang)*0.95;
+    if(shH>0.5){
+      ctx.save();
+      halfPath(false); ctx.clip();
+      const sg = ctx.createLinearGradient(0, fy+half, 0, fy+half+shH);
+      sg.addColorStop(0, "rgba(0,0,0,"+(0.55*(1-ang)).toFixed(3)+")");
+      sg.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = sg;
+      ctx.fillRect(fx, fy+half, fw, shH);
+      ctx.restore();
+    }
+    ctx.save(); ctx.translate(cx,fy+half);
+    const syF = Math.max(0.03, ang);
+    ctx.scale(1 + (1-syF)*0.08, syF);
+    ctx.translate(-cx,-(fy+half));
+    if(p<0.5){ drawHalf(true,prevC,1-p*0.6); }
+    else{
+      const glint = (p>0.55 && p<0.82) ? 0.55*Math.sin((p-0.55)/0.27*Math.PI) : 0;
+      drawHalf(false,curC,0.5+(p-0.5)*0.95 + glint);
+    }
+    ctx.restore();
+    const edgeY = p<0.5 ? fy+half - half*syF : fy+half + half*syF;
+    ctx.fillStyle = "rgba(255,255,255,"+(0.40*(1-ang)).toFixed(3)+")";
+    ctx.fillRect(fx+fw*0.04, edgeY-Math.max(1,h*0.005), fw*0.92, Math.max(1.5, h*0.012));
+  }
+  ctx.fillStyle="rgba(0,0,0,0.75)";
+  ctx.fillRect(fx,fy+half-Math.max(1,h*0.008),fw,Math.max(2,h*0.016));
+  const pw=Math.max(2,w*0.045), ph=Math.max(6,h*0.14);
+  for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
+    ctx.fillStyle="#0a0a0a";
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.4);
+    else ctx.rect(px,fy+half-ph/2,pw,ph);
+    ctx.fill();
+    ctx.fillStyle="rgba(255,255,255,0.18)";
+    ctx.fillRect(px+pw*0.25,fy+half-ph/2+1,pw*0.28,ph-2);
+  }
+}
+
+const shareBtnEl = document.getElementById("shareBtn");
+const shareBtnTxtEl = document.getElementById("shareBtnTxt");
+const shareStatusEl = document.getElementById("shareStatus");
+let shareBusy=false, shareFile=null, shareUrl=null, sharePhase="make";
+function shareCanRecord(){ return !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream); }
+function sharePickMime(){
+  const c = ["video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"];
+  for(const m of c){ try{ if(MediaRecorder.isTypeSupported(m)) return m; }catch(e){} }
+  return "";
+}
+
+async function makeShareVideo(){
+  if(shareBusy || !S) return;
+  if(isMedia(cur())){ alert(t("shareOnlyText")); return; }
+  if(!shareCanRecord()){ alert(t("shareFail")); return; }
+  shareBusy = true; shareBtnEl.disabled = true;
+  shareStatusEl.textContent = t("shareMaking");
+  try{
+    const W=1080, H=1920;
+    const cv = document.createElement("canvas"); cv.width=W; cv.height=H;
+    const ctx = cv.getContext("2d");
+    const g = redesGeom(W, H, S.cols, S.rows);
+    const cols = S.cols, total = g.nTop + S.rows + g.nBot;
+    // objetivos: el mensaje en la zona segura; el resto vuelve a quedar en blanco
+    const targets = new Array(total*cols).fill(0);
+    for(let j=0;j<S.rows;j++){
+      const ln = (cur().lines && cur().lines[j]) || {text:"",align:"center"};
+      const text = normalize(ln.text||"").slice(0,cols).replace(/\s+$/,"");
+      const st = lineStart(text, ln.align||"center", cols);
+      for(let c2=0;c2<text.length;c2++){
+        const k = CHARSET.indexOf(text[c2]);
+        if(k>0) targets[(g.nTop+j)*cols+st+c2] = k;
+      }
+    }
+    // TODAS las casillas giran: arrancan en blanco y dan la vuelta completa
+    const cells = targets.map(tg=>{
+      const d = tg===0 ? LEN : tg;
+      return {from:0, tg, d, steps:d, base:60, delay:0};
+    });
+    const T = Math.min(12, Math.max(3, S.trans||5))*1000;
+    { // coreografía Solari, como la TV: ola izq→dcha, tambor a velocidad única
+      let maxD = 0; cells.forEach(c=>{ maxD = Math.max(maxD, c.d); });
+      const perCol = Math.min(69, (T*0.345)/Math.max(1, cols));
+      const budget = Math.max(500, T - perCol*(cols-1));
+      const k = Math.max(0, Math.ceil((budget/110 - maxD)/LEN));
+      const base = Math.min(110, Math.max(36, budget/(maxD + k*LEN)));
+      cells.forEach((c,i)=>{
+        c.steps = c.d + k*LEN;
+        c.base = base;
+        c.delay = (i%cols)*perCol + Math.floor(i/cols)*10 + Math.random()*30;
+      });
+    }
+    const innerW = cols*g.cellW;
+    const offX = (W-innerW)/2;
+    function drawFrame(e){
+      ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+      const refl = ctx.createLinearGradient(0,0,0,H);
+      refl.addColorStop(0,"rgba(255,255,255,0.03)"); refl.addColorStop(0.12,"rgba(255,255,255,0.008)");
+      refl.addColorStop(0.6,"rgba(255,255,255,0)"); refl.addColorStop(1,"rgba(0,0,0,0.28)");
+      ctx.fillStyle=refl; ctx.fillRect(0,0,W,H);
+      let sum=0, active=false;
+      for(let i=0;i<cells.length;i++){
+        const cell=cells[i];
+        const r=Math.floor(i/cols), c2=i%cols;
+        const ec = e - cell.delay;
+        let step, p;
+        if(ec<=0){ step=0; p=1; }
+        else{
+          step = Math.min(cell.steps, Math.floor(ec/cell.base));
+          p = Math.min(1,(ec-step*cell.base)/FLIP_ANIM);
+          if(step<cell.steps || ec < cell.steps*cell.base + FLIP_ANIM) active=true;
+        }
+        sum += step;
+        const curc=(cell.from+step)%LEN;
+        const prev= step===0?cell.from:(curc-1+LEN)%LEN;
+        drawShareCell(ctx, offX + c2*g.cellW, g.top0 + r*g.cellH, g.cellW, g.cellH,
+          CHARSET[prev], CHARSET[curc], step>=cell.steps?1:p);
+      }
+      // filete alrededor de la zona segura + marca FLAPPIT.COM
+      { const m2=Math.max(4,g.cellW*0.30), rr=Math.max(8,g.cellW*0.5);
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(offX-m2, g.editTop-m2, innerW+2*m2, S.rows*g.cellH+2*m2, rr);
+        else ctx.rect(offX-m2, g.editTop-m2, innerW+2*m2, S.rows*g.cellH+2*m2);
+        ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
+      ctx.fillStyle = "rgba(255,255,255,0.30)";
+      ctx.font = `400 ${H*0.016}px 'Helvetica Neue',Arial,sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      return {sum, active};
+    }
+    shareEnsureAudio();
+    const stream = cv.captureStream(30);
+    let combined = stream, dest = null;
+    try{
+      dest = shareAudioCtx.createMediaStreamDestination();
+      shareMaster.connect(dest);
+      combined = new MediaStream(stream.getVideoTracks().concat(dest.stream.getAudioTracks()));
+    }catch(e){}
+    const mime = sharePickMime();
+    const rec = new MediaRecorder(combined, mime ? {mimeType:mime, videoBitsPerSecond:6000000} : undefined);
+    const chunks = [];
+    rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+    const done = new Promise(res=>{ rec.onstop = res; });
+    rec.start(200);
+    drawFrame(0);
+    const t0 = performance.now() + 400;   // arranque con el tablero en blanco
+    let sumPrev=0, lastTick=-999, ended=0;
+    await new Promise(res=>{
+      function loop(now){
+        const e = now - t0;
+        const {sum, active} = drawFrame(Math.max(0, e));
+        const d = sum - sumPrev; sumPrev = sum;
+        if(d>0 && now-lastTick>22){
+          lastTick = now;
+          const n = Math.min(3, Math.ceil(d/5));
+          const gv = Math.min(0.5, 0.07+d*0.008);
+          for(let i2=0;i2<n;i2++) shareClickSnd(gv*(0.8+Math.random()*0.4), Math.random()*0.022);
+        }
+        if(e>0 && !active && !ended) ended = now;
+        if(ended && now-ended>1500){ res(); return; }   // 1,5 s de mensaje quieto al final
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    });
+    try{ rec.stop(); }catch(e){}
+    await done;
+    try{ if(dest) shareMaster.disconnect(dest); }catch(e){}
+    const blob = new Blob(chunks, {type: mime || "video/webm"});
+    const ext = (mime||"").indexOf("mp4")>=0 ? "mp4" : "webm";
+    shareFile = new File([blob], "flappit-story."+ext, {type: blob.type});
+    if(navigator.canShare && navigator.canShare({files:[shareFile]})){
+      // móvil: segundo toque = hoja nativa de compartir (requiere gesto del usuario)
+      sharePhase = "send";
+      shareBtnTxtEl.textContent = t("shareSend");
+      shareBtnEl.classList.add("ready");
+      shareStatusEl.textContent = "";
+    } else {
+      if(shareUrl) URL.revokeObjectURL(shareUrl);
+      shareUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = shareUrl; a.download = shareFile.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      shareStatusEl.textContent = t("shareDownloaded");
+    }
+  }catch(e){
+    alert(t("shareFail"));
+  }finally{
+    shareBusy = false; shareBtnEl.disabled = false;
+  }
+}
+
+shareBtnEl.addEventListener("click", async ()=>{
+  if(sharePhase==="send" && shareFile){
+    try{ await navigator.share({files:[shareFile]}); }catch(e){}
+    sharePhase = "make";
+    shareBtnTxtEl.textContent = t("shareBtn");
+    shareBtnEl.classList.remove("ready");
+    return;
+  }
+  makeShareVideo();
+});
 
 /* ================= suscripción ================= */
 const PLAN_LABEL = {uno:t("planUno"), tres:t("planTres"), cadena:t("planCadena")};
