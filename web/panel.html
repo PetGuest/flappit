@@ -335,7 +335,7 @@
     border:1px solid #555; color:#fff; border-radius:8px; width:30px; height:28px; cursor:pointer; font-size:13px;}
 
   /* aviso "haz clic para escribir" sobre el tablero */
-  #editHint{display:none; align-self:center; margin:0 auto 2px; font-size:12.5px; font-weight:600;
+  #editHint{display:none; margin:0; font-size:12.5px; font-weight:600;
     color:var(--accent); background:rgba(215,224,33,0.08); border:1px solid rgba(215,224,33,0.35);
     border-radius:999px; padding:5px 16px;}
   #editHint svg{vertical-align:-2px; margin-right:6px;}
@@ -487,7 +487,7 @@
         <div class="chips" id="format">
           <button class="chip on" data-v="16:9" data-i18n="fmtTv">TV 16:9</button>
           <button class="chip" data-v="9:16" data-i18n="fmtTotem">Tótem 9:16</button>
-          <button class="chip" data-v="redes" data-i18n="fmtRedes">Redes / Stories</button>
+          <button class="chip" data-v="redes" data-i18n="fmtRedes">Redes sociales</button>
         </div>
       </div>
       <p class="cap" id="redesHint" style="display:none;" data-i18n="redesHint">Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.</p>
@@ -546,10 +546,12 @@
 
   <section id="workArea">
     <div id="scrTabs"></div>
-    <div id="editHint"></div>
-    <div id="shareRow">
-      <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1.8 1.8 0 0 0 1.8 1.8h12.4A1.8 1.8 0 0 0 20 19v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span id="shareBtnTxt">COMPARTIR EN REDES</span></button>
-      <span id="shareStatus"></span>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <div id="editHint"></div>
+      <div id="shareRow">
+        <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="14" height="12" rx="2"/><path d="M16.5 10l5-2.5v9l-5-2.5z"/></svg><span id="shareBtnTxt">CREAR VÍDEO</span></button>
+        <span id="shareStatus"></span>
+      </div>
     </div>
     <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div><div id="sentBadge"></div></div></div>
     <div id="toolbar">
@@ -623,9 +625,9 @@ const I18N = {
     cardConfig: "Configura el panel",
     fmtTv: "TV 16:9",
     fmtTotem: "Tótem 9:16",
-    fmtRedes: "Redes / Stories",
+    fmtRedes: "Redes sociales",
     redesHint: "Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.",
-    shareBtn: "COMPARTIR EN REDES",
+    shareBtn: "CREAR VÍDEO",
     shareMaking: "Generando vídeo…",
     shareSend: "ENVIAR A INSTAGRAM / TIKTOK",
     shareSave: "GUARDAR VÍDEO",
@@ -785,9 +787,9 @@ const I18N = {
     cardConfig: "Set up the panel",
     fmtTv: "TV 16:9",
     fmtTotem: "Totem 9:16",
-    fmtRedes: "Social / Stories",
+    fmtRedes: "Social media",
     redesHint: "9:16 story format for Instagram and TikTok. The app's interface covers the top and bottom bands: write in the central area.",
-    shareBtn: "SHARE TO SOCIAL",
+    shareBtn: "CREATE VIDEO",
     shareMaking: "Generating video…",
     shareSend: "SEND TO INSTAGRAM / TIKTOK",
     shareSave: "SAVE VIDEO",
