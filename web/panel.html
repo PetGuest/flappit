@@ -358,7 +358,10 @@
   #scrMeta input::-webkit-outer-spin-button, #scrMeta input::-webkit-inner-spin-button{margin-left:2px;}
   #scrMeta span{font-size:12px; color:var(--muted);}
 
-  /* compartir en redes (solo formato Redes/Stories) */
+  /* fila aviso + crear vídeo: altura RESERVADA para que el tablero no baile al aparecer */
+  #hintRow{display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;
+    min-height:46px; flex:none;}
+  /* crear vídeo (solo formato Redes sociales) */
   #shareRow{display:none; align-items:center; justify-content:center; gap:12px;}
   #shareBtn{border:1px solid var(--accent); border-radius:10px; padding:10px 22px;
     background:transparent; color:var(--accent); font-size:13px; font-weight:800; cursor:pointer;
@@ -546,7 +549,7 @@
 
   <section id="workArea">
     <div id="scrTabs"></div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+    <div id="hintRow">
       <div id="editHint"></div>
       <div id="shareRow">
         <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="14" height="12" rx="2"/><path d="M16.5 10l5-2.5v9l-5-2.5z"/></svg><span id="shareBtnTxt">CREAR VÍDEO</span></button>
@@ -1353,7 +1356,12 @@ function buildBoard(){
   if(!S) return;
   const wrap = board.parentElement;
   const boxW = (wrap.clientWidth || 700) - 4;
-  const boxH = Math.max(280, (wrap.clientHeight || 460) - 4);
+  // móvil (columna única): el alto del wrap no es fiable, se parte del alto de la ventana
+  const mobile = window.matchMedia && window.matchMedia("(max-width:980px)").matches;
+  let boxH = mobile ? Math.max(300, window.innerHeight - 330)
+                    : Math.max(280, (wrap.clientHeight || 460) - 4);
+  // el tablero nunca puede ser más alto que la ventana (evita solapar botones/toolbar)
+  boxH = Math.min(boxH, Math.max(280, window.innerHeight - 170));
   const redes = S.format==="redes";
   const aspect = (S.format==="9:16" || redes) ? 9/16 : 16/9;
   let W = Math.min(boxW, boxH*aspect), H = W/aspect;
