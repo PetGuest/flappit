@@ -2323,7 +2323,7 @@ async function makeShareVideo(){
           for(let i2=0;i2<n;i2++) shareClickSnd(gv*(0.8+Math.random()*0.4), Math.random()*0.022);
         }
         if(e>0 && !active && !ended) ended = now;
-        if(ended && now-ended>1500){ res(); return; }   // 1,5 s de mensaje quieto al final
+        if(ended && now-ended>3500){ res(); return; }   // 3,5 s de mensaje quieto al final: da tiempo a leer antes de que el loop reinicie
         requestAnimationFrame(loop);
       }
       requestAnimationFrame(loop);
