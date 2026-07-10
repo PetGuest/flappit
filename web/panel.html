@@ -518,11 +518,11 @@
   <section id="workArea">
     <div id="scrTabs"></div>
     <div id="editHint"></div>
-    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div><div id="sentBadge"></div></div></div>
     <div id="shareRow">
       <button id="shareBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1.8 1.8 0 0 0 1.8 1.8h12.4A1.8 1.8 0 0 0 20 19v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span id="shareBtnTxt">COMPARTIR EN REDES</span></button>
       <span id="shareStatus"></span>
     </div>
+    <div id="boardWrap"><div id="board"><input id="hiddenInput" autocomplete="off" spellcheck="false"><div id="sentFlash"></div><div id="sentBadge"></div></div></div>
     <div id="toolbar">
       <span id="lineInfo">Haz clic en una línea del tablero</span>
       <button class="alnBtn" data-a="left"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span data-i18n="alignLeft">Izq</span></button>
@@ -1907,7 +1907,7 @@ document.getElementById("format").addEventListener("click", e=>{
   b.classList.add("on"); S.format=b.dataset.v;
   // defaults por orientación al cambiar de formato
   if(S.format==="9:16"){ S.cols=12; S.rows=14; }
-  else if(S.format==="redes"){ S.cols=11; S.rows=9; }
+  else if(S.format==="redes"){ S.cols=12; S.rows=10; }
   else { S.cols=33; S.rows=11; }
   syncControls();
   selLine=-1; buildBoard(); push();
@@ -2253,7 +2253,14 @@ async function makeShareVideo(){
       const a = document.createElement("a");
       a.href = shareUrl; a.download = shareFile.name;
       document.body.appendChild(a); a.click(); a.remove();
-      shareStatusEl.textContent = t("shareDownloaded");
+      // confirmación visible + enlace por si el navegador bloqueó la descarga automática
+      shareStatusEl.innerHTML = "";
+      shareStatusEl.appendChild(document.createTextNode(t("shareDownloaded")+" "));
+      const lnk = document.createElement("a");
+      lnk.href = shareUrl; lnk.download = shareFile.name;
+      lnk.textContent = shareFile.name;
+      lnk.style.color = "var(--accent)";
+      shareStatusEl.appendChild(lnk);
     }
   }catch(e){
     alert(t("shareFail"));
