@@ -2177,7 +2177,7 @@ async function makeShareVideo(){
         const r=Math.floor(i/cols), c2=i%cols;
         const ec = e - cell.delay;
         let step, p;
-        if(ec<=0){ step=0; p=1; }
+        if(ec<=0){ step=0; p=1; active=true; }  // aún no ha empezado a girar: sigue viva
         else{
           step = Math.min(cell.steps, Math.floor(ec/cell.base));
           p = Math.min(1,(ec-step*cell.base)/FLIP_ANIM);
