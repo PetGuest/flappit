@@ -1384,7 +1384,7 @@ function buildBoard(){
   [...board.children].forEach(ch=>{ if(ch.id!=="hiddenInput" && ch.id!=="sentFlash" && ch.id!=="sentBadge") ch.remove(); });
   rowEls = []; clockEl = null; bandEl = null;
 
-  if(redes){ buildRedesBoard(W, H); return; }
+  if(redes){ buildRedesBoard(W, H); checkBoardFit(); return; }
 
   const gridArea = document.createElement("div");
   gridArea.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;"
@@ -1459,6 +1459,22 @@ function buildBoard(){
     board.appendChild(bandEl);
   }
   renderAll();
+  checkBoardFit();
+}
+
+/* red de seguridad: si tras pintar, el tablero es más alto que su hueco (medición
+   desfasada por elementos que aparecen/desaparecen), se reconstruye UNA vez ya asentado */
+let fitGuard = false;
+function checkBoardFit(){
+  if(fitGuard) return;
+  requestAnimationFrame(()=>{
+    const wrapH = board.parentElement.clientHeight;
+    if(wrapH>100 && board.offsetHeight > wrapH+2){
+      fitGuard = true;
+      buildBoard();
+      fitGuard = false;
+    }
+  });
 }
 
 /* ---------- formato Redes/Stories: 9:16 lleno de flaps de arriba abajo ----------
@@ -1532,12 +1548,12 @@ function buildRedesBoard(W, H){
   };
   zone("top:0;height:"+g.safeTop+"px;border-bottom:1px dashed rgba(215,224,33,0.30);", true);
   zone("top:"+g.safeBotY+"px;bottom:0;border-top:1px dashed rgba(215,224,33,0.30);", true);
-  // marca FLAPPIT.COM, pequeña, abajo del todo: entre la penúltima y la última fila
-  const byMark = g.top0 + (total-1)*g.cellH;   // frontera entre las dos últimas filas
+  // marca FLAPPIT.COM al pie de la zona segura: lo último visible antes de la franja
+  // que tapa Instagram/TikTok (más abajo no saldría en la story)
   const fp = document.createElement("span");
   fp.textContent = "FLAPPIT.COM";
   fp.style.cssText = "position:absolute;left:50%;transform:translateX(-50%);z-index:5;"
-    +"bottom:"+Math.max(2, H - byMark - H*0.007)+"px;"
+    +"bottom:"+(H - g.safeBotY + H*0.006)+"px;"
     +"font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;"
     +"font-size:"+(H*0.0132)+"px;letter-spacing:1px;color:rgba(255,255,255,0.30);";
   board.appendChild(fp);
@@ -2274,8 +2290,8 @@ async function makeShareVideo(){
         ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
       ctx.fillStyle = "rgba(255,255,255,0.30)";
       ctx.font = `400 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText("FLAPPIT.COM", W/2, g.top0 + (total-1)*g.cellH);
+      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
       return {sum, active};
     }
     shareEnsureAudio();
