@@ -370,6 +370,24 @@
   #shareBtn.ready{background:linear-gradient(180deg, #e6ef3a, var(--accent)); color:var(--accent-ink);
     border-color:transparent; box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,0.35);}
   #shareStatus{font-size:12px; color:var(--muted);}
+  /* modal del vídeo generado: vista previa + guardar/compartir */
+  #shareModal{position:fixed; inset:0; background:rgba(2,4,8,0.88); z-index:260;
+    display:none; align-items:center; justify-content:center; padding:20px;}
+  #shareModal .sm{background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px; width:min(92vw,340px); box-shadow:0 24px 70px rgba(0,0,0,0.65);}
+  #shareVid{width:100%; max-height:62vh; border-radius:10px; background:#000; display:block; object-fit:contain;}
+  #shareModal .smBtns{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  #shareDl{display:block; text-align:center; background:linear-gradient(180deg,#e6ef3a,var(--accent));
+    color:var(--accent-ink); font-weight:800; border-radius:10px; padding:12px; font-size:14px;
+    letter-spacing:1px; font-family:ui-monospace,monospace; text-decoration:none;
+    box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,0.35);}
+  #shareDl:hover{filter:brightness(1.06);}
+  #shareShare{border:1px solid var(--accent); background:transparent; color:var(--accent);
+    border-radius:10px; padding:11px; font-weight:800; font-size:13px; letter-spacing:1px;
+    font-family:ui-monospace,monospace; cursor:pointer;}
+  #shareShare:hover{background:rgba(215,224,33,0.08);}
+  #shareModalClose{background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:6px;}
+  #shareModalClose:hover{color:var(--text);}
 
   /* selector de idioma */
   .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
@@ -427,6 +445,17 @@
       <button id="previewClose" title="Cerrar" data-i18n-title="close">✕</button>
     </div>
     <iframe id="previewFrame" title="Vista previa de la TV" data-i18n-title="previewFrameTitle" allow="autoplay"></iframe>
+  </div>
+</div>
+
+<div id="shareModal">
+  <div class="sm">
+    <video id="shareVid" controls autoplay loop playsinline></video>
+    <div class="smBtns">
+      <a id="shareDl" data-i18n="shareSave">GUARDAR VÍDEO</a>
+      <button id="shareShare" style="display:none;" data-i18n="shareSend">ENVIAR A INSTAGRAM / TIKTOK</button>
+      <button id="shareModalClose" data-i18n="close">Cerrar</button>
+    </div>
   </div>
 </div>
 
@@ -599,6 +628,7 @@ const I18N = {
     shareBtn: "COMPARTIR EN REDES",
     shareMaking: "Generando vídeo…",
     shareSend: "ENVIAR A INSTAGRAM / TIKTOK",
+    shareSave: "GUARDAR VÍDEO",
     shareDownloaded: "Vídeo descargado — súbalo a su story de Instagram o TikTok.",
     shareOnlyText: "Compartir funciona con animaciones de texto (no con fotos ni vídeos).",
     shareFail: "Este navegador no permite grabar el vídeo. Pruebe con Chrome o Safari actualizados.",
@@ -760,6 +790,7 @@ const I18N = {
     shareBtn: "SHARE TO SOCIAL",
     shareMaking: "Generating video…",
     shareSend: "SEND TO INSTAGRAM / TIKTOK",
+    shareSave: "SAVE VIDEO",
     shareDownloaded: "Video downloaded — upload it to your Instagram or TikTok story.",
     shareOnlyText: "Sharing works with text animations (not photos or videos).",
     shareFail: "This browser can't record the video. Try an up-to-date Chrome or Safari.",
@@ -1163,7 +1194,9 @@ function migrate(S){
   if(!S.format) S.format = "16:9";
   // migración: las pantallas con el antiguo 31×11 (16:9) saltan al nuevo 33×11 por defecto
   migratedGrid = false;
-  if(S.format!=="9:16" && S.cols===31 && S.rows===11){ S.cols = 33; migratedGrid = true; }
+  if(S.format!=="9:16" && S.format!=="redes" && S.cols===31 && S.rows===11){ S.cols = 33; migratedGrid = true; }
+  // migración: pantallas Redes con la rejilla inicial 11×9 pasan a la nueva 12×10
+  if(S.format==="redes" && S.cols===11 && S.rows===9){ S.cols = 12; S.rows = 10; migratedGrid = true; }
   if(S.loop===undefined) S.loop = true;
   const n = linesPer(S);
   S.messages = (S.messages||[]).map(m=>{
@@ -1859,7 +1892,7 @@ function syncControls(){
   const sr = document.getElementById("shareRow");
   if(sr){
     sr.style.display = redes ? "flex" : "none";
-    if(redes && sharePhase==="make") document.getElementById("shareBtnTxt").textContent = t("shareBtn");
+    if(redes) document.getElementById("shareBtnTxt").textContent = t("shareBtn");
   }
   [document.getElementById("clock").closest(".row"),
    document.getElementById("logoOn").closest(".row"),
@@ -2241,27 +2274,10 @@ async function makeShareVideo(){
     const blob = new Blob(chunks, {type: mime || "video/webm"});
     const ext = (mime||"").indexOf("mp4")>=0 ? "mp4" : "webm";
     shareFile = new File([blob], "flappit-story."+ext, {type: blob.type});
-    if(navigator.canShare && navigator.canShare({files:[shareFile]})){
-      // móvil: segundo toque = hoja nativa de compartir (requiere gesto del usuario)
-      sharePhase = "send";
-      shareBtnTxtEl.textContent = t("shareSend");
-      shareBtnEl.classList.add("ready");
-      shareStatusEl.textContent = "";
-    } else {
-      if(shareUrl) URL.revokeObjectURL(shareUrl);
-      shareUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = shareUrl; a.download = shareFile.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      // confirmación visible + enlace por si el navegador bloqueó la descarga automática
-      shareStatusEl.innerHTML = "";
-      shareStatusEl.appendChild(document.createTextNode(t("shareDownloaded")+" "));
-      const lnk = document.createElement("a");
-      lnk.href = shareUrl; lnk.download = shareFile.name;
-      lnk.textContent = shareFile.name;
-      lnk.style.color = "var(--accent)";
-      shareStatusEl.appendChild(lnk);
-    }
+    if(shareUrl) URL.revokeObjectURL(shareUrl);
+    shareUrl = URL.createObjectURL(blob);
+    shareStatusEl.textContent = "";
+    openShareModal();
   }catch(e){
     alert(t("shareFail"));
   }finally{
@@ -2269,15 +2285,31 @@ async function makeShareVideo(){
   }
 }
 
-shareBtnEl.addEventListener("click", async ()=>{
-  if(sharePhase==="send" && shareFile){
-    try{ await navigator.share({files:[shareFile]}); }catch(e){}
-    sharePhase = "make";
-    shareBtnTxtEl.textContent = t("shareBtn");
-    shareBtnEl.classList.remove("ready");
-    return;
-  }
-  makeShareVideo();
+shareBtnEl.addEventListener("click", ()=>{ makeShareVideo(); });
+
+/* modal del vídeo: vista previa + GUARDAR (+ COMPARTIR si el dispositivo lo permite) */
+function openShareModal(){
+  const v = document.getElementById("shareVid");
+  v.src = shareUrl;
+  const dl = document.getElementById("shareDl");
+  dl.href = shareUrl; dl.download = shareFile.name;
+  document.getElementById("shareShare").style.display =
+    (navigator.canShare && navigator.canShare({files:[shareFile]})) ? "block" : "none";
+  document.getElementById("shareModal").style.display = "flex";
+  v.play().catch(()=>{});
+}
+function closeShareModal(){
+  document.getElementById("shareModal").style.display = "none";
+  try{ document.getElementById("shareVid").pause(); }catch(e){}
+}
+document.getElementById("shareModalClose").addEventListener("click", closeShareModal);
+document.getElementById("shareModal").addEventListener("click", e=>{
+  if(e.target.id==="shareModal") closeShareModal();
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeShareModal(); });
+document.getElementById("shareShare").addEventListener("click", async ()=>{
+  if(!shareFile) return;
+  try{ await navigator.share({files:[shareFile]}); }catch(e){}
 });
 
 /* ================= suscripción ================= */
