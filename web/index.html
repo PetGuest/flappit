@@ -3,7 +3,7 @@
 <head>
 <script src="/cookies.js" defer></script>
 <meta charset="UTF-8">
-<script>(function(){try{var s=localStorage.getItem('flappitLang');if(s==='en'){location.replace('/en');return;}if(s)return;var l=(navigator.language||navigator.userLanguage||'').toLowerCase();if(l.slice(0,2)==='en')location.replace('/en');}catch(e){}})();</script>
+<script>(function(){try{if(navigator.webdriver||/bot|crawl|spider|slurp|headless|lighthouse|bing|yandex|duckduck|facebookexternalhit/i.test(navigator.userAgent))return;var s=localStorage.getItem('flappitLang');if(s==='en'){location.replace('/en');return;}if(s)return;var l=(navigator.language||navigator.userLanguage||'').toLowerCase();if(l.slice(0,2)==='en')location.replace('/en');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flappit — Convierta cualquier pantalla en un panel informativo espectacular</title>
 <meta name="description" content="Convierta la TV de su recepción en un espectacular panel split-flap de aeropuerto. Cartelería digital para hoteles, clínicas, gimnasios y comercios. Sin instalación. 7 días gratis.">

@@ -216,6 +216,16 @@ app.use((req, res, next)=>{
   next();
 });
 
+/* dominio canónico (SEO): www.flappit.com y el host de Railway redirigen 301 a flappit.com,
+   para que Google no indexe contenido duplicado en varios hosts. Solo en producción. */
+app.use((req, res, next)=>{
+  const host = (req.headers.host || "").toLowerCase();
+  if(IS_PROD && (host === "www.flappit.com" || host.endsWith(".up.railway.app"))){
+    return res.redirect(301, "https://flappit.com" + req.originalUrl);
+  }
+  next();
+});
+
 /* ---- webhook de Stripe (ANTES del parser JSON: necesita el cuerpo en crudo
    para verificar la firma) ---- */
 app.post("/api/stripe/webhook", express.raw({type:"application/json"}), (req,res)=>{

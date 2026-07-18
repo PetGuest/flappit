@@ -3,6 +3,8 @@
 
 User-agent: *
 Allow: /
+# la página SEO /panel-tipo-aeropuerto.html debe permitirse aunque /panel esté bloqueado
+Allow: /panel-tipo-aeropuerto.html
 Disallow: /panel
 Disallow: /tv
 Disallow: /api/
