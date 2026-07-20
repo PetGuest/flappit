@@ -54,10 +54,20 @@
   nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px;}
   nav .links a{color:var(--muted);}
   nav .links a:hover{color:var(--text);}
+  .burger{display:none; background:transparent; border:1px solid var(--line); color:var(--text);
+    border-radius:8px; width:38px; height:34px; cursor:pointer; font-size:16px;
+    align-items:center; justify-content:center; line-height:1;}
   @media(max-width:600px){
+    nav{position:relative;}
     nav .links{display:none;}
+    nav .links.open{display:flex; position:absolute; top:100%; left:0; right:0; flex-direction:column;
+      background:rgba(10,10,12,0.97); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--line); padding:6px 22px 12px; gap:0; z-index:70;}
+    nav .links.open a{padding:12px 0; font-size:15.5px; color:var(--text); border-bottom:1px solid var(--line);}
+    nav .links.open a:last-child{border-bottom:none;}
     nav .cta{margin-left:auto;}
     nav .langSel{margin-left:0;}
+    .burger{display:inline-flex;}
   }
   .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
   .langSel a{color:#9a9aa2;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid transparent;line-height:1;}
@@ -280,6 +290,7 @@
     </div>
     <button class="cta" onclick="location.href='/panel'">Probar gratis</button>
     <span class="langSel"><a href="/" data-lang="es" class="on" onclick="try{localStorage.setItem('flappitLang','es')}catch(e){}">ES</a><a href="/en" data-lang="en" onclick="try{localStorage.setItem('flappitLang','en')}catch(e){}">EN</a></span>
+      <button class="burger" id="navBurger" aria-label="Menú" aria-expanded="false">&#9776;</button>
   </nav>
 </div></div>
 
@@ -1242,6 +1253,13 @@ try{
     document.getElementById("cookieBar").style.display = "none";
   });
 }catch(e){}
+</script>
+<script>
+(function(){var b=document.getElementById("navBurger"),l=document.querySelector("nav .links");
+if(!b||!l)return;
+b.addEventListener("click",function(){var o=l.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");b.innerHTML=o?"&#10005;":"&#9776;";});
+l.addEventListener("click",function(e){if(e.target.tagName==="A"){l.classList.remove("open");b.setAttribute("aria-expanded","false");b.innerHTML="&#9776;";}});
+})();
 </script>
 </body>
 </html>
