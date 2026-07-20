@@ -577,9 +577,15 @@ app.post("/api/media", auth, requirePaid, (req,res)=>{
 app.get("/api/subscribe", auth, async (req,res)=>{
   const s = stripe();
   if(!s) return res.json({url:null, note:"stripe-no-configurado"});
-  const price = req.user.bill==="y"
-    ? (req.user.plan==="uno" ? process.env.STRIPE_PRICE_UNO_Y : process.env.STRIPE_PRICE_TRES_Y)
-    : (req.user.plan==="uno" ? process.env.STRIPE_PRICE_UNO_M : process.env.STRIPE_PRICE_TRES_M);
+  /* el usuario elige plan y periodicidad en el selector del panel; se persiste su elección */
+  const plan = (req.query.plan==="uno" || req.query.plan==="tres") ? req.query.plan : req.user.plan;
+  const bill = (req.query.bill==="m" || req.query.bill==="y") ? req.query.bill : req.user.bill;
+  if(plan!==req.user.plan || bill!==req.user.bill){
+    db.prepare("UPDATE users SET plan=?, bill=? WHERE id=?").run(plan, bill, req.user.id);
+  }
+  const price = bill==="y"
+    ? (plan==="uno" ? process.env.STRIPE_PRICE_UNO_Y : process.env.STRIPE_PRICE_TRES_Y)
+    : (plan==="uno" ? process.env.STRIPE_PRICE_UNO_M : process.env.STRIPE_PRICE_TRES_M);
   if(!price) return res.json({url:null, note:"precio-no-configurado"});
   const base = process.env.BASE_URL || ("http://localhost:"+PORT);
   try{

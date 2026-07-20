@@ -319,6 +319,26 @@
   #payBox .alt{margin-top:14px; font-size:13px;}
   #payBox .alt a{color:var(--muted); cursor:pointer;}
 
+  /* selector de plan (antes del checkout) */
+  #planWrap{position:fixed; inset:0; background:rgba(2,4,8,0.94); z-index:160;
+    display:none; align-items:center; justify-content:center;}
+  #planBox{width:100%; max-width:420px; background:var(--panel); border:1px solid var(--line);
+    border-radius:16px; padding:30px; text-align:center;}
+  #planBox h1{font-size:21px; margin:0 0 8px;}
+  #planBox p{color:var(--muted); font-size:13px; margin:0 0 18px;}
+  #planBox .billRow{display:flex; gap:8px; justify-content:center; margin:0 0 16px;}
+  #planBox .billRow button{background:transparent; border:1px solid var(--line); color:var(--muted);
+    border-radius:999px; padding:6px 14px; font-size:12.5px; cursor:pointer;}
+  #planBox .billRow button.on{color:var(--accent); border-color:var(--accent);}
+  .planOpt{width:100%; display:flex; justify-content:space-between; align-items:center;
+    background:var(--field); border:1px solid var(--line); color:var(--text);
+    border-radius:12px; padding:16px 18px; margin:0 0 10px; cursor:pointer; font-size:15px;}
+  .planOpt:hover{border-color:var(--accent);}
+  .planOpt b{font-weight:800;}
+  .planOpt span{color:var(--muted); font-size:13px;}
+  #planBox .alt{margin-top:8px; font-size:13px;}
+  #planBox .alt a{color:var(--muted); cursor:pointer;}
+
   /* modal de vista previa (así se verá en la TV) */
   #previewModal{position:fixed; inset:0; background:rgba(2,4,8,0.86); z-index:250;
     display:none; align-items:center; justify-content:center; padding:20px;}
@@ -403,7 +423,7 @@
 
 <div id="authWrap" style="display:none;">
   <div id="authBox">
-    <div style="margin:0 0 14px;"><img src="/flappit-logo.svg" alt="Flappit" style="height:24px; display:block;"></div>
+    <div style="margin:0 0 14px;"><a href="/" title="flappit.com"><img src="/flappit-logo.svg" alt="Flappit" style="height:24px; display:block;"></a></div>
     <h1 id="authTitle" data-i18n="authTitleLogin">Entrar en su panel</h1>
     <p id="authIntro">El panel controla sus pantallas en tiempo real.</p>
     <div style="margin:0 0 16px;"><span class="langSel"><a data-setlang="es">ES</a><a data-setlang="en">EN</a></span></div>
@@ -439,6 +459,20 @@
     <p id="payMsg">Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.</p>
     <button class="go" id="payGo" data-i18n="paySubscribe">Suscribirme</button>
     <div class="alt"><a id="payLogout" data-i18n="logout">Salir</a></div>
+  </div>
+</div>
+
+<div id="planWrap">
+  <div id="planBox">
+    <h1 data-i18n="planPickTitle">Elija su plan</h1>
+    <p data-i18n="planPickIntro">Podrá cambiarlo o cancelarlo cuando quiera.</p>
+    <div class="billRow">
+      <button id="billM" class="on" data-i18n="billMonthly">Mensual</button>
+      <button id="billY" data-i18n="billYearly">Anual (−20%)</button>
+    </div>
+    <button class="planOpt" id="planOptUno"><b data-i18n="planUnoPick">1 pantalla</b><span id="planPriceUno">19 €/mes</span></button>
+    <button class="planOpt" id="planOptTres"><b data-i18n="planTresPick">Hasta 3 pantallas</b><span id="planPriceTres">39 €/mes</span></button>
+    <div class="alt"><a id="planCancel" data-i18n="close">Cerrar</a> · <a href="mailto:hello@flappit.com?subject=Flappit para cadenas" data-i18n="planChain">¿Más pantallas? Escríbanos</a></div>
   </div>
 </div>
 
@@ -734,6 +768,15 @@ const I18N = {
     planPrefix: "Plan ",
     manageSub: "Gestionar suscripción",
     subscribe: "Suscribirse",
+    planPickTitle: "Elija su plan",
+    planPickIntro: "Podrá cambiarlo o cancelarlo cuando quiera.",
+    billMonthly: "Mensual",
+    billYearly: "Anual (−20%)",
+    planUnoPick: "1 pantalla",
+    planTresPick: "Hasta 3 pantallas",
+    planChain: "¿Más pantallas? Escríbanos",
+    priceUnoM: "19 €/mes", priceUnoY: "180 €/año",
+    priceTresM: "39 €/mes", priceTresY: "372 €/año",
     trialDay: "Prueba: {n} día restantes",
     trialDays: "Prueba: {n} días restantes",
     pastDue: "Pago pendiente",
@@ -886,6 +929,15 @@ const I18N = {
     planPrefix: "Plan ",
     manageSub: "Manage subscription",
     subscribe: "Subscribe",
+    planPickTitle: "Choose your plan",
+    planPickIntro: "You can change or cancel it anytime.",
+    billMonthly: "Monthly",
+    billYearly: "Yearly (−20%)",
+    planUnoPick: "1 screen",
+    planTresPick: "Up to 3 screens",
+    planChain: "Need more screens? Write to us",
+    priceUnoM: "€19/month", priceUnoY: "€180/year",
+    priceTresM: "€39/month", priceTresY: "€372/year",
     trialDay: "Trial: {n} day left",
     trialDays: "Trial: {n} days left",
     pastDue: "Payment pending",
@@ -1024,7 +1076,12 @@ document.getElementById("authGo").addEventListener("click", async ()=>{
   err.textContent = "";
   try{
     if(authMode==="login") await api("POST","/api/login",{email,password:pass});
-    else await api("POST","/api/register",{email,password:pass,business:biz});
+    else{
+      /* respeta el plan elegido en la landing (/panel?plan=uno&bill=m) */
+      const q = new URLSearchParams(location.search);
+      await api("POST","/api/register",{email,password:pass,business:biz,
+        plan:q.get("plan")||undefined, bill:q.get("bill")||undefined});
+    }
     try{ localStorage.setItem("flappitKnown","1"); }catch(e){}
     location.reload();
   }catch(e){
@@ -2409,15 +2466,33 @@ function renderSub(){
     showPaywall(st);
   }
 }
-async function startCheckout(){
+/* selector de plan: se elige plan y periodicidad ANTES de ir al checkout */
+let pickBill = "m";
+function renderPlanPrices(){
+  document.getElementById("billM").classList.toggle("on", pickBill==="m");
+  document.getElementById("billY").classList.toggle("on", pickBill==="y");
+  document.getElementById("planPriceUno").textContent = pickBill==="m" ? t("priceUnoM") : t("priceUnoY");
+  document.getElementById("planPriceTres").textContent = pickBill==="m" ? t("priceTresM") : t("priceTresY");
+}
+function startCheckout(){
+  pickBill = (ME && ME.bill==="y") ? "y" : "m";
+  renderPlanPrices();
+  document.getElementById("planWrap").style.display = "flex";
+}
+async function launchCheckout(plan){
   try{
-    const r = await api("GET","/api/subscribe");
+    const r = await api("GET","/api/subscribe?plan="+plan+"&bill="+pickBill);
     if(r.url){ location.href = r.url; return; }
     alert(r.note==="precio-no-configurado"
       ? t("pricesMissing")
       : t("paymentsNotConfigured"));
   }catch(e){}
 }
+document.getElementById("billM").addEventListener("click", ()=>{ pickBill="m"; renderPlanPrices(); });
+document.getElementById("billY").addEventListener("click", ()=>{ pickBill="y"; renderPlanPrices(); });
+document.getElementById("planOptUno").addEventListener("click", ()=>launchCheckout("uno"));
+document.getElementById("planOptTres").addEventListener("click", ()=>launchCheckout("tres"));
+document.getElementById("planCancel").addEventListener("click", ()=>{ document.getElementById("planWrap").style.display="none"; });
 async function openPortal(){
   try{
     const r = await api("GET","/api/portal");
