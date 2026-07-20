@@ -216,6 +216,15 @@ app.use((req, res, next)=>{
   next();
 });
 
+/* HTML siempre revalidado: tras un deploy, ningún navegador se queda con un panel/landing viejo en caché
+   (con ETag la revalidación devuelve 304 y apenas cuesta; fotos/JS/SVG siguen cacheándose normal) */
+app.use((req, res, next)=>{
+  if(/\.html$/.test(req.path) || ["/","/panel","/tv","/admin","/reset","/en","/en/"].includes(req.path)){
+    res.set("Cache-Control", "no-cache");
+  }
+  next();
+});
+
 /* dominio canónico (SEO): www.flappit.com y el host de Railway redirigen 301 a flappit.com,
    para que Google no indexe contenido duplicado en varios hosts. Solo en producción. */
 app.use((req, res, next)=>{
