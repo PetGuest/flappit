@@ -6,14 +6,14 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/"/>
-    <lastmod>2026-07-06</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
+    <lastmod>2026-07-19</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
   </url>
   <url>
     <loc>https://flappit.com/en</loc>
     <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/"/>
-    <lastmod>2026-07-06</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
+    <lastmod>2026-07-19</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
   </url>
   <url>
     <loc>https://flappit.com/instalacion.html</loc>
@@ -48,7 +48,7 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/airport-style-board.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/panel-tipo-aeropuerto.html"/>
-    <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <lastmod>2026-07-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
   </url>
   <url>
     <loc>https://flappit.com/en/airport-style-board.html</loc>
@@ -70,5 +70,9 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-history.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/historia-panel-split-flap.html"/>
     <lastmod>2026-07-07</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://flappit.com/alternativa-vestaboard.html</loc>
+    <lastmod>2026-07-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
   </url>
 </urlset>

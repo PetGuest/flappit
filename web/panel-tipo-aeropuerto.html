@@ -5,8 +5,8 @@
 <meta charset="UTF-8">
 <script>(function(){try{if(localStorage.getItem('flappitLang')==='en')location.replace('/en/airport-style-board.html');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cómo crear un panel tipo aeropuerto en cualquier pantalla o TV</title>
-<meta name="description" content="Guía práctica para tener un panel de aeropuerto (split-flap) en su negocio o en casa: comprarlo mecánico, construirlo o recrearlo en 5 minutos en la TV que ya tiene. Comparativa y pasos.">
+<title>Panel split flap: cómo tenerlo en cualquier pantalla | Flappit</title>
+<meta name="description" content="Qué es un panel split flap, cuánto cuesta en 2026 y cómo recrear el panel de aeropuerto en la TV de su negocio en 5 minutos. Pruébelo gratis.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#0a0a0c">
 <link rel="canonical" href="https://flappit.com/panel-tipo-aeropuerto.html">
@@ -17,8 +17,8 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Flappit">
 <meta property="og:locale" content="es_ES">
-<meta property="og:title" content="Cómo crear un panel tipo aeropuerto en cualquier pantalla o TV">
-<meta property="og:description" content="Tres caminos para tener un panel split-flap de aeropuerto: comprarlo, construirlo o recrearlo en la TV que ya tiene. Guía completa con pasos.">
+<meta property="og:title" content="Panel split flap: cómo tenerlo en cualquier pantalla">
+<meta property="og:description" content="Qué es un panel split flap, cuánto cuesta cada opción en 2026 y cómo recrearlo en la TV que ya tiene, en 5 minutos y sin obras.">
 <meta property="og:url" content="https://flappit.com/panel-tipo-aeropuerto.html">
 <meta property="og:image" content="https://flappit.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -58,11 +58,21 @@
   article h3{font-size:17px; margin:26px 0 8px;}
   article p{color:#c9c9c2; font-size:16px; margin:0 0 14px;}
   article p b{color:var(--text);}
+  .defbox{background:var(--panel); border:1px solid rgba(215,224,33,0.35); border-radius:14px;
+    padding:20px 22px; margin:18px 0 6px;}
+  .defbox p{margin:0; font-size:15.5px;}
   .opt{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin:0 0 14px;}
   .opt h3{margin:0 0 6px;}
   .opt .meta{font-family:ui-monospace,monospace; font-size:12px; color:var(--brand); letter-spacing:1px; margin-bottom:8px;}
   .opt p{font-size:14.5px; color:var(--muted); margin:0;}
   .opt.best{border-color:rgba(215,224,33,0.5); box-shadow:0 0 26px rgba(215,224,33,0.08);}
+  table.cmp{width:100%; border-collapse:collapse; margin:14px 0 6px; font-size:14.5px;}
+  table.cmp th, table.cmp td{border:1px solid var(--line); padding:10px 12px; text-align:left; color:#c9c9c2; vertical-align:top;}
+  table.cmp th{color:var(--text); background:var(--panel); font-size:13.5px;}
+  table.cmp td b{color:var(--text);}
+  .src{font-size:12.5px; color:var(--muted); margin:4px 0 18px;}
+  .ej{font-family:ui-monospace,monospace; font-size:13.5px; color:var(--brand); letter-spacing:1px;
+    background:#0e0e11; border:1px solid var(--line); border-radius:8px; padding:8px 12px; display:inline-block; margin:4px 0 10px;}
   ol.pasos{counter-reset:p; list-style:none; padding:0; margin:6px 0 0;}
   ol.pasos li{counter-increment:p; position:relative; padding:0 0 18px 52px; color:#c9c9c2; font-size:15.5px;}
   ol.pasos li::before{content:counter(p); position:absolute; left:0; top:-1px; width:34px; height:34px;
@@ -93,18 +103,18 @@
   "@graph": [
     {
       "@type": "Article",
-      "headline": "Cómo crear un panel tipo aeropuerto en cualquier pantalla o TV",
+      "headline": "Panel split flap: cómo tenerlo en cualquier pantalla",
       "inLanguage": "es-ES",
       "author": {"@type": "Organization", "name": "Flappit", "url": "https://flappit.com/"},
       "publisher": {"@type": "Organization", "name": "Flappit", "logo": {"@type": "ImageObject", "url": "https://flappit.com/og-image.png"}},
       "image": "https://flappit.com/og-image.png",
       "datePublished": "2026-07-07",
-      "dateModified": "2026-07-07",
+      "dateModified": "2026-07-20",
       "mainEntityOfPage": "https://flappit.com/panel-tipo-aeropuerto.html"
     },
     {
       "@type": "HowTo",
-      "name": "Cómo recrear un panel de aeropuerto en su TV en 5 minutos",
+      "name": "Cómo recrear un panel split flap en su TV en 5 minutos",
       "totalTime": "PT5M",
       "supply": [{"@type":"HowToSupply","name":"Smart TV con navegador (o stick HDMI)"},{"@type":"HowToSupply","name":"Conexión wifi"}],
       "step": [
@@ -117,17 +127,20 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        {"@type":"Question","name":"¿Cuánto cuesta un panel de aeropuerto de verdad?","acceptedAnswer":{"@type":"Answer","text":"Un panel split-flap mecánico nuevo cuesta desde unos 3.000 € las unidades pequeñas de pared hasta decenas de miles en formatos grandes, más mantenimiento. Recrearlo por software en una TV cuesta desde 19 €/mes."}},
+        {"@type":"Question","name":"¿Cómo se llama el panel de los aeropuertos con letras que giran?","acceptedAnswer":{"@type":"Answer","text":"Se llama panel split flap (paleta partida). También se le conoce como tablero Solari, por la empresa italiana que lo fabricó para aeropuertos y estaciones de medio mundo, o simplemente panel de aeropuerto."}},
+        {"@type":"Question","name":"¿Cuánto cuesta un panel split flap?","acceptedAnswer":{"@type":"Answer","text":"Depende de la vía: un tablero mecánico de pared como Vestaboard cuesta 3.699 € en Europa (julio de 2026); los paneles mecánicos a medida para vestíbulos se van a cifras de cinco dígitos; construirlo uno mismo ronda los 200-400 € en materiales más semanas de trabajo; y recrearlo por software en una TV existente cuesta desde 19 €/mes."}},
+        {"@type":"Question","name":"¿Siguen existiendo los tableros Solari originales?","acceptedAnswer":{"@type":"Answer","text":"Quedan pocos en servicio y algunos se conservan por cariño del público, pero la mayoría fueron sustituidos por pantallas. Su historia, y por qué desaparecieron, la contamos en nuestro artículo sobre la historia del split-flap."}},
         {"@type":"Question","name":"¿Puedo tener el panel en una TV normal?","acceptedAnswer":{"@type":"Answer","text":"Sí. Cualquier Smart TV con navegador sirve; si la TV es antigua, un stick HDMI ya configurado lo resuelve. No hace falta obra ni técnico."}},
         {"@type":"Question","name":"¿Suena como los paneles reales?","acceptedAnswer":{"@type":"Answer","text":"Sí: el clac-clac de las paletas es opcional y puede activarse, bajarse o silenciarse según el ambiente del espacio."}},
-        {"@type":"Question","name":"¿Sirve para pantallas verticales?","acceptedAnswer":{"@type":"Answer","text":"Sí, funciona en horizontal (TV de lobby) y en vertical (tótems de recepción), adaptando la rejilla de letras al formato."}}
+        {"@type":"Question","name":"¿Sirve para pantallas verticales?","acceptedAnswer":{"@type":"Answer","text":"Sí, funciona en horizontal (TV de lobby) y en vertical (tótems de recepción), adaptando la rejilla de letras al formato."}},
+        {"@type":"Question","name":"¿Necesito un técnico para instalarlo?","acceptedAnswer":{"@type":"Answer","text":"No. Se abre una web en el televisor, se escribe un código de 4 letras en el panel de control y la pantalla queda vinculada. El proceso completo lleva unos 5 minutos."}}
       ]
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
         {"@type":"ListItem","position":1,"name":"Flappit","item":"https://flappit.com/"},
-        {"@type":"ListItem","position":2,"name":"Cómo crear un panel tipo aeropuerto","item":"https://flappit.com/panel-tipo-aeropuerto.html"}
+        {"@type":"ListItem","position":2,"name":"Panel split flap","item":"https://flappit.com/panel-tipo-aeropuerto.html"}
       ]
     }
   ]
@@ -150,21 +163,35 @@
 
 <div class="wrap">
   <div class="hero">
-    <div class="ey">GUÍA PRÁCTICA · 2026</div>
-    <h1>Cómo crear un <em>panel tipo aeropuerto</em> en cualquier pantalla</h1>
-    <p class="lead">El tablero de letras giratorias de los aeropuertos —el split-flap o "panel Solari"— se puede tener hoy en un hotel, un restaurante, una oficina o el salón de casa. Hay tres caminos. Se los contamos con precios y tiempos reales.</p>
+    <div class="ey">GUÍA COMPLETA · ACTUALIZADA JULIO 2026</div>
+    <h1>Panel split flap: el panel de aeropuerto, <em>en cualquier pantalla</em></h1>
+    <p class="lead">El tablero de letras giratorias de las llegadas y salidas se puede tener hoy en un hotel, un restaurante, una oficina o el salón de casa. Aquí está todo: cómo se llama, cuánto cuesta cada opción y cómo montarlo en la TV que ya tiene.</p>
   </div>
 
   <article>
-    <h2>Primero: cómo se llama esto</h2>
-    <p>El panel de las llegadas y salidas de toda la vida se llama <b>split-flap</b> (paleta partida): cada casilla es un tambor con decenas de medias tarjetas que giran hasta detenerse en la letra correcta, produciendo el <b>clac-clac</b> inconfundible. También se le conoce como <b>panel Solari</b>, por la empresa italiana que lo inventó y lo llevó a medio mundo — si le interesa esa historia, la contamos en <a href="/historia-panel-split-flap.html">el mítico panel de aeropuerto: la historia del split-flap</a>. Saber el nombre importa: es lo que hay que buscar para comprar, construir o recrear uno.</p>
+    <h2>¿Qué es un panel split flap?</h2>
+    <div class="defbox">
+      <p>Un <b>panel split flap</b> es el clásico tablero de aeropuerto en el que cada casilla es un tambor de medias tarjetas que giran hasta detenerse en la letra correcta, produciendo el <b>clac-clac</b> inconfundible. También se le llama <b>tablero Solari</b> —por la empresa italiana que lo llevó a aeropuertos y estaciones de medio mundo— o, simplemente, panel de aeropuerto de letras giratorias.</p>
+    </div>
+    <p>Saber el nombre importa: "panel split flap" es lo que hay que buscar para comprar uno, construirlo o recrearlo. Y si le pica la curiosidad por el objeto original y su siglo de vida, la contamos entera en <a href="/historia-panel-split-flap.html">la historia del tablero Solari</a>.</p>
 
-    <h2>Los tres caminos (y cuál conviene a cada uno)</h2>
+    <h2>¿Cuánto cuesta un panel split flap en 2026?</h2>
+    <p>Es la primera pregunta de todo el que se enamora del efecto, así que respondámosla con cifras encima de la mesa:</p>
+    <table class="cmp">
+      <tr><th>Vía</th><th>Coste</th><th>Para quién tiene sentido</th></tr>
+      <tr><td><b>Tablero mecánico de pared</b> (p. ej. Vestaboard)</td><td>3.699 € la unidad en Europa</td><td>Quien quiere el objeto físico como pieza única y tiene el presupuesto</td></tr>
+      <tr><td><b>Panel mecánico a medida</b> (fabricantes artesanos)</td><td>Cifras de cinco dígitos, más mantenimiento</td><td>Vestíbulos insignia de grandes marcas</td></tr>
+      <tr><td><b>Construirlo uno mismo</b> (impresión 3D + electrónica)</td><td>~200-400 € en materiales + semanas de trabajo</td><td>Aficionados a la electrónica que disfrutan el camino</td></tr>
+      <tr><td><b>Recrearlo por software en su TV</b> (Flappit)</td><td>Desde 19 €/mes (180 €/año), sin coste inicial</td><td>Negocios que quieren el efecto hoy, en la pantalla que ya tienen</td></tr>
+    </table>
+    <p class="src">Precios verificados en julio de 2026. El detalle de la primera vía, con sus pros y contras, está en nuestra <a href="/alternativa-vestaboard.html">comparativa completa con Vestaboard</a>.</p>
+
+    <h2>Los tres caminos, en detalle</h2>
 
     <div class="opt">
       <div class="meta">OPCIÓN 1 · MECÁNICO REAL</div>
-      <h3>Comprar un panel split-flap físico</h3>
-      <p>Existen fabricantes actuales de paneles mecánicos de verdad, con sus paletas y motores. Es la opción más fiel — y la más cara: las unidades pequeñas de pared parten de unos 3.000 €, los formatos de vestíbulo suben a decenas de miles, y las paletas y motores necesitan mantenimiento. Tiene sentido como pieza escultural en espacios muy premium con presupuesto para ello.</p>
+      <h3>Comprar un panel split flap físico</h3>
+      <p>Existen fabricantes actuales de paneles mecánicos de verdad, con sus paletas y motores. Es la opción más fiel — y la más cara: el tablero de pared más conocido cuesta 3.699 € y los formatos de vestíbulo a medida se van a cifras de cinco dígitos, con paletas y motores que necesitan mantenimiento. Tiene sentido como pieza escultural en espacios muy premium. Antes de decidir, lea <a href="/alternativa-vestaboard.html">nuestra comparativa honesta con Vestaboard</a>.</p>
     </div>
 
     <div class="opt">
@@ -176,7 +203,7 @@
     <div class="opt best">
       <div class="meta">OPCIÓN 3 · EN LA TV QUE YA TIENE · 5 MINUTOS</div>
       <h3>Recrearlo por software en cualquier pantalla</h3>
-      <p>La tercera vía convierte un televisor o pantalla que ya tiene en un panel split-flap indistinguible a la vista y al oído: mismas paletas girando, misma coreografía en cascada, mismo clac-clac. Sin obra, sin técnico y actualizable desde el móvil. Es lo que hace <b style="color:var(--text);">Flappit</b>, desde 19 €/mes con 7 días de prueba gratis.</p>
+      <p>La tercera vía convierte un televisor o pantalla que ya tiene en un panel split flap indistinguible a la vista y al oído: mismas paletas girando, misma coreografía en cascada, mismo clac-clac. Sin obra, sin técnico y actualizable desde el móvil. Es lo que hace <b style="color:var(--text);">Flappit</b>, desde 19 €/mes con 7 días de prueba gratis.</p>
     </div>
 
     <h2>Recrearlo en su TV, paso a paso</h2>
@@ -192,26 +219,38 @@
     <h2>Qué necesita de verdad</h2>
     <p>Una pantalla (la TV del lobby que ya tiene, un monitor o un tótem vertical), conexión wifi y cinco minutos. Nada más: ni obras, ni cableado nuevo, ni conocimientos técnicos — si su equipo sabe poner una web en la tele, sabe hacer esto. Y si un día se corta internet, el panel mantiene el último contenido en pantalla en lugar de quedarse en negro.</p>
 
-    <h2>Ideas según su espacio</h2>
-    <p><b>Hoteles</b>: bienvenidas con el nombre del huésped, horarios de desayuno, eventos del día, despedidas de grupos. <b>Restaurantes y cafés</b>: menú del día, sugerencias, "hoy toca…". <b>Clínicas</b>: turnos y avisos con una estética más cálida que una pantalla corporativa. <b>Gimnasios</b>: clases del día y retos. <b>Oficinas y eventos</b>: agenda de salas, bienvenida a visitas, cuenta atrás de lanzamientos. <b>En casa</b>: un mensaje que gire cada mañana en la cocina — el capricho retro definitivo.</p>
+    <h2>Un panel split flap para cada negocio</h2>
+    <p><b>Hoteles</b> — la bienvenida que ningún huésped fotografía en otra recepción:</p>
+    <p><span class="ej">BIENVENIDA FAMILIA ROVIRA · HABITACION 204</span></p>
+    <p><b>Restaurantes y cafés</b> — el menú del día deja de ser una pizarra más:</p>
+    <p><span class="ej">HOY: ARROZ MELOSO DE GAMBA · 14,50</span></p>
+    <p><b>Clínicas</b> — avisos de sala con una estética más cálida que una pantalla corporativa:</p>
+    <p><span class="ej">DRA. SERRA · CONSULTA 3 · TURNO 47</span></p>
+    <p><b>Gimnasios</b> — las clases del día, girando cuando cambia la hora:</p>
+    <p><span class="ej">19:00 CROSS TRAINING · SALA 2 · QUEDAN 4 PLAZAS</span></p>
+    <p><b>Oficinas y eventos</b> — agenda de salas, bienvenida a visitas, cuenta atrás de lanzamientos. <b>Y en casa</b>: un mensaje que gire cada mañana en la cocina, el capricho retro definitivo.</p>
 
     <h2>Preguntas frecuentes</h2>
     <div class="faq">
-      <details><summary>¿Cuánto cuesta un panel de aeropuerto de verdad?</summary>
-        <p>Un split-flap mecánico nuevo parte de unos 3.000 € en formatos pequeños de pared y sube a decenas de miles en tamaños de vestíbulo, más el mantenimiento de paletas y motores. La recreación por software en una TV existente cuesta desde 19 €/mes.</p></details>
+      <details><summary>¿Cómo se llama el panel de los aeropuertos con letras que giran?</summary>
+        <p>Se llama panel split flap (paleta partida). También se le conoce como tablero Solari, por la empresa italiana que lo fabricó para aeropuertos y estaciones de medio mundo, o simplemente panel de aeropuerto.</p></details>
+      <details><summary>¿Cuánto cuesta un panel split flap?</summary>
+        <p>El tablero mecánico de pared más conocido cuesta 3.699 € en Europa (julio de 2026); los paneles a medida para vestíbulos se van a cifras de cinco dígitos; construirlo uno mismo ronda los 200-400 € en materiales más semanas de trabajo; y recrearlo por software en una TV existente cuesta desde 19 €/mes.</p></details>
+      <details><summary>¿Siguen existiendo los tableros Solari originales?</summary>
+        <p>Quedan pocos en servicio y algunos se conservan por el cariño del público, pero la mayoría fueron sustituidos por pantallas. Por qué desaparecieron —y por qué siguen fascinando— lo contamos en <a href="/historia-panel-split-flap.html">la historia del split-flap</a>.</p></details>
       <details><summary>¿Puedo tenerlo en una TV normal?</summary>
         <p>Sí. Cualquier Smart TV con navegador sirve tal cual; para televisores antiguos, un stick HDMI ya configurado lo resuelve por poco dinero.</p></details>
       <details><summary>¿Suena como los paneles reales?</summary>
         <p>Sí — el clac-clac de las paletas está recreado y es opcional: actívelo para el efecto completo o siléncielo en ambientes tranquilos.</p></details>
       <details><summary>¿Funciona en pantallas verticales?</summary>
         <p>Sí: horizontal para televisores de lobby y vertical para tótems de recepción, adaptando la rejilla de letras al formato.</p></details>
-      <details><summary>¿Quién lo actualiza en el día a día?</summary>
-        <p>Cualquiera del equipo, desde el móvil o el ordenador: se escribe el mensaje, se pulsa actualizar y las paletas giran en la pantalla al momento.</p></details>
+      <details><summary>¿Necesito un técnico para instalarlo?</summary>
+        <p>No. Se abre una web en el televisor, se escribe un código de 4 letras en el panel de control y la pantalla queda vinculada. Todo el proceso lleva unos 5 minutos.</p></details>
     </div>
   </article>
 
   <div class="final">
-    <h2>Su panel de aeropuerto puede estar girando hoy.</h2>
+    <h2>Su panel split flap puede estar girando hoy.</h2>
     <p>7 días de prueba gratis, sin tarjeta y sin permanencia.</p>
     <a class="cta" href="/panel">Crear mi panel ahora</a>
     <a class="cta ghost" style="margin-left:10px;" href="/#try">Ver la demo</a>
@@ -223,6 +262,7 @@
     <div><b style="color:var(--text); letter-spacing:1px;">FLAPPIT</b> · El panel split-flap para cualquier pantalla</div>
     <div>
       <a href="/historia-panel-split-flap.html">Historia del split-flap</a> ·
+      <a href="/alternativa-vestaboard.html">Alternativa a Vestaboard</a> ·
       <a href="/instalacion.html">Instalación</a> ·
       <a href="/legal.html">Legal</a> ·
       <a href="mailto:hello@flappit.com">hello@flappit.com</a>
