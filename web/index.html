@@ -1177,7 +1177,7 @@ document.getElementById("trySnd").addEventListener("click", function(){
 
 /* ---------- lobby: la pantalla de la pared ---------- */
 const lobbyB = FlapBoard(document.getElementById("lobbyCv"), 24, 8, {aspect:16/9});
-const LOBBY_MSGS = ["BIENVENIDO SR. GARCIA", "DESAYUNO 7 A 11", "HOY 19H CATA DE VINOS", "SPA HASTA LAS 22H"];
+const LOBBY_MSGS = [{lines:["BIENVENIDA FAMILIA SOLER","","HABITACION 208","EL MAR YA LES ESPERA"]},{lines:["DESAYUNO EN LA TERRAZA","DE 7 A 11","","HOY: TORTITAS CALIENTES","Y ZUMO RECIEN EXPRIMIDO"]},{lines:["ESTA NOCHE A LAS 19:30","CATA DE VINOS","EN LA BODEGA DEL HOTEL","","PLAZAS LIMITADAS"]},{lines:["EL SPA ABRE HASTA LAS 22","","PISCINA CLIMATIZADA","RESERVAS EN RECEPCION"]}];
 let lobbyIdx = 0;
 setTimeout(()=>lobbyB.show(LOBBY_MSGS[0], 2400), 1500);
 setInterval(()=>{
