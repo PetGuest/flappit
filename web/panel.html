@@ -403,8 +403,9 @@
 
 <div id="authWrap" style="display:none;">
   <div id="authBox">
+    <div style="margin:0 0 14px;"><img src="/flappit-logo.svg" alt="Flappit" style="height:24px; display:block;"></div>
     <h1 id="authTitle" data-i18n="authTitleLogin">Entrar en su panel</h1>
-    <p data-i18n="authIntro">El panel controla sus pantallas en tiempo real.</p>
+    <p id="authIntro">El panel controla sus pantallas en tiempo real.</p>
     <div style="margin:0 0 16px;"><span class="langSel"><a data-setlang="es">ES</a><a data-setlang="en">EN</a></span></div>
     <div id="fBizRow" style="display:none;">
       <label data-i18n="authBizLabel">Nombre del negocio</label>
@@ -586,6 +587,7 @@ const I18N = {
     authTitleLogin: "Entrar en su panel",
     authTitleRegister: "Cree su cuenta",
     authIntro: "El panel controla sus pantallas en tiempo real.",
+    authIntroRegister: "7 días de prueba gratis, sin tarjeta y sin permanencia. En medio minuto estará escribiendo en su pantalla.",
     authBizLabel: "Nombre del negocio",
     authBizPh: "Hotel Miramar",
     authMailLabel: "Correo electrónico",
@@ -752,6 +754,7 @@ const I18N = {
     authTitleLogin: "Sign in to your panel",
     authTitleRegister: "Create your account",
     authIntro: "The panel controls your screens in real time.",
+    authIntroRegister: "7-day free trial — no card, no commitment. You'll be writing on your screen in half a minute.",
     authBizLabel: "Business name",
     authBizPh: "Hotel Miramar",
     authMailLabel: "Email",
@@ -993,12 +996,17 @@ async function api(method, url, body){
 let authMode = "login";
 function showAuth(){
   document.getElementById("authWrap").style.display = "flex";
+  /* primera visita: registro por defecto (viene de "Probar gratis"); usuarios conocidos ven login */
+  let known = false;
+  try{ known = localStorage.getItem("flappitKnown")==="1"; }catch(e){}
+  setAuthMode(known ? "login" : "register");
 }
 function setAuthMode(m){
   authMode = m;
   document.getElementById("authTitle").textContent = m==="login" ? t("authTitleLogin") : t("authTitleRegister");
   document.getElementById("fBizRow").style.display = m==="login" ? "none" : "block";
   document.getElementById("authGo").textContent = m==="login" ? t("authGoLogin") : t("authGoRegister");
+  document.getElementById("authIntro").textContent = m==="login" ? t("authIntro") : t("authIntroRegister");
   document.getElementById("authAlt").innerHTML = m==="login"
     ? t("authAltLogin")
     : t("authAltRegister");
@@ -1017,6 +1025,7 @@ document.getElementById("authGo").addEventListener("click", async ()=>{
   try{
     if(authMode==="login") await api("POST","/api/login",{email,password:pass});
     else await api("POST","/api/register",{email,password:pass,business:biz});
+    try{ localStorage.setItem("flappitKnown","1"); }catch(e){}
     location.reload();
   }catch(e){
     err.textContent = authMode==="login"
