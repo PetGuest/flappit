@@ -1176,7 +1176,7 @@ document.getElementById("trySnd").addEventListener("click", function(){
 });
 
 /* ---------- lobby: la pantalla de la pared ---------- */
-const lobbyB = FlapBoard(document.getElementById("lobbyCv"), 14, 5, {aspect:16/9});
+const lobbyB = FlapBoard(document.getElementById("lobbyCv"), 24, 8, {aspect:16/9});
 const LOBBY_MSGS = ["WELCOME MR. GARCIA", "BREAKFAST 7 TO 11", "TODAY 7PM WINE TASTING", "SPA UNTIL 10PM"];
 let lobbyIdx = 0;
 setTimeout(()=>lobbyB.show(LOBBY_MSGS[0], 2400), 1500);
