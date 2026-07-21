@@ -68,6 +68,12 @@
   footer{border-top:1px solid var(--line); margin-top:36px; padding:24px 0 36px; color:var(--muted); font-size:13px;}
   footer .wrap{display:flex; gap:16px; flex-wrap:wrap; justify-content:space-between; max-width:1000px;}
   footer a{color:var(--muted);}
+
+  /* movil: pares de botones CTA no se pegan (apilados y con aire) */
+  @media(max-width:600px){
+    .hero .cta, .finale .cta, .final .cta{ display:block; width:auto; max-width:min(340px,88%); margin:0 auto; }
+    .hero .cta + .cta, .finale .cta + .cta, .final .cta + .cta{ margin:12px auto 0 !important; }
+  }
 </style>
 <script type="application/ld+json">
 {

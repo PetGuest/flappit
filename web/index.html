@@ -229,6 +229,12 @@
     box-shadow:0 16px 50px rgba(0,0,0,.6); max-width:640px; margin:0 auto;}
   #cookieBar p{margin:0; font-size:13px; color:var(--muted); flex:1; min-width:220px;}
   #cookieBar .cta{padding:9px 18px; font-size:13px;}
+
+  /* movil: pares de botones CTA no se pegan (apilados y con aire) */
+  @media(max-width:600px){
+    .hero .cta, .finale .cta, .final .cta{ display:block; width:auto; max-width:min(340px,88%); margin:0 auto; }
+    .hero .cta + .cta, .finale .cta + .cta, .final .cta + .cta{ margin:12px auto 0 !important; }
+  }
 </style>
 <script type="application/ld+json">
 {
