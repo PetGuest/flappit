@@ -1,6 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="13" fill="#0a0a0c"/>
-  <rect x="8" y="12" width="48" height="40" rx="6" fill="#17171b"/>
-  <text x="32" y="41" font-family="ui-monospace,monospace" font-size="30" font-weight="800" text-anchor="middle" fill="#d7e021">F</text>
-  <rect x="8" y="31" width="48" height="2.4" fill="#000" opacity="0.85"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <clipPath id="c"><rect width="500" height="500" rx="65"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="500" height="246" fill="#000"/>
+    <rect y="254" width="500" height="246" fill="#4d4d4c"/>
+    <g transform="translate(250,250) scale(1.4) translate(-136.28,-242.18)">
+      <path fill="#d6e021" stroke="#d6e021" stroke-width="24" stroke-linejoin="round"
+        d="M90.4,89.82h91.76v29.95h-56.09v96.26h52.63v30.3h-52.63v148.2h-35.66V89.82Z"/>
+    </g>
+    <rect y="495.85" width="500" height="4.15" fill="#000" opacity="0.75"/>
+    <rect y="487.89" width="500" height="4.15" fill="#000" opacity="0.75"/>
+    <rect y="479.94" width="500" height="4.15" fill="#000" opacity="0.75"/>
+    <rect y="472" width="500" height="4.14" fill="#000" opacity="0.75"/>
+    <rect y="254.55" width="500" height="4" fill="#000" opacity="0.2"/>
+    <rect y="241.46" width="500" height="4" fill="#000" opacity="0.3"/>
+    <rect y="245.5" width="500" height="9" fill="#000"/>
+  </g>
 </svg>
