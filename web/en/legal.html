@@ -25,9 +25,8 @@
   .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px);
     background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
   nav{display:flex; align-items:center; gap:16px; padding:12px 0; max-width:820px; margin:0 auto; padding-left:22px; padding-right:22px;}
-  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
-    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:16px;}
-  .logo span{color:var(--brand); font-size:.6em;}
+  .logo{display:flex; align-items:center;}
+  .logo img{height:36px; display:block;}
   nav a.back{margin-left:auto; font-size:14px; color:var(--muted);}
   h1{font-size:30px; margin:40px 0 6px;}
   .updated{color:var(--muted); font-size:13px; margin-bottom:30px;}
@@ -52,7 +51,7 @@
 </head>
 <body>
 <div class="navBar"><nav>
-  <div class="logo">FLAPPIT <span>SIGNAGE</span></div>
+  <div class="logo"><img src="/flappit-logo.svg?v=2" alt="Flappit"></div>
   <a class="back" href="/en">← Back to site</a>
   <span class="langSel"><a href="/legal.html" data-lang="es" onclick="try{localStorage.setItem('flappitLang','es')}catch(e){}">ES</a><a href="/en/legal.html" class="on" data-lang="en" onclick="try{localStorage.setItem('flappitLang','en')}catch(e){}">EN</a></span>
 </nav></div>

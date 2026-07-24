@@ -39,9 +39,8 @@
   .navBar{position:sticky; top:0; z-index:60; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     background:rgba(10,10,12,0.78); border-bottom:1px solid var(--line);}
   nav{display:flex; align-items:center; gap:16px; padding:12px 0; max-width:1000px; margin:0 auto; padding-left:22px; padding-right:22px;}
-  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:7px 14px;
-    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:18px; color:var(--text);}
-  .logo span{color:var(--brand); font-size:.6em; letter-spacing:1px;}
+  .logo{display:flex; align-items:center;}
+  .logo img{height:40px; display:block;}
   nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
   nav .links a{color:var(--muted);}
   nav .links a:hover{color:var(--text);}
@@ -125,7 +124,7 @@
 <body>
 
 <div class="navBar"><nav>
-  <a class="logo" href="/en">FLAPPIT<span>signage</span></a>
+  <a class="logo" href="/en" aria-label="Flappit"><img src="/flappit-logo.svg?v=2" alt="Flappit"></a>
   <div class="links">
     <a href="/en">Home</a>
     <a href="/#try">Try it</a>

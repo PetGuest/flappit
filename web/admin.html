@@ -14,9 +14,9 @@
     font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
   .wrap{max-width:1120px; margin:0 auto; padding:22px 20px 80px;}
   header{display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap;}
-  .logo{background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
-    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:15px;}
-  .logo span{color:var(--accent); font-size:.6em;}
+  .logo{display:flex; align-items:center; gap:9px;}
+  .logo img{height:34px; display:block;}
+  .logo span{color:var(--accent); font-size:11px; font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace;}
   h1{font-size:17px; margin:0; font-weight:700;}
   .sub{color:var(--muted); font-size:13px;}
   .spacer{margin-left:auto;}
@@ -85,7 +85,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">FLAPPIT <span>ADMIN</span></div>
+    <div class="logo"><img src="/flappit-logo.svg?v=2" alt="Flappit"> <span>ADMIN</span></div>
     <div>
       <h1>Panel de administración</h1>
       <div class="sub" id="whoami"></div>

@@ -14,8 +14,8 @@
     font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
   .box{max-width:380px; margin:10vh auto 0; background:var(--panel); border:1px solid var(--line);
     border-radius:14px; padding:28px 26px;}
-  .logo{display:inline-block; background:#000; border:1px solid #333; border-radius:10px; padding:6px 12px;
-    font-weight:800; letter-spacing:2px; font-family:ui-monospace,monospace; font-size:14px; margin-bottom:18px;}
+  .logo{margin-bottom:18px;}
+  .logo img{height:40px; display:block;}
   h1{font-size:19px; margin:0 0 6px;}
   p{color:var(--muted); font-size:13.5px; margin:0 0 12px;}
   label{display:block; font-size:12px; color:var(--muted); margin:14px 0 5px;}
@@ -79,12 +79,12 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;"
 
 function render(){
   if(!TOKEN){
-    box.innerHTML = '<div class="logo">FLAPPIT</div><h1>'+esc(T.title)+'</h1><p>'+esc(T.noToken)+'</p>'
+    box.innerHTML = '<div class="logo"><img src="/flappit-logo.svg?v=2" alt="FLAPPIT"></div><h1>'+esc(T.title)+'</h1><p>'+esc(T.noToken)+'</p>'
       + '<a class="panel" href="/panel">'+esc(T.again)+'</a>';
     return;
   }
   box.innerHTML =
-      '<div class="logo">FLAPPIT</div>'
+      '<div class="logo"><img src="/flappit-logo.svg?v=2" alt="FLAPPIT"></div>'
     + '<h1>'+esc(T.title)+'</h1><p>'+esc(T.intro)+'</p>'
     + '<label>'+esc(T.l1)+'</label><input id="p1" type="password" autocomplete="new-password" placeholder="'+esc(T.ph1)+'">'
     + '<label>'+esc(T.l2)+'</label><input id="p2" type="password" autocomplete="new-password" placeholder="'+esc(T.ph2)+'">'
@@ -105,7 +105,7 @@ function render(){
         err.textContent = r.status===400 ? T.errLink : T.errNet;
         go.disabled = false; return;
       }
-      box.innerHTML = '<div class="logo">FLAPPIT</div><h1>'+esc(T.okTitle)+'</h1>'
+      box.innerHTML = '<div class="logo"><img src="/flappit-logo.svg?v=2" alt="FLAPPIT"></div><h1>'+esc(T.okTitle)+'</h1>'
         + '<p class="ok">'+esc(T.okMsg)+'</p>'
         + '<a class="panel" href="/panel">'+esc(T.okBtn)+' →</a>';
     }catch(e){ err.textContent = T.errNet; go.disabled = false; }
