@@ -52,24 +52,27 @@
     audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     master = audioCtx.createGain(); master.gain.value=0.8;
     master.connect(audioCtx.destination);
-    const len=Math.floor(audioCtx.sampleRate*0.025);
-    noise=audioCtx.createBuffer(1,len,audioCtx.sampleRate);
-    const d=noise.getChannelData(0);
-    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+    noise = makeNoise(audioCtx);
   }
-  function clickSnd(g, dt){
-    if(!audioCtx) return;   // se programa aunque el contexto aún esté "suspended": arranca al reanudarse
-    const t0 = audioCtx.currentTime + (dt||0);
+  function makeNoise(ac){
+    const len=Math.floor(ac.sampleRate*0.025);
+    const nz=ac.createBuffer(1,len,ac.sampleRate);
+    const d=nz.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+    return nz;
+  }
+  /* un clac (doble golpe) en el instante absoluto t0 del contexto ac (tiempo real u offline) */
+  function clackAt(ac, mst, nz, t0, g){
     const hit = (tt, gg)=>{
-      const n1=audioCtx.createBufferSource(); n1.buffer=noise;
+      const n1=ac.createBufferSource(); n1.buffer=nz;
       n1.playbackRate.value=1.9+Math.random()*0.5;
-      const hp=audioCtx.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2800; hp.Q.value=0.7;
-      const g1=audioCtx.createGain(); g1.gain.setValueAtTime(gg, tt); g1.gain.exponentialRampToValueAtTime(0.0001, tt+0.012);
-      n1.connect(hp).connect(g1).connect(master); n1.start(tt);
-      const n2=audioCtx.createBufferSource(); n2.buffer=noise; n2.playbackRate.value=2.1;
-      const bp=audioCtx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=5800+Math.random()*1600; bp.Q.value=1.4;
-      const g2=audioCtx.createGain(); g2.gain.setValueAtTime(gg*0.7, tt); g2.gain.exponentialRampToValueAtTime(0.0001, tt+0.010);
-      n2.connect(bp).connect(g2).connect(master); n2.start(tt);
+      const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2800; hp.Q.value=0.7;
+      const g1=ac.createGain(); g1.gain.setValueAtTime(gg, tt); g1.gain.exponentialRampToValueAtTime(0.0001, tt+0.012);
+      n1.connect(hp).connect(g1).connect(mst); n1.start(tt);
+      const n2=ac.createBufferSource(); n2.buffer=nz; n2.playbackRate.value=2.1;
+      const bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=5800+Math.random()*1600; bp.Q.value=1.4;
+      const g2=ac.createGain(); g2.gain.setValueAtTime(gg*0.7, tt); g2.gain.exponentialRampToValueAtTime(0.0001, tt+0.010);
+      n2.connect(bp).connect(g2).connect(mst); n2.start(tt);
     };
     hit(t0, g*1.05);
     hit(t0 + 0.016 + Math.random()*0.006, g*0.65);
@@ -197,11 +200,9 @@
     drawStatic(canvas.getContext("2d"), W, H, lines, opts.textColor||"#ffffff", opts.flapColor||"#16161A", true);
   }
 
-  async function render(opts){
-    if(!canRecord()) throw new Error("norecord");
+  function plan(opts){
     const lines = cleanLines(opts.lines);
     const textColor = opts.textColor||"#ffffff", flapColor = opts.flapColor||"#16161A";
-    const onProgress = opts.onProgress || function(){};
     const LOW = opts.lowPower != null ? opts.lowPower : (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.hardwareConcurrency||8) <= 4);
     const W = LOW ? 720 : 1080, H = LOW ? 1280 : 1920;   // 720×1280 en móvil: mismo 9:16, TikTok lo reescala; evita frames perdidos
     const cv = document.createElement("canvas"); cv.width=W; cv.height=H;
@@ -316,6 +317,30 @@
       ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
       return {sum, active};
     }
+    /* pista de audio determinista: pasos de todas las casillas por ventanas de 22 ms → clacs con su instante exacto */
+    const BIN = 22, bins = new Map();
+    for(const cell of cells){
+      for(let n=1;n<=cell.steps;n++){
+        const tt = cell.delay + stepTime(cell, n);
+        const k = Math.floor(tt/BIN); bins.set(k, (bins.get(k)||0)+1);
+      }
+    }
+    const clicks = [];   // {t: ms desde el inicio, g: ganancia}
+    for(const [k,d] of bins){
+      const n = Math.min(3, Math.ceil(d/5));
+      const gv = Math.min(0.5, 0.07+d*0.008);
+      for(let i2=0;i2<n;i2++) clicks.push({t: k*BIN + Math.random()*22, g: gv*(0.8+Math.random()*0.4)});
+    }
+    for(const ev of idleEvents){ for(let n=0;n<ev.k;n++) clicks.push({t: ev.t0 + n*IDLE_STEP, g: 0.16+Math.random()*0.06}); }
+    clicks.sort((a,b)=>a.t-b.t);
+    const TOTAL = finishT + HOLD;
+    return {W, H, LOW, cv, ctx, drawFrame, TOTAL, clicks};
+  }
+
+  async function render(opts){
+    if(!canRecord()) throw new Error("norecord");
+    const onProgress = opts.onProgress || function(){};
+    const {W, H, LOW, cv, drawFrame, TOTAL, clicks} = plan(opts);
     ensureAudio();
     try{ await audioCtx.resume(); }catch(e){}   // iOS: el contexto nace suspendido; sin esto los clacs se descartaban
     const stream = cv.captureStream(30);
@@ -332,29 +357,9 @@
     const done = new Promise(res=>{ rec.onstop = res; });
     rec.start(200);
     drawFrame(0);
-    /* pista de audio determinista: se cuentan los pasos de todas las casillas por ventanas de 22 ms
-       y se programan los clacs con su tiempo exacto antes de empezar (independiente del framerate) */
-    const BIN = 22, bins = new Map();
-    for(const cell of cells){
-      for(let n=1;n<=cell.steps;n++){
-        const tt = cell.delay + stepTime(cell, n);
-        const k = Math.floor(tt/BIN); bins.set(k, (bins.get(k)||0)+1);
-      }
-    }
     const LEAD = 0.4;
-    const a0 = audioCtx ? audioCtx.currentTime + LEAD : 0;
-    if(audioCtx){
-      for(const [k,d] of bins){
-        const n = Math.min(3, Math.ceil(d/5));
-        const gv = Math.min(0.5, 0.07+d*0.008);
-        for(let i2=0;i2<n;i2++) clickSnd(gv*(0.8+Math.random()*0.4), (a0 - audioCtx.currentTime) + k*BIN/1000 + Math.random()*0.022);
-      }
-      for(const ev of idleEvents){   // clacs sueltos de los guiños, uno por paso
-        for(let n=0;n<ev.k;n++) clickSnd(0.16+Math.random()*0.06, (a0 - audioCtx.currentTime) + (ev.t0 + n*IDLE_STEP)/1000);
-      }
-    }
+    if(audioCtx){ const a0 = audioCtx.currentTime + LEAD; for(const c of clicks) clackAt(audioCtx, master, noise, a0 + c.t/1000, c.g); }
     const t0 = performance.now() + LEAD*1000;
-    const TOTAL = finishT + HOLD;
     await new Promise(res=>{
       function loop(now){
         const e = now - t0;
@@ -375,5 +380,23 @@
     return {blob, file, url: URL.createObjectURL(blob), ext};
   }
 
-  window.FlapVideo = {render, preview, canRecord, normalize, COLS, MAX_ROWS: 9};
+  /* pista de audio renderizada fuera de tiempo real (WAV 16 bit mono): para el render fotograma a fotograma */
+  async function offlineAudio(clicks, durationMs, sampleRate){
+    const sr = sampleRate||48000;
+    const ac = new OfflineAudioContext(1, Math.ceil(sr*durationMs/1000), sr);
+    const mst = ac.createGain(); mst.gain.value=0.8; mst.connect(ac.destination);
+    const nz = makeNoise(ac);
+    for(const c of clicks) clackAt(ac, mst, nz, c.t/1000, c.g);
+    const buf = await ac.startRendering();
+    const d = buf.getChannelData(0), n = d.length;
+    const out = new ArrayBuffer(44 + n*2), v = new DataView(out);
+    const str=(o,t)=>{ for(let i=0;i<t.length;i++) v.setUint8(o+i, t.charCodeAt(i)); };
+    str(0,"RIFF"); v.setUint32(4, 36+n*2, true); str(8,"WAVE"); str(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true);
+    v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+    str(36,"data"); v.setUint32(40, n*2, true);
+    for(let i=0;i<n;i++){ const x=Math.max(-1,Math.min(1,d[i])); v.setInt16(44+i*2, x<0?x*32768:x*32767, true); }
+    return new Blob([out], {type:"audio/wav"});
+  }
+
+  window.FlapVideo = {render, plan, offlineAudio, preview, canRecord, normalize, COLS, MAX_ROWS: 9};
 })();
