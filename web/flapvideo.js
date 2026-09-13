@@ -210,7 +210,10 @@
     const rows = Math.max(3, lines.length), cols = COLS;
     const g = redesGeom(W, H, cols, rows);
     const targets = buildTargets(lines, cols, rows, g);
-    const T = 10000, LEAD_CUT = 2000, BASE_NOMINAL = 80;
+    const DUR = Math.min(60, Math.max(10, Number(opts.duration)||15));   // duración total del vídeo en segundos
+    let HOLD = Math.round(6000 + (DUR-15)*100);                          // mensaje quieto al final: 6 s (15 s) … 7,5 s (30 s)
+    const LEAD_CUT = 2000, BASE_NOMINAL = 80;
+    const T = Math.round(DUR*1000 - 400 - HOLD) + LEAD_CUT;              // tambor: el resto (400 ms de arranque en blanco)
     const letters = [];
     const cells = targets.map(tg=>{
       const d = tg===0 ? LEN : tg;
@@ -254,10 +257,10 @@
     const innerW = cols*g.cellW, offX = (W-innerW)/2;
     /* fin de la coreografía principal y guiños durante la espera final: cada ~0,9-1,6 s una casilla
        vacía FUERA de las filas del mensaje gira 2-4 pasos (con su clac). Da vida sin estorbar la lectura. */
-    const HOLD = 6000;
     const IDLE_STEP = 95;
     let finishT = 0;
     cells.forEach(c=>{ finishT = Math.max(finishT, c.delay + stepTime(c, c.steps) + FLIP_ANIM); });
+    HOLD = Math.max(5000, Math.round(DUR*1000 - 400 - finishT));         // ajuste fino: la duración total queda clavada en DUR
     const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
     const idleEvents = [];
     { let tt = finishT + 600;

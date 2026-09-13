@@ -178,6 +178,8 @@
       </div>
       <p class="lbl" style="margin-top:16px;">IDEAS</p>
       <div class="ideas" id="ideas"></div>
+      <p class="lbl" style="margin-top:16px;">LENGTH</p>
+      <div class="ideas" id="durs"></div>
       <div class="colors">
         <div><p class="lbl">LETTERS</p><div class="sw" id="swTxt"></div></div>
         <div><p class="lbl">FLAPS</p><div class="sw" id="swFlap"></div></div>
@@ -261,7 +263,7 @@
   </div>
 </footer>
 
-<script src="/flapvideo.js?v=5"></script>
+<script src="/flapvideo.js?v=6"></script>
 <script>
 (function(){
   const T = {
@@ -316,6 +318,10 @@
   }
   swatches("swTxt", TXT, textColor, c=>textColor=c);
   swatches("swFlap", FLAP, flapColor, c=>flapColor=c);
+  let duration = 15;
+  [15,20,30].forEach(d=>{ const b=document.createElement("button"); b.type="button"; b.textContent=d+" s"; if(d===duration) b.style.borderColor="var(--brand)";
+    b.addEventListener("click", ()=>{ duration=d; document.querySelectorAll("#durs button").forEach(q=>q.style.borderColor=""); b.style.borderColor="var(--brand)"; });
+    document.getElementById("durs").appendChild(b); });
   T.ideas.forEach(lines=>{
     const b = document.createElement("button"); b.type="button"; b.textContent = lines.join(" / ");
     b.addEventListener("click", ()=>{ linesEl.innerHTML=""; lines.forEach(l=>addLine(l)); refresh(); document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -331,7 +337,7 @@
     if(!FlapVideo.canRecord()){ status.textContent = T.norec; return; }
     busy=true; goBtn.disabled=true; status.textContent=T.making; prog.style.display="block"; prog.firstElementChild.style.width="0";
     try{
-      const r = await FlapVideo.render({lines:values(), textColor, flapColor, name:T.name, onProgress:p=>{ prog.firstElementChild.style.width=(p*100).toFixed(0)+"%"; }});
+      const r = await FlapVideo.render({lines:values(), textColor, flapColor, duration, name:T.name, onProgress:p=>{ prog.firstElementChild.style.width=(p*100).toFixed(0)+"%"; }});
       if(url) URL.revokeObjectURL(url);
       file = r.file; url = r.url;
       status.textContent = T.done;
