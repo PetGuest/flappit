@@ -211,7 +211,7 @@
     const g = redesGeom(W, H, cols, rows);
     const targets = buildTargets(lines, cols, rows, g);
     const DUR = Math.min(60, Math.max(10, Number(opts.duration)||15));   // duración total del vídeo en segundos
-    let HOLD = Math.round(6000 + (DUR-15)*100);                          // mensaje quieto al final: 6 s (15 s) … 7,5 s (30 s)
+    let HOLD = 5000;                                                     // mensaje resuelto y quieto: exactamente los 5 últimos segundos
     const LEAD_CUT = 2000, BASE_NOMINAL = 80;
     const T = Math.round(DUR*1000 - 400 - HOLD) + LEAD_CUT;              // tambor: el resto (400 ms de arranque en blanco)
     const letters = [];
@@ -260,7 +260,9 @@
     const IDLE_STEP = 95;
     let finishT = 0;
     cells.forEach(c=>{ finishT = Math.max(finishT, c.delay + stepTime(c, c.steps) + FLIP_ANIM); });
-    HOLD = Math.max(5000, Math.round(DUR*1000 - 400 - finishT));         // ajuste fino: la duración total queda clavada en DUR
+    /* la última letra debe pararse justo en DUR-5 s: se reescala el tempo de todas las casillas (±10 %) */
+    { const target = DUR*1000 - 400 - HOLD; const f = target/finishT;
+      cells.forEach(c=>{ c.base *= f; c.delay *= f; }); finishT = target; }
     const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
     const idleEvents = [];
     { const nEv = 1 + Math.floor(Math.random()*2);                       // 1 o 2 guiños por vídeo
@@ -318,6 +320,8 @@
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "bottom";
       ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
+      ctx.fillStyle = (Math.floor(e/16)%2) ? "#000001" : "#010000";   // píxel alterno: Safari solo graba fotogramas si el canvas cambia
+      ctx.fillRect(0, 0, 1, 1);
       return {sum, active};
     }
     /* pista de audio determinista: pasos de todas las casillas por ventanas de 22 ms → clacs con su instante exacto */
