@@ -320,7 +320,8 @@
       }
     }
     const t0 = performance.now() + LEAD*1000;
-    const TOTAL = T - LEAD_CUT + 3500 + 600;
+    const HOLD = 6000;   // mensaje resuelto y quieto al final: tiempo para leerlo (TikTok reinicia en bucle)
+    const TOTAL = T - LEAD_CUT + HOLD + 600;
     let ended=0;
     await new Promise(res=>{
       function loop(now){
@@ -328,7 +329,7 @@
         const {active} = drawFrame(Math.max(0, e));
         onProgress(Math.min(0.98, Math.max(0, e)/TOTAL));
         if(e>0 && !active && !ended) ended = now;
-        if(ended && now-ended>3500){ res(); return; }
+        if(ended && now-ended>HOLD){ res(); return; }
         requestAnimationFrame(loop);
       }
       requestAnimationFrame(loop);

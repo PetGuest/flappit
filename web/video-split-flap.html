@@ -90,6 +90,7 @@
   .modal .acts .cta{flex:1; text-align:center; padding:13px;}
   .modal .close{margin-top:10px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; font-family:inherit;}
   .modal .hint{font-size:12.5px; color:var(--muted); margin:10px 0 0;}
+  .modal #replay{font-size:14px; padding:11px; font-weight:700; color:var(--brand); border-color:var(--brand);}
 
   article{padding:26px 0 10px;}
   article h2{font-size:clamp(21px,2.8vw,28px); margin:44px 0 12px; font-weight:800;}
@@ -234,7 +235,8 @@
 
 <div class="modal" id="modal" role="dialog" aria-modal="true">
   <div class="box">
-    <video id="vid" controls autoplay loop playsinline></video>
+    <video id="vid" controls autoplay playsinline></video>
+    <button class="small" id="replay" style="display:none; width:100%; margin-top:8px;">▶ VER OTRA VEZ</button>
     <div class="acts">
       <a class="cta" id="dl" download>GUARDAR VÍDEO</a>
       <button class="cta ghost" id="share" style="display:none;">COMPARTIR</button>
@@ -344,6 +346,10 @@
   });
   function closeModal(){ document.getElementById("modal").style.display="none"; try{ document.getElementById("vid").pause(); }catch(e){} }
   document.getElementById("close").addEventListener("click", closeModal);
+  { const v=document.getElementById("vid"), rp=document.getElementById("replay");
+    v.addEventListener("ended", ()=>{ rp.style.display="block"; });
+    v.addEventListener("play", ()=>{ rp.style.display="none"; });
+    rp.addEventListener("click", ()=>{ v.currentTime=0; v.play().catch(()=>{}); }); }
   document.getElementById("again").addEventListener("click", ()=>{ closeModal(); document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"}); const f=inputs()[0]; if(f) setTimeout(()=>f.focus(), 400); });
   document.getElementById("modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
