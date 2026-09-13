@@ -251,6 +251,34 @@
       return n;
     }
     const innerW = cols*g.cellW, offX = (W-innerW)/2;
+    /* fin de la coreografía principal y guiños durante la espera final: cada ~0,9-1,6 s una casilla
+       vacía FUERA de las filas del mensaje gira 2-4 pasos (con su clac). Da vida sin estorbar la lectura. */
+    const HOLD = 6000;
+    const IDLE_STEP = 95;
+    let finishT = 0;
+    cells.forEach(c=>{ finishT = Math.max(finishT, c.delay + stepTime(c, c.steps) + FLIP_ANIM); });
+    const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
+    const idleEvents = [];
+    { let tt = finishT + 600;
+      while(tt < finishT + HOLD - 900 && idleCells.length){
+        const o = idleCells[Math.floor(Math.random()*idleCells.length)];
+        const k = 2 + Math.floor(Math.random()*3);
+        o.c.idle = (o.c.idle||[]); o.c.idle.push({t0: tt, k});
+        idleEvents.push({t0: tt, k});
+        tt += 900 + Math.random()*700;
+      }
+    }
+    function idleExtra(cell, e){   // pasos extra por guiños ya empezados y progreso del último
+      let extra = 0, p = 1;
+      if(!cell.idle) return {extra, p};
+      for(const ev of cell.idle){
+        if(e < ev.t0) break;
+        const n = Math.min(ev.k, Math.floor((e - ev.t0)/IDLE_STEP) + 1);
+        extra += n;
+        p = Math.min(1, ((e - ev.t0) - (n-1)*IDLE_STEP)/FLIP_ANIM);
+      }
+      return {extra, p};
+    }
     function drawFrame(e){
       ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
       const refl = ctx.createLinearGradient(0,0,0,H);
@@ -270,10 +298,12 @@
           if(step<cell.steps || ec < stepTime(cell,cell.steps) + FLIP_ANIM) active=true;
         }
         sum += step;
+        let pp = step>=cell.steps?1:p;
+        if(cell.idle && step>=cell.steps){ const ie = idleExtra(cell, e); if(ie.extra){ step += ie.extra; pp = ie.p; } }
         const curc=(cell.from+step)%LEN;
         const prev= step===0?cell.from:(curc-1+LEN)%LEN;
         drawCell(ctx, offX + c2*g.cellW, g.top0 + r*g.cellH, g.cellW, g.cellH,
-          CHARSET[prev], CHARSET[curc], step>=cell.steps?1:p, flapColor, textColor);
+          CHARSET[prev], CHARSET[curc], pp, flapColor, textColor);
       }
       { const m2=Math.max(4,g.cellW*0.30), rr=Math.max(8,g.cellW*0.5);
         ctx.beginPath();
@@ -319,18 +349,18 @@
         const gv = Math.min(0.5, 0.07+d*0.008);
         for(let i2=0;i2<n;i2++) clickSnd(gv*(0.8+Math.random()*0.4), (a0 - audioCtx.currentTime) + k*BIN/1000 + Math.random()*0.022);
       }
+      for(const ev of idleEvents){   // clacs sueltos de los guiños, uno por paso
+        for(let n=0;n<ev.k;n++) clickSnd(0.16+Math.random()*0.06, (a0 - audioCtx.currentTime) + (ev.t0 + n*IDLE_STEP)/1000);
+      }
     }
     const t0 = performance.now() + LEAD*1000;
-    const HOLD = 6000;   // mensaje resuelto y quieto al final: tiempo para leerlo (TikTok reinicia en bucle)
-    const TOTAL = T - LEAD_CUT + HOLD + 600;
-    let ended=0;
+    const TOTAL = finishT + HOLD;
     await new Promise(res=>{
       function loop(now){
         const e = now - t0;
-        const {active} = drawFrame(Math.max(0, e));
+        drawFrame(Math.max(0, e));
         onProgress(Math.min(0.98, Math.max(0, e)/TOTAL));
-        if(e>0 && !active && !ended) ended = now;
-        if(ended && now-ended>HOLD){ res(); return; }
+        if(e >= TOTAL){ res(); return; }   // fin por tiempo: coreografía + HOLD de mensaje quieto (con guiños)
         requestAnimationFrame(loop);
       }
       requestAnimationFrame(loop);
