@@ -361,11 +361,17 @@
     rec.start(200);
     drawFrame(0);
     const LEAD = 0.4;
-    if(audioCtx){ const a0 = audioCtx.currentTime + LEAD; for(const c of clicks) clackAt(audioCtx, master, noise, a0 + c.t/1000, c.g); }
+    /* los clacs tienen su instante precalculado; se programan con 1,5 s de antelación (no todos de golpe:
+       en un vídeo de 30 s son >2.000 y saturaban el motor de audio de Safari/iOS) */
+    const a0 = audioCtx ? audioCtx.currentTime + LEAD : 0;
+    let ci = 0;
+    function scheduleUntil(ms){ if(!audioCtx) return; while(ci < clicks.length && clicks[ci].t <= ms){ const c = clicks[ci++]; clackAt(audioCtx, master, noise, a0 + c.t/1000, c.g); } }
+    scheduleUntil(1500);
     const t0 = performance.now() + LEAD*1000;
     await new Promise(res=>{
       function loop(now){
         const e = now - t0;
+        scheduleUntil(e + 1500);
         drawFrame(Math.max(0, e));
         onProgress(Math.min(0.98, Math.max(0, e)/TOTAL));
         if(e >= TOTAL){ res(); return; }   // fin por tiempo: coreografía + HOLD de mensaje quieto (con guiños)
