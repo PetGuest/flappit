@@ -58,7 +58,7 @@
     for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
   }
   function clickSnd(g, dt){
-    if(!audioCtx||audioCtx.state!=="running") return;
+    if(!audioCtx) return;   // se programa aunque el contexto aún esté "suspended": arranca al reanudarse
     const t0 = audioCtx.currentTime + (dt||0);
     const hit = (tt, gg)=>{
       const n1=audioCtx.createBufferSource(); n1.buffer=noise;
@@ -287,6 +287,7 @@
       return {sum, active};
     }
     ensureAudio();
+    try{ await audioCtx.resume(); }catch(e){}   // iOS: el contexto nace suspendido; sin esto los clacs se descartaban
     const stream = cv.captureStream(30);
     let combined = stream, dest = null;
     try{
