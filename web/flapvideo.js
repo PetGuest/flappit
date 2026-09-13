@@ -255,33 +255,33 @@
       return n;
     }
     const innerW = cols*g.cellW, offX = (W-innerW)/2;
-    /* fin de la coreografía principal y guiños durante la espera final: cada ~0,9-1,6 s una casilla
-       vacía FUERA de las filas del mensaje gira 2-4 pasos (con su clac). Da vida sin estorbar la lectura. */
+    /* fin de la coreografía principal y guiños durante la espera final: 1 o 2 casillas vacías FUERA de las
+       filas del mensaje giran 2-3 letras y VUELVEN a quedar en negro (con su clac). Vida sin estorbar la lectura. */
     const IDLE_STEP = 95;
     let finishT = 0;
     cells.forEach(c=>{ finishT = Math.max(finishT, c.delay + stepTime(c, c.steps) + FLIP_ANIM); });
     HOLD = Math.max(5000, Math.round(DUR*1000 - 400 - finishT));         // ajuste fino: la duración total queda clavada en DUR
     const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
     const idleEvents = [];
-    { let tt = finishT + 600;
-      while(tt < finishT + HOLD - 900 && idleCells.length){
-        const o = idleCells[Math.floor(Math.random()*idleCells.length)];
-        const k = 2 + Math.floor(Math.random()*3);
-        o.c.idle = (o.c.idle||[]); o.c.idle.push({t0: tt, k});
-        idleEvents.push({t0: tt, k});
-        tt += 900 + Math.random()*700;
+    { const nEv = 1 + Math.floor(Math.random()*2);                       // 1 o 2 guiños por vídeo
+      const span = HOLD - 1800, used = [];
+      for(let i=0;i<nEv && idleCells.length;i++){
+        let o; do{ o = idleCells[Math.floor(Math.random()*idleCells.length)]; }while(used.includes(o) && used.length<idleCells.length);
+        used.push(o);
+        const k = 2 + Math.floor(Math.random()*2);                      // 2-3 letras y vuelta al negro (k+1 giros)
+        const tt = finishT + 700 + (span/nEv)*i + Math.random()*Math.max(200, span/nEv - 900);
+        const base = 1 + Math.floor(Math.random()*(LEN-1));
+        o.c.idle = {t0: tt, k, base};
+        idleEvents.push({t0: tt, k: k+1});
       }
     }
-    function idleExtra(cell, e){   // pasos extra por guiños ya empezados y progreso del último
-      let extra = 0, p = 1;
-      if(!cell.idle) return {extra, p};
-      for(const ev of cell.idle){
-        if(e < ev.t0) break;
-        const n = Math.min(ev.k, Math.floor((e - ev.t0)/IDLE_STEP) + 1);
-        extra += n;
-        p = Math.min(1, ((e - ev.t0) - (n-1)*IDLE_STEP)/FLIP_ANIM);
-      }
-      return {extra, p};
+    function idleState(cell, e){   // qué muestra una casilla en guiño: {prev, cur, p} o null si no está en guiño
+      const ev = cell.idle;
+      if(!ev || e < ev.t0) return null;
+      const n = Math.min(ev.k+1, Math.floor((e - ev.t0)/IDLE_STEP) + 1);   // giro n: 1..k letras, k+1 = vuelta a negro
+      const at = i2 => i2<=0 ? 0 : (i2>ev.k ? 0 : (ev.base + i2 - 1) % LEN);
+      const p = Math.min(1, ((e - ev.t0) - (n-1)*IDLE_STEP)/FLIP_ANIM);
+      return {prev: at(n-1), cur: at(n), p: (n>ev.k && p>=1) ? 1 : p};
     }
     function drawFrame(e){
       ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
@@ -303,9 +303,9 @@
         }
         sum += step;
         let pp = step>=cell.steps?1:p;
-        if(cell.idle && step>=cell.steps){ const ie = idleExtra(cell, e); if(ie.extra){ step += ie.extra; pp = ie.p; } }
-        const curc=(cell.from+step)%LEN;
-        const prev= step===0?cell.from:(curc-1+LEN)%LEN;
+        let curc=(cell.from+step)%LEN;
+        let prev= step===0?cell.from:(curc-1+LEN)%LEN;
+        if(cell.idle && step>=cell.steps){ const st = idleState(cell, e); if(st){ prev=st.prev; curc=st.cur; pp=st.p; } }
         drawCell(ctx, offX + c2*g.cellW, g.top0 + r*g.cellH, g.cellW, g.cellH,
           CHARSET[prev], CHARSET[curc], pp, flapColor, textColor);
       }
