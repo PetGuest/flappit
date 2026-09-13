@@ -242,6 +242,7 @@
     <p class="hint">Post it to TikTok, Reels or Stories. Feel free to tag <b>@flappit</b>.</p>
     <button class="cta ghost" id="again" style="width:100%; margin-top:10px;">MAKE ANOTHER</button>
     <p class="hint">Run a business? <a href="/en">The same board on your TV →</a></p>
+    <p class="hint" id="iosHint" style="display:none;">On iPhone, choose <b>Save Video</b> in the sheet that appears.</p>
     <button class="close" id="close">Close</button>
   </div>
 </div>
@@ -334,7 +335,7 @@
       status.textContent = T.done;
       const v = document.getElementById("vid"); v.src = url;
       const dl = document.getElementById("dl"); dl.href = url; dl.download = file.name;
-      document.getElementById("share").style.display = (navigator.canShare && navigator.canShare({files:[file]})) ? "block" : "none";
+      document.getElementById("share").style.display = (!IS_MOBILE && navigator.canShare && navigator.canShare({files:[file]})) ? "block" : "none";
       document.getElementById("modal").style.display="flex"; v.play().catch(()=>{});
       try{ fetch("/api/stat/video-social", {method:"POST"}); }catch(e){}
     }catch(e){ status.textContent = (e && e.message==="norecord") ? T.norec : T.fail; }
@@ -345,7 +346,18 @@
   document.getElementById("again").addEventListener("click", ()=>{ closeModal(); document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"}); const f=inputs()[0]; if(f) setTimeout(()=>f.focus(), 400); });
   document.getElementById("modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
-  document.getElementById("share").addEventListener("click", async ()=>{ if(!file) return; try{ await navigator.share({files:[file], text:"Made free at flappit.com/video"}); }catch(e){} });
+  const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent));
+  async function shareOrOpen(){
+    if(!file) return;
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], text:"Made free at flappit.com/video"}); return; }
+      catch(e){ if(e && e.name==="AbortError") return; }
+    }
+    window.open(url, "_blank");   // último recurso: se abre el vídeo y se guarda con pulsación larga
+  }
+  document.getElementById("share").addEventListener("click", shareOrOpen);
+  document.getElementById("dl").addEventListener("click", e=>{ if(IS_MOBILE){ e.preventDefault(); shareOrOpen(); } });
+  if(IS_MOBILE) document.getElementById("iosHint").style.display="block";
 })();
 </script>
 </body>
