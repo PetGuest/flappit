@@ -461,8 +461,11 @@ app.delete("/api/admin/screens/:id", auth, requireAdmin, (req,res)=>{
 
 /* ---- estadística mínima: cuántos vídeos genera la gente en la landing ---- */
 db.exec("CREATE TABLE IF NOT EXISTS stats(key TEXT PRIMARY KEY, n INTEGER DEFAULT 0)");
-app.post("/api/stat/video-dl", rateLimit("stat", 30, 60000), (req,res)=>{
-  db.prepare("INSERT INTO stats(key,n) VALUES('video-dl',1) ON CONFLICT(key) DO UPDATE SET n=n+1").run();
+/* contadores anónimos: video-dl (muestra 16:9 de la landing) y video-social (generador público 9:16) */
+app.post("/api/stat/:key", rateLimit("stat", 30, 60000), (req,res)=>{
+  const key = req.params.key;
+  if(!["video-dl","video-social"].includes(key)) return res.status(404).json({error:"stat"});
+  db.prepare("INSERT INTO stats(key,n) VALUES(?,1) ON CONFLICT(key) DO UPDATE SET n=n+1").run(key);
   res.json({ok:true});
 });
 

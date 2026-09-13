@@ -75,4 +75,18 @@
     <loc>https://flappit.com/alternativa-vestaboard.html</loc>
     <lastmod>2026-07-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://flappit.com/video-split-flap.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/video-split-flap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-video-maker.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/video-split-flap.html"/>
+    <lastmod>2026-09-13</lastmod><changefreq>monthly</changefreq><priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://flappit.com/en/split-flap-video-maker.html</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://flappit.com/video-split-flap.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-video-maker.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://flappit.com/video-split-flap.html"/>
+    <lastmod>2026-09-13</lastmod><changefreq>monthly</changefreq><priority>0.9</priority>
+  </url>
 </urlset>
