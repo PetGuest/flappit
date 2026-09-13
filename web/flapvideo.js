@@ -202,7 +202,8 @@
     const lines = cleanLines(opts.lines);
     const textColor = opts.textColor||"#ffffff", flapColor = opts.flapColor||"#16161A";
     const onProgress = opts.onProgress || function(){};
-    const W=1080, H=1920;
+    const LOW = opts.lowPower != null ? opts.lowPower : (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.hardwareConcurrency||8) <= 4);
+    const W = LOW ? 720 : 1080, H = LOW ? 1280 : 1920;   // 720×1280 en móvil: mismo 9:16, TikTok lo reescala; evita frames perdidos
     const cv = document.createElement("canvas"); cv.width=W; cv.height=H;
     const ctx = cv.getContext("2d");
     const rows = Math.max(3, lines.length), cols = COLS;
@@ -294,26 +295,37 @@
       combined = new MediaStream(stream.getVideoTracks().concat(dest.stream.getAudioTracks()));
     }catch(e){}
     const mime = pickMime();
-    const rec = new MediaRecorder(combined, mime ? {mimeType:mime, videoBitsPerSecond:6000000} : undefined);
+    const rec = new MediaRecorder(combined, mime ? {mimeType:mime, videoBitsPerSecond: LOW ? 4000000 : 6000000} : undefined);
     const chunks = [];
     rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
     const done = new Promise(res=>{ rec.onstop = res; });
     rec.start(200);
     drawFrame(0);
-    const t0 = performance.now() + 400;
+    /* pista de audio determinista: se cuentan los pasos de todas las casillas por ventanas de 22 ms
+       y se programan los clacs con su tiempo exacto antes de empezar (independiente del framerate) */
+    const BIN = 22, bins = new Map();
+    for(const cell of cells){
+      for(let n=1;n<=cell.steps;n++){
+        const tt = cell.delay + stepTime(cell, n);
+        const k = Math.floor(tt/BIN); bins.set(k, (bins.get(k)||0)+1);
+      }
+    }
+    const LEAD = 0.4;
+    const a0 = audioCtx ? audioCtx.currentTime + LEAD : 0;
+    if(audioCtx){
+      for(const [k,d] of bins){
+        const n = Math.min(3, Math.ceil(d/5));
+        const gv = Math.min(0.5, 0.07+d*0.008);
+        for(let i2=0;i2<n;i2++) clickSnd(gv*(0.8+Math.random()*0.4), (a0 - audioCtx.currentTime) + k*BIN/1000 + Math.random()*0.022);
+      }
+    }
+    const t0 = performance.now() + LEAD*1000;
     const TOTAL = T - LEAD_CUT + 3500 + 600;
-    let sumPrev=0, lastTick=-999, ended=0;
+    let ended=0;
     await new Promise(res=>{
       function loop(now){
         const e = now - t0;
-        const {sum, active} = drawFrame(Math.max(0, e));
-        const d = sum - sumPrev; sumPrev = sum;
-        if(d>0 && now-lastTick>22){
-          lastTick = now;
-          const n = Math.min(3, Math.ceil(d/5));
-          const gv = Math.min(0.5, 0.07+d*0.008);
-          for(let i2=0;i2<n;i2++) clickSnd(gv*(0.8+Math.random()*0.4), Math.random()*0.022);
-        }
+        const {active} = drawFrame(Math.max(0, e));
         onProgress(Math.min(0.98, Math.max(0, e)/TOTAL));
         if(e>0 && !active && !ended) ended = now;
         if(ended && now-ended>3500){ res(); return; }
