@@ -38,7 +38,7 @@
   .logo{display:flex; align-items:center;} .logo img{height:36px; display:block;}
   nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
   nav .links a{color:var(--muted);} nav .links a:hover{color:var(--text);}
-  @media(max-width:600px){ nav{gap:10px;} nav .links{gap:12px; font-size:12.5px; overflow-x:auto; scrollbar-width:none;} nav .links::-webkit-scrollbar{display:none;} nav .links a{white-space:nowrap;} nav .links .cta{padding:9px 12px; font-size:12.5px;} }
+  @media(max-width:600px){ nav{gap:10px;} nav .links{gap:12px; font-size:12.5px; overflow-x:auto; scrollbar-width:none;} nav .links::-webkit-scrollbar{display:none;} nav .links a{white-space:nowrap;} nav .links .cta{padding:9px 12px; font-size:12.5px;} nav .links .hideM{display:none;} }
   .cta{background:var(--brand); color:#111; font-weight:800; border:none; border-radius:10px; padding:11px 20px; font-size:14.5px; cursor:pointer; letter-spacing:.3px; display:inline-block; font-family:inherit;}
   .cta:hover{filter:brightness(1.1);} .cta:disabled{opacity:.55; cursor:default; filter:none;}
   .cta.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand);}
@@ -51,7 +51,9 @@
 
   /* ---- herramienta ---- */
   .tool{display:grid; grid-template-columns:1fr 250px; gap:22px; margin:30px 0 10px; align-items:start;}
-  @media(max-width:640px){ .tool{grid-template-columns:1fr;} .prevBox{order:-1; max-width:220px; margin:0 auto;} }
+  @media(max-width:640px){ .tool{grid-template-columns:1fr;} .prevBox{max-width:200px; margin:0 auto;} .go{position:sticky; bottom:10px; background:var(--panel); padding-top:8px; z-index:5;} }
+  #cookieBar{padding:8px 12px !important; font-size:12px !important; gap:8px !important; line-height:1.35 !important;}
+  #cookieBar .cbTxt{flex:1 1 180px !important;} #cookieBar button{padding:6px 10px !important; font-size:12px !important;}
   .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px;}
   .lbl{font-size:12px; letter-spacing:1.5px; color:var(--muted); font-family:ui-monospace,monospace; margin:0 0 8px;}
   .lines{display:flex; flex-direction:column; gap:8px;}
@@ -81,7 +83,7 @@
   .ideas button:hover{border-color:var(--brand); color:var(--text);}
 
   /* modal */
-  .modal{position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:100; padding:18px;}
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:100000; padding:18px;}
   .modal .box{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; width:min(380px,96vw); text-align:center;}
   .modal video{width:100%; max-height:60vh; border-radius:12px; background:#000; display:block;}
   .modal .acts{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
@@ -126,7 +128,7 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        {"@type":"Question","name":"¿Es gratis de verdad?","acceptedAnswer":{"@type":"Answer","text":"Sí. El vídeo se genera en tu propio navegador, sin registro ni tarjeta. Lleva una pequeña marca FLAPPIT.COM al pie."}},
+        {"@type":"Question","name":"¿Es gratis de verdad?","acceptedAnswer":{"@type":"Answer","text":"Sí. El vídeo se genera en tu propio navegador, sin registro ni tarjeta. Lleva una pequeña marca flappit.com/video al pie."}},
         {"@type":"Question","name":"¿Sirve para TikTok, Instagram y WhatsApp?","acceptedAnswer":{"@type":"Answer","text":"Sí. El vídeo es vertical 9:16 a 1080×1920, dura unos 11 segundos y respeta las zonas donde TikTok e Instagram superponen sus botones, así que el mensaje se ve entero. Se puede compartir por WhatsApp como cualquier vídeo."}},
         {"@type":"Question","name":"¿Por qué las letras se desvelan al final?","acceptedAnswer":{"@type":"Answer","text":"Es la coreografía 'misterio': el panel gira durante unos segundos y las letras van parándose una a una en orden aleatorio, para que quien lo ve se quede hasta el final leyendo el mensaje."}},
         {"@type":"Question","name":"¿Funciona en el móvil?","acceptedAnswer":{"@type":"Answer","text":"Sí, en iPhone y Android con Safari o Chrome actualizados. En el móvil aparece además el botón Compartir para enviarlo directo a Instagram, TikTok o WhatsApp."}},
@@ -150,10 +152,10 @@
   <nav>
     <a class="logo" href="/" aria-label="Flappit"><img src="/flappit-logo.svg?v=2" alt="Flappit"></a>
     <div class="links">
-      <a href="/panel-tipo-aeropuerto.html">La guía</a>
+      <a href="/panel-tipo-aeropuerto.html" class="hideM">La guía</a>
       <a href="/#try">Para negocios</a>
       <a href="/en/split-flap-video-maker.html" hreflang="en">EN</a>
-      <a class="cta" href="/panel">Probar gratis</a>
+      <a class="cta" href="/#how">Para tu TV</a>
     </div>
   </nav>
 </div>
@@ -213,7 +215,7 @@
 
     <h2>Preguntas frecuentes</h2>
     <div class="faq">
-      <details><summary>¿Es gratis de verdad?</summary><p>Sí. El vídeo se genera en tu propio navegador, sin registro ni tarjeta. Lleva una pequeña marca FLAPPIT.COM al pie del mensaje.</p></details>
+      <details><summary>¿Es gratis de verdad?</summary><p>Sí. El vídeo se genera en tu propio navegador, sin registro ni tarjeta. Lleva una pequeña marca flappit.com/video al pie del mensaje.</p></details>
       <details><summary>¿Sirve para TikTok, Instagram y WhatsApp?</summary><p>Sí. Es vertical 9:16 a 1080×1920, dura unos 11 segundos y respeta las zonas donde TikTok e Instagram superponen sus botones. Por WhatsApp se envía como cualquier vídeo.</p></details>
       <details><summary>¿Por qué las letras se desvelan al final?</summary><p>Es la coreografía “misterio”: el panel gira unos segundos y las letras se paran una a una en orden aleatorio, para que quien lo ve se quede hasta el final leyendo el mensaje.</p></details>
       <details><summary>¿Funciona en el móvil?</summary><p>Sí, en iPhone y Android con Safari o Chrome actualizados. En el móvil aparece además el botón Compartir para enviarlo directo a Instagram, TikTok o WhatsApp. Si tu navegador no puede grabar vídeo, te lo diremos al pulsar el botón.</p></details>
@@ -238,6 +240,8 @@
       <button class="cta ghost" id="share" style="display:none;">COMPARTIR</button>
     </div>
     <p class="hint">Súbelo a TikTok, Reels o Stories. Si te apetece, etiqueta a <b>@flappit</b>.</p>
+    <button class="cta ghost" id="again" style="width:100%; margin-top:10px;">CREAR OTRO</button>
+    <p class="hint">¿Tienes un negocio? <a href="/">El mismo panel en tu TV →</a></p>
     <button class="close" id="close">Cerrar</button>
   </div>
 </div>
@@ -339,9 +343,10 @@
   });
   function closeModal(){ document.getElementById("modal").style.display="none"; try{ document.getElementById("vid").pause(); }catch(e){} }
   document.getElementById("close").addEventListener("click", closeModal);
+  document.getElementById("again").addEventListener("click", ()=>{ closeModal(); document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"}); const f=inputs()[0]; if(f) setTimeout(()=>f.focus(), 400); });
   document.getElementById("modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
-  document.getElementById("share").addEventListener("click", async ()=>{ if(!file) return; try{ await navigator.share({files:[file]}); }catch(e){} });
+  document.getElementById("share").addEventListener("click", async ()=>{ if(!file) return; try{ await navigator.share({files:[file], text:"Hecho gratis en flappit.com/video"}); }catch(e){} });
 })();
 </script>
 </body>

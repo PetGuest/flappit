@@ -187,7 +187,7 @@
       ctx.fillStyle = "rgba(255,255,255,0.45)";
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign="center"; ctx.textBaseline="bottom";
-      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
     }
   }
 
@@ -282,7 +282,7 @@
       ctx.fillStyle = "rgba(255,255,255,0.45)";
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
       return {sum, active};
     }
     ensureAudio();

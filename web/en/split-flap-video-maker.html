@@ -38,7 +38,7 @@
   .logo{display:flex; align-items:center;} .logo img{height:36px; display:block;}
   nav .links{margin-left:auto; display:flex; gap:22px; font-size:14px; align-items:center;}
   nav .links a{color:var(--muted);} nav .links a:hover{color:var(--text);}
-  @media(max-width:600px){ nav{gap:10px;} nav .links{gap:12px; font-size:12.5px; overflow-x:auto; scrollbar-width:none;} nav .links::-webkit-scrollbar{display:none;} nav .links a{white-space:nowrap;} nav .links .cta{padding:9px 12px; font-size:12.5px;} }
+  @media(max-width:600px){ nav{gap:10px;} nav .links{gap:12px; font-size:12.5px; overflow-x:auto; scrollbar-width:none;} nav .links::-webkit-scrollbar{display:none;} nav .links a{white-space:nowrap;} nav .links .cta{padding:9px 12px; font-size:12.5px;} nav .links .hideM{display:none;} }
   .cta{background:var(--brand); color:#111; font-weight:800; border:none; border-radius:10px; padding:11px 20px; font-size:14.5px; cursor:pointer; letter-spacing:.3px; display:inline-block; font-family:inherit;}
   .cta:hover{filter:brightness(1.1);} .cta:disabled{opacity:.55; cursor:default; filter:none;}
   .cta.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand);}
@@ -51,7 +51,9 @@
 
   /* ---- herramienta ---- */
   .tool{display:grid; grid-template-columns:1fr 250px; gap:22px; margin:30px 0 10px; align-items:start;}
-  @media(max-width:640px){ .tool{grid-template-columns:1fr;} .prevBox{order:-1; max-width:220px; margin:0 auto;} }
+  @media(max-width:640px){ .tool{grid-template-columns:1fr;} .prevBox{max-width:200px; margin:0 auto;} .go{position:sticky; bottom:10px; background:var(--panel); padding-top:8px; z-index:5;} }
+  #cookieBar{padding:8px 12px !important; font-size:12px !important; gap:8px !important; line-height:1.35 !important;}
+  #cookieBar .cbTxt{flex:1 1 180px !important;} #cookieBar button{padding:6px 10px !important; font-size:12px !important;}
   .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px;}
   .lbl{font-size:12px; letter-spacing:1.5px; color:var(--muted); font-family:ui-monospace,monospace; margin:0 0 8px;}
   .lines{display:flex; flex-direction:column; gap:8px;}
@@ -81,7 +83,7 @@
   .ideas button:hover{border-color:var(--brand); color:var(--text);}
 
   /* modal */
-  .modal{position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:100; padding:18px;}
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:100000; padding:18px;}
   .modal .box{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; width:min(380px,96vw); text-align:center;}
   .modal video{width:100%; max-height:60vh; border-radius:12px; background:#000; display:block;}
   .modal .acts{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
@@ -126,7 +128,7 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        {"@type":"Question","name":"Is it really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The video is rendered in your own browser, with no sign-up or card. It carries a small FLAPPIT.COM mark at the bottom."}},
+        {"@type":"Question","name":"Is it really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The video is rendered in your own browser, with no sign-up or card. It carries a small flappit.com/video mark at the bottom."}},
         {"@type":"Question","name":"Does it work for TikTok, Instagram and WhatsApp?","acceptedAnswer":{"@type":"Answer","text":"Yes. The video is vertical 9:16 at 1080×1920, lasts about 11 seconds and keeps clear of the areas where TikTok and Instagram overlay their buttons, so the message is fully visible. It shares on WhatsApp like any video."}},
         {"@type":"Question","name":"Why are the letters revealed at the end?","acceptedAnswer":{"@type":"Answer","text":"It is the 'mystery' choreography: the board spins for a few seconds and the letters stop one by one in random order, so viewers stay until the end to read the message."}},
         {"@type":"Question","name":"Does it work on my phone?","acceptedAnswer":{"@type":"Answer","text":"Yes, on iPhone and Android with an up-to-date Safari or Chrome. On phones a Share button also appears to send it straight to Instagram, TikTok or WhatsApp."}},
@@ -150,10 +152,10 @@
   <nav>
     <a class="logo" href="/en" aria-label="Flappit"><img src="/flappit-logo.svg?v=2" alt="Flappit"></a>
     <div class="links">
-      <a href="/en/airport-style-board.html">How to get one</a>
+      <a href="/en/airport-style-board.html" class="hideM">The guide</a>
       <a href="/en#try">For business</a>
       <a href="/video-split-flap.html" hreflang="es">ES</a>
-      <a class="cta" href="/panel">Try free</a>
+      <a class="cta" href="/en#how">For your TV</a>
     </div>
   </nav>
 </div>
@@ -213,7 +215,7 @@
 
     <h2>Frequently asked questions</h2>
     <div class="faq">
-      <details><summary>Is it really free?</summary><p>Yes. The video is rendered in your own browser, no sign-up or card. It carries a small FLAPPIT.COM mark under the message.</p></details>
+      <details><summary>Is it really free?</summary><p>Yes. The video is rendered in your own browser, no sign-up or card. It carries a small flappit.com/video mark under the message.</p></details>
       <details><summary>Does it work for TikTok, Instagram and WhatsApp?</summary><p>Yes. It is vertical 9:16 at 1080×1920, lasts about 11 seconds and keeps clear of the areas where TikTok and Instagram overlay their buttons. On WhatsApp it sends like any video.</p></details>
       <details><summary>Why are the letters revealed at the end?</summary><p>It is the “mystery” choreography: the board spins for a few seconds and the letters stop one by one in random order, so viewers stay until the end to read the message.</p></details>
       <details><summary>Does it work on my phone?</summary><p>Yes, on iPhone and Android with an up-to-date Safari or Chrome. On phones a Share button also appears to send it straight to Instagram, TikTok or WhatsApp. If your browser cannot record video, we will tell you when you press the button.</p></details>
@@ -238,6 +240,8 @@
       <button class="cta ghost" id="share" style="display:none;">SHARE</button>
     </div>
     <p class="hint">Post it to TikTok, Reels or Stories. Feel free to tag <b>@flappit</b>.</p>
+    <button class="cta ghost" id="again" style="width:100%; margin-top:10px;">MAKE ANOTHER</button>
+    <p class="hint">Run a business? <a href="/en">The same board on your TV →</a></p>
     <button class="close" id="close">Close</button>
   </div>
 </div>
@@ -338,9 +342,10 @@
   });
   function closeModal(){ document.getElementById("modal").style.display="none"; try{ document.getElementById("vid").pause(); }catch(e){} }
   document.getElementById("close").addEventListener("click", closeModal);
+  document.getElementById("again").addEventListener("click", ()=>{ closeModal(); document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"}); const f=inputs()[0]; if(f) setTimeout(()=>f.focus(), 400); });
   document.getElementById("modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(); });
   document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
-  document.getElementById("share").addEventListener("click", async ()=>{ if(!file) return; try{ await navigator.share({files:[file]}); }catch(e){} });
+  document.getElementById("share").addEventListener("click", async ()=>{ if(!file) return; try{ await navigator.share({files:[file], text:"Made free at flappit.com/video"}); }catch(e){} });
 })();
 </script>
 </body>

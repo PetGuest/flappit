@@ -315,6 +315,8 @@ app.get("/tv", (req,res)=>res.sendFile(path.join(__dirname,"web","tv.html")));
 app.get("/panel", (req,res)=>res.sendFile(path.join(__dirname,"web","panel.html")));
 app.get("/admin", (req,res)=>res.sendFile(path.join(__dirname,"web","admin.html"))); // panel interno (protegido por API)
 app.get("/reset", (req,res)=>res.sendFile(path.join(__dirname,"web","reset.html"))); // nueva contraseña (enlace del email)
+app.get(["/video","/tiktok","/reels","/stories"], (req,res)=>res.redirect(301, "/video-split-flap.html")); // atajos que se pueden decir en un vídeo
+app.get(["/en/video","/en/tiktok"], (req,res)=>res.redirect(301, "/en/split-flap-video-maker.html"));
 app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","index.html"))); // landing en inglés (URL limpia)
 
 /* ---- cuentas ---- */

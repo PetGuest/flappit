@@ -239,6 +239,11 @@
     .hero .cta, .finale .cta, .final .cta{ display:block; width:auto; max-width:min(340px,88%); margin:0 auto; }
     .hero .cta + .cta, .finale .cta + .cta, .final .cta + .cta{ margin:12px auto 0 !important; }
   }
+  .intent{display:flex; gap:10px; justify-content:center; margin:0 auto 26px; max-width:520px;}
+  .intent a{flex:1 1 0; padding:12px 14px; border:1px solid var(--line); border-radius:14px; color:var(--text); font-weight:700; font-size:14.5px; background:var(--panel); text-decoration:none; line-height:1.25; text-align:center;}
+  .intent a span{display:block; font-size:12px; color:var(--muted); font-weight:500; margin-top:3px;}
+  .intent a.on{border-color:var(--brand); color:var(--brand);}
+  .intent a:hover{border-color:var(--brand);}
 </style>
 <script type="application/ld+json">
 {
@@ -308,6 +313,10 @@
 
 <div class="wrap">
   <div class="hero">
+    <div class="intent" aria-label="What do you want to do?">
+      <a class="on" href="#how">For your screen<span>hotels, shops, gyms</span></a>
+      <a href="/en/split-flap-video-maker.html">For your socials<span>free video for TikTok &amp; Instagram</span></a>
+    </div>
     <h1>Turn any screen into a<br><em>stunning information board.</em></h1>
     <p style="color:var(--text); font-weight:600; font-size:clamp(14px,1.8vw,17px); letter-spacing:.2px; max-width:none; margin:0 auto 14px;">Messages that flip. Eyes that linger. A space with a little more magic.</p>
     <p>Flappit brings the charm of those old airport boards to the TV you already have in your lobby. Type from the reception phone and the message appears instantly, flipping letter by letter, with that unmistakable clack-clack.<br><b style="color:var(--text);">No installation. No building work. No technician.</b></p>

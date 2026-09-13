@@ -24,10 +24,10 @@
   if (choice === "no") return;
 
   var t = EN ? {
-    txt: "We use one optional analytics cookie (Google Analytics) to understand visits. No ads, no cross-site tracking. ",
+    txt: "One optional analytics cookie (Google Analytics). No ads, no cross-site tracking. ",
     more: "More info", accept: "Accept", reject: "Reject"
   } : {
-    txt: "Usamos una única cookie opcional de analítica (Google Analytics) para entender las visitas. Sin publicidad ni rastreo entre sitios. ",
+    txt: "Solo una cookie opcional de analítica (Google Analytics). Sin publicidad ni rastreo. ",
     more: "Más información", accept: "Aceptar", reject: "Rechazar"
   };
   var legalHref = EN ? "/en/legal.html#cookies" : "/legal.html#cookies";
