@@ -428,21 +428,21 @@
 <div id="authWrap" style="display:none;">
   <div id="authBox">
     <div style="margin:0 0 14px;"><a href="/" title="flappit.com"><img src="/flappit-logo.svg?v=2" alt="Flappit" style="height:36px; display:block;"></a></div>
-    <h1 id="authTitle" data-i18n="authTitleLogin">Entrar en su panel</h1>
-    <p id="authIntro">El panel controla sus pantallas en tiempo real.</p>
+    <h1 id="authTitle" data-i18n="authTitleLogin">Entra en tu panel</h1>
+    <p id="authIntro">El panel controla tus pantallas en tiempo real.</p>
     <div style="margin:0 0 16px;"><span class="langSel"><a data-setlang="es">ES</a><a data-setlang="en">EN</a></span></div>
     <div id="fBizRow" style="display:none;">
       <label data-i18n="authBizLabel">Nombre del negocio</label>
       <input type="text" id="aBiz" maxlength="60" placeholder="Hotel Miramar" data-i18n-ph="authBizPh">
     </div>
     <label data-i18n="authMailLabel">Correo electrónico</label>
-    <input type="email" id="aMail" placeholder="recepcion@sunegocio.com" data-i18n-ph="authMailPh">
+    <input type="email" id="aMail" placeholder="recepcion@tunegocio.com" data-i18n-ph="authMailPh">
     <label data-i18n="authPassLabel">Contraseña</label>
     <input type="password" id="aPass" placeholder="Mínimo 8 caracteres" data-i18n-ph="authPassPh">
     <div id="authErr"></div>
     <button class="go" id="authGo" data-i18n="authGoLogin">Entrar</button>
-    <div class="alt" id="authAlt" data-i18n-html="authAltLogin">¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a></div>
-    <div class="alt" id="authForgotRow"><a id="authForgot" data-i18n="authForgot">¿Olvidó su contraseña?</a></div>
+    <div class="alt" id="authAlt" data-i18n-html="authAltLogin">¿Aún sin cuenta? <a id="authSwitch">Crea una en 30 segundos</a></div>
+    <div class="alt" id="authForgotRow"><a id="authForgot" data-i18n="authForgot">¿Has olvidado tu contraseña?</a></div>
   </div>
 </div>
 
@@ -468,15 +468,15 @@
 
 <div id="planWrap">
   <div id="planBox">
-    <h1 data-i18n="planPickTitle">Elija su plan</h1>
-    <p data-i18n="planPickIntro">Podrá cambiarlo o cancelarlo cuando quiera.</p>
+    <h1 data-i18n="planPickTitle">Elige tu plan</h1>
+    <p data-i18n="planPickIntro">Podrás cambiarlo o cancelarlo cuando quieras.</p>
     <div class="billRow">
       <button id="billM" class="on" data-i18n="billMonthly">Mensual</button>
       <button id="billY" data-i18n="billYearly">Anual (−20%)</button>
     </div>
     <button class="planOpt" id="planOptUno"><b data-i18n="planUnoPick">1 pantalla</b><span id="planPriceUno">19 €/mes</span></button>
     <button class="planOpt" id="planOptTres"><b data-i18n="planTresPick">Hasta 3 pantallas</b><span id="planPriceTres">39 €/mes</span></button>
-    <div class="alt"><a id="planCancel" data-i18n="close">Cerrar</a> · <a href="mailto:hello@flappit.com?subject=Flappit para cadenas" data-i18n="planChain">¿Más pantallas? Escríbanos</a></div>
+    <div class="alt"><a id="planCancel" data-i18n="close">Cerrar</a> · <a href="mailto:hello@flappit.com?subject=Flappit para cadenas" data-i18n="planChain">¿Más pantallas? Escríbenos</a></div>
   </div>
 </div>
 
@@ -504,15 +504,15 @@
 <div id="layout">
   <aside>
     <div class="card">
-      <h3 data-i18n="cardScreens">Sus pantallas</h3>
+      <h3 data-i18n="cardScreens">Tus pantallas</h3>
       <div id="phList"></div>
       <button id="previewBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg><span data-i18n="previewHere">PREVISUALIZAR AQUÍ</span></button>
       <button id="connectTvBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>CONECTAR MI TV REAL</button>
       <div id="pairBox">
         <p class="cap" style="margin:0 0 10px;" data-i18n-html="pairSteps">
-          <b>1.</b> En el televisor, abra el navegador y entre en
+          <b>1.</b> En el televisor, abre el navegador y entra en
           <b style="color:var(--accent);">flappit.com/tv</b><br>
-          <b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:
+          <b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbelo aquí:
         </p>
         <div id="pairRow">
           <input id="pairCode" maxlength="4" placeholder="CÓDIGO" data-i18n-ph="pairCodePh">
@@ -520,7 +520,7 @@
         </div>
         <p class="cap" style="margin:8px 0 0;" data-i18n-html="pairNoTv">¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.</p>
       </div>
-      <p class="cap" id="noTvHint" style="margin-top:8px;" data-i18n="noTvHint">Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.</p>
+      <p class="cap" id="noTvHint" style="margin-top:8px;" data-i18n="noTvHint">Mientras tanto, trastea cuanto quieras: todo lo que edites queda guardado como borrador.</p>
     </div>
 
     <div class="card">
@@ -532,7 +532,7 @@
           <button class="chip" data-v="redes" data-i18n="fmtRedes">Redes sociales</button>
         </div>
       </div>
-      <p class="cap" id="redesHint" style="display:none;" data-i18n="redesHint">Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.</p>
+      <p class="cap" id="redesHint" style="display:none;" data-i18n="redesHint">Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escribe en la zona central.</p>
       <div class="row" id="gridDims">
         <div>
           <span class="dimLbl" data-i18n="lblLines">Líneas</span>
@@ -622,28 +622,28 @@ const I18N = {
     bizDefault: "Panel de control",
     logout: "Salir",
     /* acceso */
-    authTitleLogin: "Entrar en su panel",
-    authTitleRegister: "Cree su cuenta",
-    authIntro: "El panel controla sus pantallas en tiempo real.",
-    authIntroRegister: "7 días de prueba gratis, sin tarjeta y sin permanencia. En medio minuto estará escribiendo en su pantalla.",
+    authTitleLogin: "Entra en tu panel",
+    authTitleRegister: "Crea tu cuenta",
+    authIntro: "El panel controla tus pantallas en tiempo real.",
+    authIntroRegister: "7 días de prueba gratis, sin tarjeta y sin permanencia. En medio minuto estarás escribiendo en tu pantalla.",
     authBizLabel: "Nombre del negocio",
     authBizPh: "Hotel Miramar",
     authMailLabel: "Correo electrónico",
-    authMailPh: "recepcion@sunegocio.com",
+    authMailPh: "recepcion@tunegocio.com",
     authPassLabel: "Contraseña",
     authPassPh: "Mínimo 8 caracteres",
     authGoLogin: "Entrar",
     authGoRegister: "Crear cuenta y empezar",
-    authAltLogin: '¿Aún sin cuenta? <a id="authSwitch">Cree una en 30 segundos</a>',
-    authAltRegister: '¿Ya tiene cuenta? <a id="authSwitch">Entre aquí</a>',
+    authAltLogin: '¿Aún sin cuenta? <a id="authSwitch">Crea una en 30 segundos</a>',
+    authAltRegister: '¿Ya tienes cuenta? <a id="authSwitch">Entra aquí</a>',
     authErrLogin: "Correo o contraseña incorrectos.",
     authErrEmailExists: "Ese correo ya tiene cuenta.",
-    authErrRegister: "Revise los datos (contraseña: mínimo 8).",
-    authForgot: "¿Olvidó su contraseña?",
-    authForgotNeedMail: "Escriba arriba su correo y pulse de nuevo el enlace.",
-    authForgotSent: "Si ese correo tiene cuenta, le hemos enviado un enlace para crear una contraseña nueva. Revise su bandeja (y el spam).",
-    authForgotUnavailable: "Ahora mismo no podemos enviar el correo. Escríbanos a hello@flappit.com y le ayudamos.",
-    authForgotWait: "Demasiados intentos. Espere unos minutos y pruebe de nuevo.",
+    authErrRegister: "Revisa los datos (contraseña: mínimo 8).",
+    authForgot: "¿Has olvidado tu contraseña?",
+    authForgotNeedMail: "Escribe arriba tu correo y pulsa de nuevo el enlace.",
+    authForgotSent: "Si ese correo tiene cuenta, te hemos enviado un enlace para crear una contraseña nueva. Revisa tu bandeja (y el spam).",
+    authForgotUnavailable: "Ahora mismo no podemos enviar el correo. Escríbenos a hello@flappit.com y te ayudamos.",
+    authForgotWait: "Demasiados intentos. Espera unos minutos y prueba de nuevo.",
     /* paywall */
     payTitleTrial: "Tu prueba ha terminado",
     payTitlePastDue: "Hay un pago pendiente",
@@ -655,28 +655,28 @@ const I18N = {
     previewFrameTitle: "Vista previa de la TV",
     close: "Cerrar",
     /* tarjeta pantallas */
-    cardScreens: "Sus pantallas",
+    cardScreens: "Tus pantallas",
     previewHere: "PREVISUALIZAR AQUÍ",
     connectTv: "CONECTAR MI PANTALLA",
     connectAnotherTv: "CONECTAR OTRA PANTALLA",
-    pairSteps: '<b>1.</b> En el televisor, abra el navegador y entre en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbalo aquí:',
+    pairSteps: '<b>1.</b> En el televisor, abre el navegador y entra en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbelo aquí:',
     pairCodePh: "CÓDIGO",
     pairBtn: "Vincular",
     pairNoTv: '¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.',
-    noTvHint: "Mientras tanto, trastee cuanto quiera: todo lo que edite queda guardado como borrador.",
+    noTvHint: "Mientras tanto, trastea cuanto quieras: todo lo que edites queda guardado como borrador.",
     /* tarjeta config */
     cardConfig: "Configura el panel",
     fmtTv: "TV 16:9",
     fmtTotem: "Tótem 9:16",
     fmtRedes: "Redes sociales",
-    redesHint: "Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escriba en la zona central.",
+    redesHint: "Formato story 9:16 para Instagram y TikTok. Las franjas superior e inferior las tapa la interfaz de la app: escribe en la zona central.",
     shareBtn: "CREAR VÍDEO",
     shareMaking: "Generando vídeo…",
     shareSend: "ENVIAR A INSTAGRAM / TIKTOK",
     shareSave: "GUARDAR VÍDEO",
-    shareDownloaded: "Vídeo descargado — súbalo a su story de Instagram o TikTok.",
+    shareDownloaded: "Vídeo descargado — súbelo a tu story de Instagram o TikTok.",
     shareOnlyText: "Compartir funciona con animaciones de texto (no con fotos ni vídeos).",
-    shareFail: "Este navegador no permite grabar el vídeo. Pruebe con Chrome o Safari actualizados.",
+    shareFail: "Este navegador no permite grabar el vídeo. Prueba con Chrome o Safari actualizados.",
     lblLines: "Líneas",
     lblCols: "Letras/línea",
     stepLess: "Menos",
@@ -724,13 +724,13 @@ const I18N = {
     screenNamePrompt: "Nombre de la pantalla:",
     unlinkConfirm: 'Desvincular "{n}": se borrará su contenido y configuración (no se puede deshacer) y la tele volverá a mostrar un código. Se libera una plaza de tu plan. ¿Continuar?',
     /* draft */
-    draftCap: "Borrador — vincule una pantalla y se emitirá lo que ve aquí",
+    draftCap: "Borrador — vincula una pantalla y se emitirá lo que ves aquí",
     /* emparejamiento */
     codeIs4: "El código tiene 4 letras.",
     newScreenNamePrompt: "Nombre para esta pantalla:",
     newScreenDefault: "Lobby",
     newScreenFallback: "Pantalla",
-    planLimit: "Su plan permite {n} pantalla(s). Amplíe el plan para vincular más.",
+    planLimit: "Tu plan permite {n} pantalla(s). Amplía el plan para vincular más.",
     codeNotFound: "Código no encontrado. ¿La pantalla muestra ese código ahora mismo?",
     /* toolbar / updateToolbar */
     mediaImage: "Foto flapizada — se construye flap a flap en la TV",
@@ -772,13 +772,13 @@ const I18N = {
     planPrefix: "Plan ",
     manageSub: "Gestionar suscripción",
     subscribe: "Suscribirse",
-    planPickTitle: "Elija su plan",
-    planPickIntro: "Podrá cambiarlo o cancelarlo cuando quiera.",
+    planPickTitle: "Elige tu plan",
+    planPickIntro: "Podrás cambiarlo o cancelarlo cuando quieras.",
     billMonthly: "Mensual",
     billYearly: "Anual (−20%)",
     planUnoPick: "1 pantalla",
     planTresPick: "Hasta 3 pantallas",
-    planChain: "¿Más pantallas? Escríbanos",
+    planChain: "¿Más pantallas? Escríbenos",
     priceUnoM: "19 €/mes", priceUnoY: "180 €/año",
     priceTresM: "39 €/mes", priceTresY: "372 €/año",
     trialDay: "Prueba: {n} día restantes",
