@@ -214,11 +214,18 @@
     let HOLD = 5000;                                                     // mensaje resuelto y quieto: exactamente los 5 últimos segundos
     const LEAD_CUT = 2000, BASE_NOMINAL = 80;
     const T = Math.round(DUR*1000 - 400 - HOLD) + LEAD_CUT;              // tambor: el resto (400 ms de arranque en blanco)
+    /* Arranque en crescendo: el panel empieza VACÍO y las casillas van entrando en giro poco a poco
+       (delay repartido en el primer 35 % del tambor, cada vez más densas), solo ~45 % de las casillas
+       vacías participan, se van asentando entre el 45 % y el 85 %, y las letras del mensaje se desvelan
+       al final. Así el panel nunca está "lleno" de golpe y recuerda más a uno real. */
+    const S = T - LEAD_CUT;                                   // duración visible del tambor
     const letters = [];
     const cells = targets.map(tg=>{
       const d = tg===0 ? LEN : tg;
-      const cell = {from:0, tg, d, steps:d, base:60, delay:Math.random()*350, slowN:0, F:0};
-      if(tg>0) letters.push(cell);
+      const cell = {from:0, tg, d, steps:d, base:60, delay:0, slowN:0, F:0, skip:false};
+      if(tg>0){ letters.push(cell); cell.delay = S*0.30*Math.pow(Math.random(), 0.7); }
+      else if(Math.random() < 0.45){ cell.delay = S*0.35*Math.pow(Math.random(), 0.6); }
+      else { cell.skip = true; cell.steps = 0; }
       return cell;
     });
     for(let i=letters.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [letters[i],letters[j]]=[letters[j],letters[i]]; }
@@ -230,7 +237,8 @@
       } else { cell.F = T*(0.55 + 0.23*(i/Math.max(1, letters.length - nFin))); }
     });
     cells.forEach(cell=>{
-      if(cell.tg===0) cell.F = T*(0.35 + Math.random()*0.35);
+      if(cell.skip) return;
+      if(cell.tg===0){ cell.F = S*(0.45 + Math.random()*0.40) + LEAD_CUT; }
       cell.F = Math.max(1400, cell.F - LEAD_CUT);
       const Tc = Math.max(1200, cell.F - cell.delay);
       const slowExtra = 0.3*cell.slowN*(cell.slowN+1);
@@ -297,7 +305,8 @@
         const r=Math.floor(i/cols), c2=i%cols;
         const ec = e - cell.delay;
         let step, p;
-        if(ec<=0){ step=0; p=1; active=true; }
+        if(cell.skip){ step=0; p=1; }
+        else if(ec<=0){ step=0; p=1; active=true; }
         else{
           step = Math.min(cell.steps, stepAt(cell, ec));
           p = Math.min(1,(ec-stepTime(cell,step))/FLIP_ANIM);
