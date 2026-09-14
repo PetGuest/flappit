@@ -271,7 +271,23 @@
     /* la última letra debe pararse justo en DUR-5 s: se reescala el tempo de todas las casillas (±10 %) */
     { const target = DUR*1000 - 400 - HOLD; const f = target/finishT;
       cells.forEach(c=>{ c.base *= f; c.delay *= f; }); finishT = target; }
-    const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
+    /* CTA opcional (vídeos de la cuenta): una línea corta que aparece 2 filas por debajo del mensaje al
+       empezar la espera final, letra a letra de izquierda a derecha, en color apagado. p. ej. "CREA EL TUYO" */
+    const ctaText = opts.cta ? normalize(opts.cta).slice(0, cols).trim() : "";
+    const ctaColor = opts.ctaColor || "#8f8f96";
+    const ctaCells = new Set();
+    if(ctaText){
+      const totalRows = g.nTop + rows + g.nBot;
+      const r = Math.min(totalRows-1, g.nTop + rows + 2);
+      const st = lineStart(ctaText, "center", cols);
+      for(let i=0;i<ctaText.length;i++){
+        const ch = ctaText[i]; if(ch===" ") continue;
+        const cell = cells[r*cols + st + i]; if(!cell || cell.tg!==0) continue;
+        cell.cta = {t0: finishT + 900 + i*70, k: 3 + Math.floor(Math.random()*2), base: 1 + Math.floor(Math.random()*(LEN-1)), target: CHARSET.indexOf(ch)};
+        ctaCells.add(cell);
+      }
+    }
+    const idleCells = cells.map((c,i)=>({c,i})).filter(o=>o.c.tg===0 && !ctaCells.has(o.c) && (Math.floor(o.i/cols) < g.nTop || Math.floor(o.i/cols) >= g.nTop+rows));
     const idleEvents = [];
     { const nEv = 1 + Math.floor(Math.random()*2);                       // 1 o 2 guiños por vídeo
       const span = HOLD - 1800, used = [];
@@ -284,6 +300,14 @@
         o.c.idle = {t0: tt, k, base};
         idleEvents.push({t0: tt, k: k+1});
       }
+    }
+    function ctaState(cell, e){   // letra del CTA: blanco → k letras al azar → letra final (se queda)
+      const ev = cell.cta;
+      if(!ev || e < ev.t0) return null;
+      const n = Math.min(ev.k+1, Math.floor((e - ev.t0)/IDLE_STEP) + 1);
+      const at = i2 => i2<=0 ? 0 : (i2>ev.k ? ev.target : (ev.base + i2 - 1) % LEN);
+      const p = Math.min(1, ((e - ev.t0) - (n-1)*IDLE_STEP)/FLIP_ANIM);
+      return {prev: at(n-1), cur: at(n), p};
     }
     function idleState(cell, e){   // qué muestra una casilla en guiño: {prev, cur, p} o null si no está en guiño
       const ev = cell.idle;
@@ -316,9 +340,11 @@
         let pp = step>=cell.steps?1:p;
         let curc=(cell.from+step)%LEN;
         let prev= step===0?cell.from:(curc-1+LEN)%LEN;
+        let col = textColor;
         if(cell.idle && step>=cell.steps){ const st = idleState(cell, e); if(st){ prev=st.prev; curc=st.cur; pp=st.p; } }
+        if(cell.cta && step>=cell.steps){ const st = ctaState(cell, e); if(st){ prev=st.prev; curc=st.cur; pp=st.p; col = ctaColor; } }
         drawCell(ctx, offX + c2*g.cellW, g.top0 + r*g.cellH, g.cellW, g.cellH,
-          CHARSET[prev], CHARSET[curc], pp, flapColor, textColor);
+          CHARSET[prev], CHARSET[curc], pp, flapColor, col);
       }
       { const m2=Math.max(4,g.cellW*0.30), rr=Math.max(8,g.cellW*0.5);
         ctx.beginPath();
@@ -348,6 +374,7 @@
       for(let i2=0;i2<n;i2++) clicks.push({t: k*BIN + Math.random()*22, g: gv*(0.8+Math.random()*0.4)});
     }
     for(const ev of idleEvents){ for(let n=0;n<ev.k;n++) clicks.push({t: ev.t0 + n*IDLE_STEP, g: 0.16+Math.random()*0.06}); }
+    for(const c of ctaCells){ for(let n=0;n<=c.cta.k;n++) clicks.push({t: c.cta.t0 + n*IDLE_STEP, g: 0.12+Math.random()*0.05}); }
     clicks.sort((a,b)=>a.t-b.t);
     const TOTAL = finishT + HOLD;
     return {W, H, LOW, cv, ctx, drawFrame, TOTAL, clicks};
