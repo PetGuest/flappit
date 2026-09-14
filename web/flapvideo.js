@@ -190,7 +190,7 @@
       ctx.fillStyle = "rgba(255,255,255,0.45)";
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign="center"; ctx.textBaseline="bottom";
-      ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
+      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
     }
   }
 
@@ -354,7 +354,7 @@
       ctx.fillStyle = "rgba(255,255,255,0.45)";
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-      ctx.fillText("FLAPPIT.COM/VIDEO", W/2, g.safeBotY - H*0.006);
+      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
       ctx.fillStyle = (Math.floor(e/16)%2) ? "#000001" : "#010000";   // píxel alterno: Safari solo graba fotogramas si el canvas cambia
       ctx.fillRect(0, 0, 1, 1);
       return {sum, active};
