@@ -241,6 +241,7 @@
 <div class="modal" id="modal" role="dialog" aria-modal="true">
   <div class="box">
     <video id="vid" controls autoplay playsinline></video>
+    <p class="hint" id="durInfo" style="margin:6px 0 0; font-size:11.5px; opacity:.7;"></p>
     <button class="small" id="replay" style="display:none; width:100%; margin-top:8px;">▶ WATCH AGAIN</button>
     <div class="acts">
       <a class="cta" id="dl" download>SAVE VIDEO</a>
@@ -266,7 +267,7 @@
   </div>
 </footer>
 
-<script src="/flapvideo.js?v=16"></script>
+<script src="/flapvideo.js?v=17"></script>
 <script>
 (function(){
   const T = {
@@ -346,6 +347,7 @@
       file = r.file; url = r.url;
       status.textContent = T.done;
       const v = document.getElementById("vid"); v.src = url;
+      { const di = document.getElementById("durInfo"); if(di){ di.textContent = r.durationSec ? (String(r.durationSec).replace(".",",")+" s") : ""; } }
       const dl = document.getElementById("dl"); dl.href = url; dl.download = file.name;
       document.getElementById("share").style.display = (!IS_MOBILE && navigator.canShare && navigator.canShare({files:[file]})) ? "block" : "none";
       document.getElementById("modal").style.display="flex"; v.play().catch(()=>{});

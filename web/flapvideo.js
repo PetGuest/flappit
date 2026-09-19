@@ -359,8 +359,8 @@
       ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "bottom";
       ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
-      ctx.fillStyle = (Math.floor(e/16)%2) ? "#000001" : "#010000";   // píxel alterno: Safari solo graba fotogramas si el canvas cambia
-      ctx.fillRect(0, 0, 1, 1);
+      ctx.fillStyle = (Math.floor(e/16)%2) ? "#000000" : "#020202";   // esquina alterna (invisible): Safari solo graba fotogramas si el canvas cambia
+      ctx.fillRect(0, 0, 3, 3);
       return {sum, active};
     }
     /* pista de audio determinista: pasos de todas las casillas por ventanas de 22 ms → clacs con su instante exacto */
@@ -384,6 +384,20 @@
     return {W, H, LOW, cv, ctx, drawFrame, TOTAL, clicks};
   }
 
+  function measureDuration(url){
+    return new Promise(res=>{
+      const v = document.createElement("video"); v.preload="metadata"; v.muted=true; v.playsInline=true;
+      let done=false; const fin=x=>{ if(!done){ done=true; res(x); } };
+      const t = setTimeout(()=>fin(null), 4000);
+      v.onloadedmetadata = ()=>{
+        if(isFinite(v.duration) && v.duration>0){ clearTimeout(t); fin(Math.round(v.duration*10)/10); }
+        else { v.currentTime = 1e6; v.ontimeupdate = ()=>{ v.ontimeupdate=null; clearTimeout(t); fin(isFinite(v.duration)?Math.round(v.duration*10)/10:null); }; }   // webm sin cabecera de duración
+      };
+      v.onerror = ()=>{ clearTimeout(t); fin(null); };
+      v.src = url;
+    });
+  }
+
   async function render(opts){
     if(!canRecord()) throw new Error("norecord");
     const onProgress = opts.onProgress || function(){};
@@ -392,6 +406,8 @@
     ensureAudio();
     try{ await audioCtx.resume(); }catch(e){}   // iOS: el contexto nace suspendido; sin esto los clacs se descartaban
     const stream = cv.captureStream(30);
+    const vtrack = stream.getVideoTracks()[0];
+    const pushFrame = (vtrack && typeof vtrack.requestFrame === "function") ? ()=>{ try{ vtrack.requestFrame(); }catch(e){} } : ()=>{};
     let combined = stream, dest = null;
     try{
       dest = audioCtx.createMediaStreamDestination();
@@ -404,7 +420,7 @@
     rec.ondataavailable = e=>{ if(e.data && e.data.size) chunks.push(e.data); };
     const done = new Promise(res=>{ rec.onstop = res; });
     rec.start(200);
-    drawFrame(0);
+    drawFrame(0); pushFrame();
     const LEAD = 0.4;
     /* los clacs tienen su instante precalculado; se programan con 1,5 s de antelación (no todos de golpe:
        en un vídeo de 30 s son >2.000 y saturaban el motor de audio de Safari/iOS) */
@@ -417,7 +433,7 @@
       function loop(now){
         const e = now - t0;
         scheduleUntil(e + 1500);
-        drawFrame(Math.max(0, e));
+        drawFrame(Math.max(0, e)); pushFrame();   // fotograma explícito: el grabador no puede saltarse la espera final
         onProgress(Math.min(0.98, Math.max(0, e)/TOTAL));
         if(e >= TOTAL){ res(); return; }   // fin por tiempo: coreografía + HOLD de mensaje quieto (con guiños)
         requestAnimationFrame(loop);
@@ -431,7 +447,10 @@
     const blob = new Blob(chunks, {type: mime || "video/webm"});
     const ext = (mime||"").indexOf("mp4")>=0 ? "mp4" : "webm";
     const file = new File([blob], "flappit-"+(opts.name||"story")+"."+ext, {type: blob.type});
-    return {blob, file, url: URL.createObjectURL(blob), ext};
+    const url = URL.createObjectURL(blob);
+    const durationSec = await measureDuration(url);   // duración real del fichero (para comprobar que no se pierde la cola)
+    try{ console.log("[flapvideo] pedido "+((TOTAL+400)/1000).toFixed(1)+" s · fichero "+(durationSec||"?")+" s"); }catch(e){}
+    return {blob, file, url, ext, durationSec, plannedSec: (TOTAL+400)/1000};
   }
 
   /* pista de audio renderizada fuera de tiempo real (WAV 16 bit mono): para el render fotograma a fotograma */
