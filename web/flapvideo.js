@@ -200,7 +200,7 @@
     }
     if(mark){
       ctx.fillStyle = "rgba(255,255,255,0.45)";
-      ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
+      ctx.font = `500 ${H*0.0158}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign="center"; ctx.textBaseline="bottom";
       ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
     }
@@ -364,7 +364,7 @@
         else ctx.rect(offX-m2, g.editTop-m2, innerW+2*m2, rows*g.cellH+2*m2);
         ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
       ctx.fillStyle = "rgba(255,255,255,0.45)";
-      ctx.font = `500 ${H*0.0132}px 'Helvetica Neue',Arial,sans-serif`;
+      ctx.font = `500 ${H*0.0158}px 'Helvetica Neue',Arial,sans-serif`;
       ctx.textAlign = "center"; ctx.textBaseline = "bottom";
       ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
       ctx.fillStyle = (Math.floor(e/16)%2) ? "#000000" : "#020202";   // esquina alterna (invisible): Safari solo graba fotogramas si el canvas cambia
