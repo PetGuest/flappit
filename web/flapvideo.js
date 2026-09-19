@@ -38,11 +38,16 @@
     let cellW = availW/cols, cellH = availH/rows;
     if(cellW/cellH > CELL_AR) cellW = cellH*CELL_AR;
     else cellH = cellW/CELL_AR;
-    const editTop = safeTop + (safeH - rows*cellH)/2;
-    const nTop = Math.ceil(editTop/cellH);
-    const nBot = Math.ceil((H - (editTop + rows*cellH))/cellH);
+    /* solo filas ENTERAS: el panel completo (N filas) se centra en el fotograma y el mensaje cae en la
+       fila más cercana a su sitio ideal; así nunca hay casillas cortadas arriba ni abajo */
+    const N = Math.max(rows, Math.floor((H - 2*pad)/cellH));
+    const top0 = (H - N*cellH)/2;
+    const ideal = safeTop + (safeH - rows*cellH)/2;
+    const nTop = Math.min(N - rows, Math.max(0, Math.round((ideal - top0)/cellH)));
+    const editTop = top0 + nTop*cellH;
+    const nBot = N - nTop - rows;
     return {pad, cellW, cellH, editTop, nTop, nBot,
-            top0: editTop - nTop*cellH, safeTop, safeBotY: H*(1 - REDES_SAFE_BOT)};
+            top0, safeTop, safeBotY: H*(1 - REDES_SAFE_BOT)};
   }
 
   /* ---- sonido clac-clac ---- */
