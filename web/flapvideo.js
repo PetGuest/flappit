@@ -40,7 +40,10 @@
     else cellH = cellW/CELL_AR;
     /* solo filas ENTERAS: el panel completo (N filas) se centra en el fotograma y el mensaje cae en la
        fila más cercana a su sitio ideal; así nunca hay casillas cortadas arriba ni abajo */
-    const N = Math.max(rows, Math.floor((H - 2*pad)/cellH));
+    let N = Math.max(rows, Math.floor((H - 2*pad)/cellH));
+    /* si el resto vertical permite casi otra fila, se encoge la casilla lo justo para que quepa una más
+       y el panel llene la altura entera (queda algo más de margen a los lados, que no se nota) */
+    if((H - 2*pad) - N*cellH > cellH*0.35){ N += 1; cellH = (H - 2*pad)/N; cellW = cellH*CELL_AR; }
     const top0 = (H - N*cellH)/2;
     const ideal = safeTop + (safeH - rows*cellH)/2;
     const nTop = Math.min(N - rows, Math.max(0, Math.round((ideal - top0)/cellH)));
