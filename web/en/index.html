@@ -1012,11 +1012,11 @@ function FlapBoard(canvas, cols, rows, opts){
     const pw=Math.max(2,w*0.028), ph=Math.max(9,h*0.12);
     for(const px of [fx-pw*0.6, fx+fw-pw*0.4]){
       const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
-      mg.addColorStop(0,"#8b8b90"); mg.addColorStop(0.28,"#a7a7ab"); mg.addColorStop(0.55,"#707075"); mg.addColorStop(1,"#36363b");
+      mg.addColorStop(0,"#464648"); mg.addColorStop(0.28,"#545456"); mg.addColorStop(0.55,"#38383b"); mg.addColorStop(1,"#1b1b1e");
       ctx.fillStyle=mg; ctx.beginPath();
       if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.45); else ctx.rect(px,fy+half-ph/2,pw,ph);
       ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
+      ctx.fillStyle="rgba(255,255,255,0.09)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
     }
   }
 
@@ -1045,11 +1045,11 @@ function FlapBoard(canvas, cols, rows, opts){
     const pw=Math.max(2,w*0.028), ph=Math.max(9,h*0.12);
     for(const px of [fx-pw*0.6, fx+fw-pw*0.4]){
       const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
-      mg.addColorStop(0,"#8b8b90"); mg.addColorStop(0.28,"#a7a7ab"); mg.addColorStop(0.55,"#707075"); mg.addColorStop(1,"#36363b");
+      mg.addColorStop(0,"#464648"); mg.addColorStop(0.28,"#545456"); mg.addColorStop(0.55,"#38383b"); mg.addColorStop(1,"#1b1b1e");
       ctx.fillStyle=mg; ctx.beginPath();
       if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.45); else ctx.rect(px,fy+half-ph/2,pw,ph);
       ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
+      ctx.fillStyle="rgba(255,255,255,0.09)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
     }
   }
 
