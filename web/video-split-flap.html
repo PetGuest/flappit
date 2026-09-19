@@ -191,6 +191,11 @@
         <button class="cta" id="goBtn">CREAR VÍDEO</button>
         <div class="prog" id="prog"><i></i></div>
         <div class="status" id="status"></div>
+        <p class="hint" id="crOffer" style="display:none; margin:10px 0 0; font-size:12.5px;">
+          <a href="#" id="crBuy" style="color:var(--brand); font-weight:700; text-decoration:none;">Quitar la marca FLAPPIT.COM · 4,99 €</a>
+          <span style="color:var(--muted);"> · pago único, para siempre, vídeos ilimitados · <a href="#" id="crRecover" style="color:var(--muted);">¿Ya lo compraste?</a></span>
+        </p>
+        <p class="hint" id="crOn" style="display:none; margin:10px 0 0; font-size:12.5px; color:var(--brand);">✓ Sin marca activo: tus vídeos salen sin FLAPPIT.COM.</p>
       </div>
     </div>
     <div class="prevBox">
@@ -225,7 +230,7 @@
       <details><summary>¿Sirve para TikTok, Instagram y WhatsApp?</summary><p>Sí. Es vertical 9:16 a 1080×1920, dura unos 11 segundos y respeta las zonas donde TikTok e Instagram superponen sus botones. Por WhatsApp se envía como cualquier vídeo.</p></details>
       <details><summary>¿Por qué las letras se desvelan al final?</summary><p>Es la coreografía “misterio”: el panel gira unos segundos y las letras se paran una a una en orden aleatorio, para que quien lo ve se quede hasta el final leyendo el mensaje.</p></details>
       <details><summary>¿Funciona en el móvil?</summary><p>Sí, en iPhone y Android con Safari o Chrome actualizados. En el móvil aparece además el botón Compartir para enviarlo directo a Instagram, TikTok o WhatsApp. Si tu navegador no puede grabar vídeo, te lo diremos al pulsar el botón.</p></details>
-      <details><summary>¿Puedo cambiar colores, tamaño o quitar la marca?</summary><p>Puedes elegir el color de las letras y de las paletas. La marca FLAPPIT.COM se queda en la versión gratuita; si necesitas vídeos sin marca o en otros formatos, escríbenos a hello@flappit.com.</p></details>
+      <details><summary>¿Puedo cambiar colores, tamaño o quitar la marca?</summary><p>Puedes elegir el color de las letras y de las paletas. La versión gratuita lleva la marca FLAPPIT.COM. Por 4,99 € (un solo pago, para siempre) creas todos los vídeos que quieras sin marca: pulsa “Quitar la marca” bajo el botón, paga con tarjeta y listo, sin registro. Si cambias de dispositivo, recupéralo con el email de la compra.</p></details>
       <details><summary>¿Puedo poner esto en la pantalla de mi negocio?</summary><p>Sí. Flappit es el mismo panel split-flap para la TV de una recepción, un hotel, una cafetería o un gimnasio, gestionado desde el móvil, desde 19 €/mes con 7 días de prueba gratis.</p></details>
     </div>
   </article>
@@ -247,6 +252,7 @@
       <a class="cta" id="dl" download>GUARDAR VÍDEO</a>
       <button class="cta ghost" id="share" style="display:none;">COMPARTIR</button>
     </div>
+    <p class="hint" id="crOffer2" style="display:none;"><a href="#" id="crBuy2" style="color:var(--brand); font-weight:700; text-decoration:none;">Quitar la marca FLAPPIT.COM · 4,99 € una vez, para siempre →</a></p>
     <p class="hint">Súbelo a TikTok, Reels o Stories. Si te apetece, etiqueta a <b>@flappit</b>.</p>
     <button class="cta ghost" id="again" style="width:100%; margin-top:10px;">CREAR OTRO</button>
     <p class="hint">¿Tienes un negocio? <a href="/">El mismo panel en tu TV →</a></p>
@@ -268,7 +274,7 @@
   </div>
 </footer>
 
-<script src="/flapvideo.js?v=21"></script>
+<script src="/flapvideo.js?v=22"></script>
 <script>
 (function(){
   const T = {
@@ -281,6 +287,8 @@
     ideas:[["¿ADIVINAS","EL MENSAJE?"],["FELIZ","CUMPLEAÑOS","MARÍA"],["NOS VAMOS","A ROMA","EN MAYO"],["ES NIÑA"],["SÍ","QUIERO"],["MENÚ DEL DÍA","LENTEJAS","9,50 €"],["NOS","MUDAMOS"],["HOY","NO HAY","EXCUSAS"]],
     name:"video"
   };
+  let CREATOR = false;
+  const CR = { unavailable:"Ahora mismo no se puede comprar. Inténtalo en un rato.", askEmail:"Email con el que pagaste:", sent:"Si ese email tiene la compra, te hemos enviado un enlace. Ábrelo en este dispositivo.", welcome:"✓ Listo: tus vídeos ya salen sin marca, para siempre." };
   const TXT = ["#ffffff","#D7E021","#F0C300","#E01414"], FLAP = ["#19191B","#2E2E34","#0D2F6E","#E01414"];
   const MAX = FlapVideo.MAX_ROWS, COLS = FlapVideo.COLS;
   let textColor = TXT[0], flapColor = FLAP[0];
@@ -311,7 +319,7 @@
   function refresh(){
     inputs().forEach(i=>{ i.nextSibling.textContent = i.value.length+"/"+COLS; });
     document.getElementById("addLine").disabled = inputs().length>=MAX;
-    FlapVideo.preview(prev, {lines:values(), textColor, flapColor});
+    FlapVideo.preview(prev, {lines:values(), textColor, flapColor, watermark:!CREATOR});
   }
   function swatches(id, colors, cur, set){
     const el = document.getElementById(id);
@@ -343,7 +351,7 @@
     if(!FlapVideo.canRecord()){ status.textContent = T.norec; return; }
     busy=true; goBtn.disabled=true; status.textContent=T.making; prog.style.display="block"; prog.firstElementChild.style.width="0";
     try{
-      const r = await FlapVideo.render({lines:values(), textColor, flapColor, duration, name:T.name, onProgress:p=>{ prog.firstElementChild.style.width=(p*100).toFixed(0)+"%"; }});
+      const r = await FlapVideo.render({lines:values(), textColor, flapColor, duration, name:T.name, watermark:!CREATOR, onProgress:p=>{ prog.firstElementChild.style.width=(p*100).toFixed(0)+"%"; }});
       if(url) URL.revokeObjectURL(url);
       file = r.file; url = r.url;
       status.textContent = T.done;
@@ -377,6 +385,45 @@
   document.getElementById("share").addEventListener("click", shareOrOpen);
   document.getElementById("dl").addEventListener("click", e=>{ if(IS_MOBILE){ e.preventDefault(); shareOrOpen(); } });
   if(IS_MOBILE) document.getElementById("iosHint").style.display="block";
+
+  /* ---- Flappit Creator: vídeos sin marca, 4,99 € una vez, para siempre ---- */
+  function crShow(on, available){
+    document.getElementById("crOn").style.display = on ? "block" : "none";
+    document.getElementById("crOffer").style.display = (!on && available) ? "block" : "none";
+    document.getElementById("crOffer2").style.display = (!on && available) ? "block" : "none";
+    CREATOR = on;
+    try{ FlapVideo.preview(prev, {lines:values(), textColor, flapColor, watermark:!CREATOR}); }catch(e){}
+  }
+  async function crRefresh(){
+    try{ const r = await fetch("/api/creator/me", {credentials:"same-origin"}).then(r=>r.json()); crShow(!!r.creator, !!r.available); }catch(e){}
+  }
+  async function crBuy(e){
+    e.preventDefault();
+    try{
+      const r = await fetch("/api/creator/checkout?lang=es", {credentials:"same-origin"}).then(r=>r.json());
+      if(r.url) location.href = r.url; else status.textContent = CR.unavailable;
+    }catch(err){ status.textContent = CR.unavailable; }
+  }
+  async function crRecover(e){
+    e.preventDefault();
+    const email = prompt(CR.askEmail); if(!email) return;
+    try{ await fetch("/api/creator/recover", {method:"POST", headers:{"content-type":"application/json"}, credentials:"same-origin", body:JSON.stringify({email, lang:"es"})}); }catch(err){}
+    status.textContent = CR.sent;
+  }
+  document.getElementById("crBuy").addEventListener("click", crBuy);
+  document.getElementById("crBuy2").addEventListener("click", crBuy);
+  document.getElementById("crRecover").addEventListener("click", crRecover);
+  (async ()=>{
+    const q = new URLSearchParams(location.search);
+    const cs = q.get("cs"), ct = q.get("ct");
+    if(cs && cs!=="cancel"){
+      try{ const r = await fetch("/api/creator/claim?cs="+encodeURIComponent(cs), {credentials:"same-origin"}).then(r=>r.json()); if(r.ok) status.textContent = CR.welcome; }catch(e){}
+    } else if(ct){
+      try{ const r = await fetch("/api/creator/claim-token?ct="+encodeURIComponent(ct), {credentials:"same-origin"}).then(r=>r.json()); if(r.ok) status.textContent = CR.welcome; }catch(e){}
+    }
+    if(cs || ct) history.replaceState(null, "", location.pathname);
+    crRefresh();
+  })();
 })();
 </script>
 </body>

@@ -62,6 +62,14 @@ CREATE TABLE IF NOT EXISTS screens(
   last_seen INTEGER,
   created INTEGER
 );
+CREATE TABLE IF NOT EXISTS creators(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  stripe_session TEXT UNIQUE,
+  stripe_customer TEXT,
+  created INTEGER
+);
+CREATE INDEX IF NOT EXISTS creators_email ON creators(email);
 CREATE TABLE IF NOT EXISTS resets(
   token_hash TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL,
@@ -266,10 +274,43 @@ function planFromSub(sub){
   }catch(e){}
   return null;
 }
+/* ---------- Flappit Creator: vídeos sin marca, pago único, sin cuenta ----------
+   La compra se identifica por la sesión de Stripe Checkout; al volver, el navegador recibe una cookie
+   firmada de larga duración ("cr"). En otro dispositivo se recupera por email (enlace mágico). */
+const CREATOR_TTL = 1000*60*60*24*365*10;   // 10 años ("para siempre")
+function grantCreator(sess){
+  const email = ((sess.customer_details && sess.customer_details.email) || sess.customer_email || "").toLowerCase().trim();
+  if(!email) return null;
+  try{
+    db.prepare("INSERT OR IGNORE INTO creators(email,stripe_session,stripe_customer,created) VALUES(?,?,?,?)")
+      .run(email, sess.id, sess.customer||null, now());
+  }catch(e){ console.error("creator:", e && (e.message||e)); }
+  return email;
+}
+function makeCreatorToken(email, ttl){
+  const body = Buffer.from(email).toString("base64url") + "." + (now() + ttl);
+  return body + "." + hmac("cr:"+body);
+}
+function readCreatorToken(tok){
+  if(!tok) return null;
+  const p = String(tok).split(".");
+  if(p.length!==3) return null;
+  const body = p[0]+"."+p[1];
+  if(!safeEqual(hmac("cr:"+body), p[2])) return null;
+  if(+p[1] < now()) return null;
+  try{ return Buffer.from(p[0], "base64url").toString("utf8"); }catch(e){ return null; }
+}
+function creatorEmail(req){
+  const email = readCreatorToken(getCookie(req, "cr"));
+  if(!email) return null;
+  return db.prepare("SELECT 1 FROM creators WHERE email=?").get(email) ? email : null;
+}
+
 function handleStripeEvent(event){
   const o = event.data.object;
   switch(event.type){
     case "checkout.session.completed": {
+      if(o.metadata && o.metadata.creator === "1"){ grantCreator(o); break; }   // vídeos sin marca: pago único, sin cuenta
       const uid = o.metadata && o.metadata.user_id ? +o.metadata.user_id
                 : (o.client_reference_id ? +o.client_reference_id : null);
       if(uid){
@@ -620,6 +661,69 @@ app.get("/api/subscribe", auth, async (req,res)=>{
   }catch(e){
     res.status(500).json({error:"stripe", detail:String(e.message||e)});
   }
+});
+
+/* ---- Flappit Creator (vídeos sin marca, 4,99 € una vez) ---- */
+const creatorPage = lang => lang==="en" ? "/en/split-flap-video-maker.html" : "/video-split-flap.html";
+app.get("/api/creator/me", (req,res)=>{
+  const email = creatorEmail(req);
+  res.json({creator: !!email, email: email||null, available: !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_CREATOR)});
+});
+app.get("/api/creator/checkout", rateLimit("crchk", 20, 15*60*1000), async (req,res)=>{
+  const s = stripe(), price = process.env.STRIPE_PRICE_CREATOR;
+  if(!s || !price) return res.json({url:null, note:"no-configurado"});
+  const lang = req.query.lang==="en" ? "en" : "es";
+  const base = process.env.BASE_URL || ("http://localhost:"+PORT);
+  try{
+    const session = await s.checkout.sessions.create({
+      mode:"payment",
+      line_items:[{price, quantity:1}],
+      success_url: base+creatorPage(lang)+"?cs={CHECKOUT_SESSION_ID}",
+      cancel_url: base+creatorPage(lang)+"?cs=cancel",
+      metadata:{creator:"1"},
+      locale: lang==="en" ? "en" : "es",
+      allow_promotion_codes:true
+    });
+    res.json({url:session.url});
+  }catch(e){ res.status(500).json({error:"stripe", detail:String(e.message||e)}); }
+});
+// vuelta del checkout: comprueba el pago con Stripe y deja la cookie en este navegador
+app.get("/api/creator/claim", rateLimit("crclaim", 30, 15*60*1000), async (req,res)=>{
+  const s = stripe(); const cs = String(req.query.cs||"");
+  if(!s || !/^cs_/.test(cs)) return res.status(400).json({error:"datos-invalidos"});
+  try{
+    const sess = await s.checkout.sessions.retrieve(cs);
+    if(!(sess && sess.payment_status==="paid" && sess.metadata && sess.metadata.creator==="1"))
+      return res.status(402).json({error:"no-pagado"});
+    const email = grantCreator(sess);
+    if(!email) return res.status(400).json({error:"sin-email"});
+    setCookie(res, "cr", makeCreatorToken(email, CREATOR_TTL), 60*60*24*365*10);
+    res.json({ok:true, email});
+  }catch(e){ res.status(500).json({error:"stripe", detail:String(e.message||e)}); }
+});
+// otro dispositivo: enlace mágico por email (1 hora)
+app.post("/api/creator/recover", rateLimit("crrec", 5, 15*60*1000), (req,res)=>{
+  const m = mailer();
+  if(!m) return res.status(503).json({error:"email-no-configurado"});
+  const email = ((req.body||{}).email || "").toLowerCase().trim();
+  const lang = (req.body||{}).lang === "en" ? "en" : "es";
+  if(!email || !email.includes("@")) return res.status(400).json({error:"datos-invalidos"});
+  res.json({ok:true});   // no delata si existe
+  if(!db.prepare("SELECT 1 FROM creators WHERE email=?").get(email)) return;
+  const base = process.env.BASE_URL || "https://flappit.com";
+  const link = base+creatorPage(lang)+"?ct="+encodeURIComponent(makeCreatorToken(email, 60*60*1000));
+  const subject = lang==="en" ? "Your Flappit videos without watermark" : "Tus vídeos Flappit sin marca";
+  const text = lang==="en"
+    ? "Open this link on the device where you want to make videos without the watermark (valid for 1 hour):\n"+link+"\n\nIf you didn't request it, ignore this email."
+    : "Abre este enlace en el dispositivo donde quieras crear vídeos sin marca (caduca en 1 hora):\n"+link+"\n\nSi no lo has pedido tú, ignora este correo.";
+  m.sendMail({from: process.env.MAIL_FROM || ('"Flappit" <'+process.env.SMTP_USER+'>'), to: email, subject, text})
+    .catch(e=>console.error("email creator:", e && (e.message||e)));
+});
+app.get("/api/creator/claim-token", (req,res)=>{
+  const email = readCreatorToken(String(req.query.ct||""));
+  if(!email || !db.prepare("SELECT 1 FROM creators WHERE email=?").get(email)) return res.status(400).json({error:"enlace-invalido"});
+  setCookie(res, "cr", makeCreatorToken(email, CREATOR_TTL), 60*60*24*365*10);
+  res.json({ok:true, email});
 });
 
 /* ---- stripe: portal del cliente (cambiar plan, tarjeta, cancelar) ---- */

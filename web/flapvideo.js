@@ -209,7 +209,7 @@
   function preview(canvas, opts){
     const lines = cleanLines(opts.lines);
     const W = canvas.width, H = canvas.height;
-    drawStatic(canvas.getContext("2d"), W, H, lines, opts.textColor||"#ffffff", opts.flapColor||"#19191B", true);
+    drawStatic(canvas.getContext("2d"), W, H, lines, opts.textColor||"#ffffff", opts.flapColor||"#19191B", opts.watermark !== false);
   }
 
   function plan(opts){
@@ -363,10 +363,12 @@
         if(ctx.roundRect) ctx.roundRect(offX-m2, g.editTop-m2, innerW+2*m2, rows*g.cellH+2*m2, rr);
         else ctx.rect(offX-m2, g.editTop-m2, innerW+2*m2, rows*g.cellH+2*m2);
         ctx.lineWidth=Math.max(1,g.cellW*0.03); ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.stroke(); }
-      ctx.fillStyle = "rgba(255,255,255,0.45)";
-      ctx.font = `500 ${H*0.0158}px 'Helvetica Neue',Arial,sans-serif`;
-      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-      ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      if(opts.watermark !== false){   // Flappit Creator (pago único) → sin marca
+        ctx.fillStyle = "rgba(255,255,255,0.45)";
+        ctx.font = `500 ${H*0.0158}px 'Helvetica Neue',Arial,sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+        ctx.fillText("FLAPPIT.COM", W/2, g.safeBotY - H*0.006);
+      }
       ctx.fillStyle = (Math.floor(e/16)%2) ? "#000000" : "#020202";   // esquina alterna (invisible): Safari solo graba fotogramas si el canvas cambia
       ctx.fillRect(0, 0, 3, 3);
       return {sum, active};
