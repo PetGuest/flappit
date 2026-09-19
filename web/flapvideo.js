@@ -146,7 +146,7 @@
       ctx.fillRect(fx+fw*0.04, edgeY-Math.max(1,h*0.005), fw*0.92, Math.max(1.5, h*0.012));
     }
     ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(fx,fy+half-Math.max(0.5,h*0.004),fw,Math.max(1,h*0.008));
-    const pw=Math.max(1.5,w*0.018), ph=Math.max(9,h*0.12);
+    const pw=Math.max(3,w*0.018), ph=Math.max(12,h*0.12);   // mínimo visible en 720p: si no, la compresión del vídeo se los come
     for(const px of [fx-pw*0.25, fx+fw-pw*0.75]){   // pegados al canto, sin invadir el hueco: los de dos casillas vecinas no se juntan
       const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
       mg.addColorStop(0,"#464648"); mg.addColorStop(0.28,"#545456"); mg.addColorStop(0.55,"#38383b"); mg.addColorStop(1,"#1b1b1e");
