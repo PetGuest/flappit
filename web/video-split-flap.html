@@ -192,7 +192,7 @@
         <div class="prog" id="prog"><i></i></div>
         <div class="status" id="status"></div>
         <p class="hint" id="crOffer" style="display:none; margin:10px 0 0; font-size:12.5px;">
-          <a href="#" id="crBuy" style="color:var(--brand); font-weight:700; text-decoration:none;">Quitar la marca FLAPPIT.COM · 4,99 €</a>
+          <a href="#" id="crBuy" class="small" style="display:inline-block; text-decoration:none; color:var(--brand); border:1px solid var(--brand); border-radius:999px; padding:8px 14px; font-weight:700; margin-bottom:6px;">Quitar la marca FLAPPIT.COM · 4,99 €</a>
           <span style="color:var(--muted);"> · pago único, para siempre, vídeos ilimitados · <a href="#" id="crRecover" style="color:var(--muted);">¿Ya lo compraste?</a></span>
         </p>
         <p class="hint" id="crOn" style="display:none; margin:10px 0 0; font-size:12.5px; color:var(--brand);">✓ Sin marca activo: tus vídeos salen sin FLAPPIT.COM.</p>
@@ -230,7 +230,7 @@
       <details><summary>¿Sirve para TikTok, Instagram y WhatsApp?</summary><p>Sí. Es vertical 9:16 a 1080×1920, dura unos 11 segundos y respeta las zonas donde TikTok e Instagram superponen sus botones. Por WhatsApp se envía como cualquier vídeo.</p></details>
       <details><summary>¿Por qué las letras se desvelan al final?</summary><p>Es la coreografía “misterio”: el panel gira unos segundos y las letras se paran una a una en orden aleatorio, para que quien lo ve se quede hasta el final leyendo el mensaje.</p></details>
       <details><summary>¿Funciona en el móvil?</summary><p>Sí, en iPhone y Android con Safari o Chrome actualizados. En el móvil aparece además el botón Compartir para enviarlo directo a Instagram, TikTok o WhatsApp. Si tu navegador no puede grabar vídeo, te lo diremos al pulsar el botón.</p></details>
-      <details><summary>¿Puedo cambiar colores, tamaño o quitar la marca?</summary><p>Puedes elegir el color de las letras y de las paletas. La versión gratuita lleva la marca FLAPPIT.COM. Por 4,99 € (un solo pago, para siempre) creas todos los vídeos que quieras sin marca: pulsa “Quitar la marca” bajo el botón, paga con tarjeta y listo, sin registro. Si cambias de dispositivo, recupéralo con el email de la compra.</p></details>
+      <details><summary>¿Puedo cambiar colores, tamaño o quitar la marca?</summary><p>Puedes elegir el color de las letras y de las paletas. La versión gratuita lleva la marca FLAPPIT.COM. Por 4,99 € (un solo pago, para siempre) creas todos los vídeos que quieras sin marca: <a href="#" class="crLink">pulsa aquí o en “Quitar la marca” bajo el botón</a>, paga con tarjeta y listo, sin registro. Si cambias de dispositivo, recupéralo con el email de la compra.</p></details>
       <details><summary>¿Puedo poner esto en la pantalla de mi negocio?</summary><p>Sí. Flappit es el mismo panel split-flap para la TV de una recepción, un hotel, una cafetería o un gimnasio, gestionado desde el móvil, desde 19 €/mes con 7 días de prueba gratis.</p></details>
     </div>
   </article>
@@ -252,7 +252,7 @@
       <a class="cta" id="dl" download>GUARDAR VÍDEO</a>
       <button class="cta ghost" id="share" style="display:none;">COMPARTIR</button>
     </div>
-    <p class="hint" id="crOffer2" style="display:none;"><a href="#" id="crBuy2" style="color:var(--brand); font-weight:700; text-decoration:none;">Quitar la marca FLAPPIT.COM · 4,99 € una vez, para siempre →</a></p>
+    <p class="hint" id="crOffer2" style="display:none;"><a href="#" id="crBuy2" class="small" style="display:inline-block; text-decoration:none; color:var(--brand); border:1px solid var(--brand); border-radius:999px; padding:8px 14px; font-weight:700;">Quitar la marca FLAPPIT.COM · 4,99 € una vez, para siempre →</a></p>
     <p class="hint">Súbelo a TikTok, Reels o Stories. Si te apetece, etiqueta a <b>@flappit</b>.</p>
     <button class="cta ghost" id="again" style="width:100%; margin-top:10px;">CREAR OTRO</button>
     <p class="hint">¿Tienes un negocio? <a href="/">El mismo panel en tu TV →</a></p>
@@ -412,6 +412,7 @@
   }
   document.getElementById("crBuy").addEventListener("click", crBuy);
   document.getElementById("crBuy2").addEventListener("click", crBuy);
+  document.querySelectorAll(".crLink").forEach(a=>a.addEventListener("click", crBuy));
   document.getElementById("crRecover").addEventListener("click", crRecover);
   (async ()=>{
     const q = new URLSearchParams(location.search);
