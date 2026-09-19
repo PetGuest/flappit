@@ -110,10 +110,10 @@
         ctx.fillStyle=sh; ctx.fillRect(fx,fy,fw,half);
       }
       ctx.restore();
-      if(top){ halfPath(true); ctx.lineWidth = Math.max(0.8, w*0.018);
+      if(top){ halfPath(true); ctx.lineWidth = Math.max(0.5, w*0.009);
         ctx.strokeStyle = "rgba(255,255,255,0.17)";
         ctx.stroke();
-      } else { halfPath(false); ctx.lineWidth = Math.max(0.8, w*0.018); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
+      } else { halfPath(false); ctx.lineWidth = Math.max(0.5, w*0.009); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
     }
     if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
     else{

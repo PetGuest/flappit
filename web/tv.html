@@ -186,10 +186,10 @@ function drawCellX(ctx, x, y, w, h, prevC, curC, p, flap, txtColor, weight){
       // filete claro (10% blanco) siguiendo el canto redondeado del flap superior,
       // para que cada paleta se lea como una pieza y no como una línea continua
       halfPath(true);
-      ctx.lineWidth = Math.max(0.8, w*0.018);
+      ctx.lineWidth = Math.max(0.5, w*0.009);
         ctx.strokeStyle = "rgba(255,255,255,0.17)";
         ctx.stroke();
-      } else { halfPath(false); ctx.lineWidth = Math.max(0.8, w*0.018); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
+      } else { halfPath(false); ctx.lineWidth = Math.max(0.5, w*0.009); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
   }
   if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
   else{
