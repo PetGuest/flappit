@@ -83,7 +83,7 @@
     const gap=w*0.045;
     const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
     const half=fh/2, rad=Math.max(2,w*0.08), cx=x+w/2;
-    const font=`500 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+    const font=`500 ${fh*0.80}px 'Roboto Condensed','Helvetica Neue',Arial,sans-serif`;
     function halfPath(top){
       ctx.beginPath();
       if(top){
@@ -103,14 +103,17 @@
       ctx.fill();
       ctx.save(); ctx.clip();
       ctx.fillStyle=txt; ctx.font=font; ctx.textAlign="center"; ctx.textBaseline="middle";
-      ctx.save(); ctx.translate(cx, fy+half+fh*0.02); ctx.scale(0.74, 1); ctx.fillText(ch, 0, 0); ctx.restore();
+      ctx.save(); ctx.translate(cx, fy+half+fh*0.09); ctx.scale(0.62, 1.04); ctx.fillText(ch, 0, 0); ctx.restore();
       if(top){
         const sh=ctx.createLinearGradient(0,fy,0,fy+half);
-        sh.addColorStop(0,"rgba(0,0,0,0.66)"); sh.addColorStop(0.55,"rgba(0,0,0,0.32)"); sh.addColorStop(1,"rgba(0,0,0,0.12)");
+        sh.addColorStop(0,"rgba(0,0,0,0.62)"); sh.addColorStop(0.55,"rgba(0,0,0,0.29)"); sh.addColorStop(1,"rgba(0,0,0,0.09)");
         ctx.fillStyle=sh; ctx.fillRect(fx,fy,fw,half);
       }
       ctx.restore();
-      if(top){ halfPath(true); ctx.lineWidth = Math.max(0.6, w*0.012); ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.stroke(); }
+      if(top){ halfPath(true); ctx.lineWidth = Math.max(0.8, w*0.018);
+        ctx.strokeStyle = "rgba(255,255,255,0.17)";
+        ctx.stroke();
+      } else { halfPath(false); ctx.lineWidth = Math.max(0.8, w*0.018); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
     }
     if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
     else{
@@ -137,14 +140,15 @@
       ctx.fillStyle = "rgba(255,255,255,"+(0.40*(1-ang)).toFixed(3)+")";
       ctx.fillRect(fx+fw*0.04, edgeY-Math.max(1,h*0.005), fw*0.92, Math.max(1.5, h*0.012));
     }
-    ctx.fillStyle="rgba(0,0,0,0.75)";
-    ctx.fillRect(fx,fy+half-Math.max(1,h*0.008),fw,Math.max(2,h*0.016));
-    const pw=Math.max(2,w*0.045), ph=Math.max(6,h*0.14);
-    for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
-      ctx.fillStyle="#0a0a0a"; ctx.beginPath();
-      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.4); else ctx.rect(px,fy+half-ph/2,pw,ph);
+    ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(fx,fy+half-Math.max(0.5,h*0.004),fw,Math.max(1,h*0.008));
+    const pw=Math.max(2,w*0.028), ph=Math.max(9,h*0.12);
+    for(const px of [fx-pw*0.6, fx+fw-pw*0.4]){
+      const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
+      mg.addColorStop(0,"#8b8b90"); mg.addColorStop(0.28,"#a7a7ab"); mg.addColorStop(0.55,"#707075"); mg.addColorStop(1,"#36363b");
+      ctx.fillStyle=mg; ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.45); else ctx.rect(px,fy+half-ph/2,pw,ph);
       ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+1,pw*0.28,ph-2);
+      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
     }
   }
 
@@ -197,12 +201,12 @@
   function preview(canvas, opts){
     const lines = cleanLines(opts.lines);
     const W = canvas.width, H = canvas.height;
-    drawStatic(canvas.getContext("2d"), W, H, lines, opts.textColor||"#ffffff", opts.flapColor||"#16161A", true);
+    drawStatic(canvas.getContext("2d"), W, H, lines, opts.textColor||"#ffffff", opts.flapColor||"#19191B", true);
   }
 
   function plan(opts){
     const lines = cleanLines(opts.lines);
-    const textColor = opts.textColor||"#ffffff", flapColor = opts.flapColor||"#16161A";
+    const textColor = opts.textColor||"#ffffff", flapColor = opts.flapColor||"#19191B";
     const LOW = opts.lowPower != null ? opts.lowPower : (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.hardwareConcurrency||8) <= 4);
     const W = LOW ? 720 : 1080, H = LOW ? 1280 : 1920;   // 720×1280 en móvil: mismo 9:16, TikTok lo reescala; evita frames perdidos
     const cv = document.createElement("canvas"); cv.width=W; cv.height=H;
@@ -383,6 +387,7 @@
   async function render(opts){
     if(!canRecord()) throw new Error("norecord");
     const onProgress = opts.onProgress || function(){};
+    try{ if(document.fonts) await document.fonts.load("500 20px 'Roboto Condensed'"); }catch(e){}
     const {W, H, LOW, cv, drawFrame, TOTAL, clicks} = plan(opts);
     ensureAudio();
     try{ await audioCtx.resume(); }catch(e){}   // iOS: el contexto nace suspendido; sin esto los clacs se descartaban

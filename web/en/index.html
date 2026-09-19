@@ -15,6 +15,7 @@
 <link rel="alternate" hreflang="es" href="https://flappit.com/">
 <link rel="alternate" hreflang="en" href="https://flappit.com/en">
 <link rel="alternate" hreflang="x-default" href="https://flappit.com/">
+<link rel="preload" href="/fonts/RobotoCondensed-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
@@ -34,6 +35,8 @@
 <meta name="twitter:description" content="The charm of airport split-flap boards on your reception TV. No installation. 7 days free.">
 <meta name="twitter:image" content="https://flappit.com/og-image.png?v=2">
 <style>
+@font-face{font-family:'Roboto Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/RobotoCondensed-500.woff2) format('woff2');}
+
   :root{
     --bg:#0a0a0c; --panel:#131316; --line:#26262b;
     --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2;
@@ -658,7 +661,7 @@ function click(g, dt){
 /* ---------- tablero flaps reutilizable ---------- */
 function FlapBoard(canvas, cols, rows, opts){
   const ctx = canvas.getContext("2d");
-  const flap = (opts&&opts.flap)||"#1c1c1f";
+  const flap = (opts&&opts.flap)||"#19191B";
   const txt = (opts&&opts.txt)||"#FFFFFF";
   let cells = [], grid = null, animOn = false, sumPrev = 0;
   let soundOn = false, lastTick = -999;
@@ -932,7 +935,7 @@ function FlapBoard(canvas, cols, rows, opts){
     const gap=w*0.045;
     const fx=x+gap, fy=y+gap, fw=w-2*gap, fh=h-2*gap;
     const half=fh/2, rad=Math.max(2,w*0.08), cx=x+w/2;
-    const font=`500 ${fh*0.72}px 'Helvetica Neue',Arial,sans-serif`;
+    const font=`500 ${fh*0.80}px 'Roboto Condensed','Helvetica Neue',Arial,sans-serif`;
     function halfPath(top){
       ctx.beginPath();
       if(top){
@@ -955,26 +958,26 @@ function FlapBoard(canvas, cols, rows, opts){
       ctx.fillStyle=txt;
       ctx.font=font; ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.save();
-      ctx.translate(cx, fy+half+fh*0.02);
-      ctx.scale(0.74, 1);
+      ctx.translate(cx, fy+half+fh*0.09);
+      ctx.scale(0.62, 1.04);
       ctx.fillText(ch, 0, 0);
       ctx.restore();
       if(top){
         // media sombra solo en la mitad superior (la inferior queda plana)
         const sh=ctx.createLinearGradient(0,fy,0,fy+half);
-        sh.addColorStop(0,"rgba(0,0,0,0.66)");
-        sh.addColorStop(0.55,"rgba(0,0,0,0.32)");
-        sh.addColorStop(1,"rgba(0,0,0,0.12)");
+        sh.addColorStop(0,"rgba(0,0,0,0.62)");
+        sh.addColorStop(0.55,"rgba(0,0,0,0.29)");
+        sh.addColorStop(1,"rgba(0,0,0,0.09)");
         ctx.fillStyle=sh; ctx.fillRect(fx,fy,fw,half);
       }
       ctx.restore();
       if(top){
         // filete claro (10% blanco) en el canto redondeado del flap superior
         halfPath(true);
-        ctx.lineWidth = Math.max(0.6, w*0.012);
-        ctx.strokeStyle = "rgba(255,255,255,0.10)";
+        ctx.lineWidth = Math.max(0.8, w*0.018);
+        ctx.strokeStyle = "rgba(255,255,255,0.17)";
         ctx.stroke();
-      }
+      } else { halfPath(false); ctx.lineWidth = Math.max(0.8, w*0.018); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.stroke(); }
     }
     if(p>=1){ drawHalf(true,curC,1); drawHalf(false,curC,1); }
     else{
@@ -1005,17 +1008,15 @@ function FlapBoard(canvas, cols, rows, opts){
       ctx.fillStyle = "rgba(255,255,255,"+(0.40*(1-ang)).toFixed(3)+")";
       ctx.fillRect(fx+fw*0.04, edgeY-Math.max(1,h*0.005), fw*0.92, Math.max(1.5, h*0.012));
     }
-    ctx.fillStyle="rgba(0,0,0,0.75)";
-    ctx.fillRect(fx,fy+half-Math.max(1,h*0.008),fw,Math.max(2,h*0.016));
-    const pw=Math.max(2,w*0.045), ph=Math.max(6,h*0.14);
-    for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
-      ctx.fillStyle="#0a0a0a";
-      ctx.beginPath();
-      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.4);
-      else ctx.rect(px,fy+half-ph/2,pw,ph);
+    ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(fx,fy+half-Math.max(0.5,h*0.004),fw,Math.max(1,h*0.008));
+    const pw=Math.max(2,w*0.028), ph=Math.max(9,h*0.12);
+    for(const px of [fx-pw*0.6, fx+fw-pw*0.4]){
+      const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
+      mg.addColorStop(0,"#8b8b90"); mg.addColorStop(0.28,"#a7a7ab"); mg.addColorStop(0.55,"#707075"); mg.addColorStop(1,"#36363b");
+      ctx.fillStyle=mg; ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.45); else ctx.rect(px,fy+half-ph/2,pw,ph);
       ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,0.18)";
-      ctx.fillRect(px+pw*0.25,fy+half-ph/2+1,pw*0.28,ph-2);
+      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
     }
   }
 
@@ -1034,19 +1035,21 @@ function FlapBoard(canvas, cols, rows, opts){
     ctx.clip();
     try{ ctx.drawImage(img, sxi, syi, swi, shi, fx, fy, fw, fh); }catch(e){}
     let g=ctx.createLinearGradient(0,fy,0,fy+half);
-    g.addColorStop(0,"rgba(0,0,0,0.60)"); g.addColorStop(0.6,"rgba(0,0,0,0.28)"); g.addColorStop(1,"rgba(0,0,0,0.12)");
+    g.addColorStop(0,"rgba(0,0,0,0.60)"); g.addColorStop(0.6,"rgba(0,0,0,0.28)"); g.addColorStop(1,"rgba(0,0,0,0.09)");
     ctx.fillStyle=g; ctx.fillRect(fx,fy,fw,half);
     g=ctx.createLinearGradient(0,fy+half,0,fy+fh);
     g.addColorStop(0,"rgba(255,255,255,0.12)"); g.addColorStop(0.5,"rgba(255,255,255,0)"); g.addColorStop(1,"rgba(0,0,0,0.18)");
     ctx.fillStyle=g; ctx.fillRect(fx,fy+half,fw,half);
     ctx.restore();
-    ctx.fillStyle="rgba(0,0,0,0.75)"; ctx.fillRect(fx,fy+half-Math.max(1,h*0.008),fw,Math.max(2,h*0.016));
-    const pw=Math.max(2,w*0.045), ph=Math.max(6,h*0.14);
-    for(const px of [fx-pw*0.4, fx+fw-pw*0.6]){
-      ctx.fillStyle="#0a0a0a"; ctx.beginPath();
-      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.4); else ctx.rect(px,fy+half-ph/2,pw,ph);
+    ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(fx,fy+half-Math.max(0.5,h*0.004),fw,Math.max(1,h*0.008));
+    const pw=Math.max(2,w*0.028), ph=Math.max(9,h*0.12);
+    for(const px of [fx-pw*0.6, fx+fw-pw*0.4]){
+      const mg = ctx.createLinearGradient(0,fy+half-ph/2,0,fy+half+ph/2);
+      mg.addColorStop(0,"#8b8b90"); mg.addColorStop(0.28,"#a7a7ab"); mg.addColorStop(0.55,"#707075"); mg.addColorStop(1,"#36363b");
+      ctx.fillStyle=mg; ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(px,fy+half-ph/2,pw,ph,pw*0.45); else ctx.rect(px,fy+half-ph/2,pw,ph);
       ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+1,pw*0.28,ph-2);
+      ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.fillRect(px+pw*0.25,fy+half-ph/2+ph*0.15,pw*0.5,Math.max(1,ph*0.12));
     }
   }
 

@@ -12,6 +12,7 @@
 <link rel="alternate" hreflang="es" href="https://flappit.com/video-split-flap.html">
 <link rel="alternate" hreflang="en" href="https://flappit.com/en/split-flap-video-maker.html">
 <link rel="alternate" hreflang="x-default" href="https://flappit.com/video-split-flap.html">
+<link rel="preload" href="/fonts/RobotoCondensed-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
@@ -27,6 +28,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://flappit.com/og-image.png?v=2">
 <style>
+@font-face{font-family:'Roboto Condensed';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/RobotoCondensed-500.woff2) format('woff2');}
+
   :root{ --bg:#0a0a0c; --panel:#131316; --line:#26262b; --brand:#d7e021; --text:#f4f4f0; --muted:#9a9aa2; }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth; color-scheme:dark;}
@@ -263,7 +266,7 @@
   </div>
 </footer>
 
-<script src="/flapvideo.js?v=12"></script>
+<script src="/flapvideo.js?v=13"></script>
 <script>
 (function(){
   const T = {
@@ -276,7 +279,7 @@
     ideas:[["CAN YOU","GUESS IT?"],["HAPPY","BIRTHDAY","EMMA"],["NEXT STOP","TOKYO","IN MAY"],["IT'S A","GIRL"],["I SAID","YES"],["TODAY'S","SPECIAL","BURGER 9.50"],["WE ARE","MOVING"],["NO","EXCUSES","TODAY"]],
     name:"video"
   };
-  const TXT = ["#ffffff","#D7E021","#FFD400","#E01414"], FLAP = ["#16161A","#2E2E34","#0D2F6E","#E01414"];
+  const TXT = ["#ffffff","#D7E021","#F0C300","#E01414"], FLAP = ["#19191B","#2E2E34","#0D2F6E","#E01414"];
   const MAX = FlapVideo.MAX_ROWS, COLS = FlapVideo.COLS;
   let textColor = TXT[0], flapColor = FLAP[0];
   const linesEl = document.getElementById("lines"), prev = document.getElementById("prev");
@@ -329,6 +332,7 @@
   });
   document.getElementById("addLine").addEventListener("click", ()=>{ const i = addLine(""); if(i) i.focus(); });
   ["","",""].forEach(v=>addLine(v));
+  try{ document.fonts.load("500 20px 'Roboto Condensed'").then(refresh); }catch(e){}
 
   let busy=false, file=null, url=null;
   goBtn.addEventListener("click", async ()=>{
