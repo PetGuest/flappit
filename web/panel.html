@@ -1371,6 +1371,7 @@ async function loadScreens(){
     S.messages.forEach(ensureLines);
     buildBoard();
     document.getElementById("capInfo").textContent = t("draftCap");
+    updatePubBtn();
   }
 }
 function renderPh(){
@@ -1471,7 +1472,9 @@ async function doPair(code, name){
     const r = await api("POST","/api/pair",{code, name:nm});
     document.getElementById("pairCode").value = "";
     document.getElementById("pairName").value = "";
-    await loadScreens();
+    // lista de pantallas SIN autoselección (loadScreens elegiría la primera y publicaría dos veces)
+    SCREENS = await api("GET","/api/screens");
+    renderPh();
     await selectScreen(r.id);
     pairMsg(t("pairOk").replace("{n}", r.name||nm), "ok");
     const done = toast(t("pairOk").replace("{n}", r.name||nm)); setTimeout(done, 5000);

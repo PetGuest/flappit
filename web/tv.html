@@ -833,9 +833,12 @@ function showCurrent(){
     msgIdx = nextActive(msgIdx);
     if(msgIdx < 0){
       // nada programado para esta hora: tablero en blanco (con reloj/logo si los hay)
+      const wasPhoto = (mediaMode==="photo");
       stopVideo(); mediaMode = null; plainImg = null;
       prevImg = curImg; prevImgBuf = curImgBuf; curImg = null; curImgBuf = null;
+      fromPhoto = wasPhoto;
       transition(targetsFor([], S));
+      render(performance.now()); // si no hay nada que animar, al menos se repinta (retira la foto)
       return;
     }
   }
@@ -1049,7 +1052,7 @@ function tickSound(delta, now){
 /* ---------- estado + conexión ---------- */
 function applyState(s, system){
   const rebuild = !grid || !S || s.cols!==S.cols || s.rows!==S.rows
-    || s.logoOn!==S.logoOn || s.clock!==S.clock || s.format!==S.format;
+    || s.logoOn!==S.logoOn || s.clock!==S.clock || s.format!==S.format || !!s.qr!==!!S.qr;
   S = s;
   // VÍDEO APARCADO: la TV ignora los vídeos por ahora (solo texto y foto). Así, si un estado
   // antiguo trae vídeos, no se intentan reproducir ni cuelgan la pantalla.
@@ -1164,7 +1167,10 @@ async function hello(){
     setTimeout(hello, 5000);
     return;
   }
-  if(!r || !r.token){ setTimeout(hello, 8000); return; } // respuesta inesperada (p. ej. límite de peticiones)
+  if(!r || !r.token){ // respuesta inesperada (p. ej. límite de peticiones): mientras, lo último guardado
+    if(!S){ try{ const cached = localStorage.getItem("flapsLastState"); if(cached) applyState(JSON.parse(cached)); }catch(e2){} }
+    setTimeout(hello, 8000); return;
+  }
   token = r.token;
   checkVersion(r.v);
   try{ localStorage.setItem("flapsScreenToken", token); }catch(e){}
@@ -1178,7 +1184,7 @@ async function hello(){
 function connectWS(){
   if(!token) return;
   const proto = location.protocol==="https:" ? "wss" : "ws";
-  const sock = new WebSocket(proto+"://"+location.host+"/ws?token="+encodeURIComponent(token));
+  const sock = new WebSocket(proto+"://"+location.host+"/ws?c=2&token="+encodeURIComponent(token));
   ws = sock;
   sock.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
   sock.onmessage = e=>{

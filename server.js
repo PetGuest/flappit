@@ -401,7 +401,7 @@ async function syncSubscriptionById(subId, userHint){
   const s = stripe();
   if(!s || !subId) return false;
   const sub = await s.subscriptions.retrieve(subId);
-  applySubscription(sub, userHint);
+  applySubscription(sub, userHint || userForSub(sub));
   return true;
 }
 
@@ -417,17 +417,20 @@ async function handleStripeEvent(event){
         .run(o.customer||null, o.subscription||null, uid);
       const u = db.prepare("SELECT * FROM users WHERE id=?").get(uid);
       // estado real de la suscripción (active, o trialing si se suscribió durante la prueba)
-      let synced = false;
-      try{ synced = await syncSubscriptionById(o.subscription, u); }catch(e){ console.error("checkout sync:", e.message||e); }
-      if(!synced && u){
-        db.prepare("UPDATE users SET sub_status='active' WHERE id=?").run(uid);
-        refreshUserScreens(uid);
+      try{ if(await syncSubscriptionById(o.subscription, u)) break; }
+      catch(e){
+        if(u){ db.prepare("UPDATE users SET sub_status='active' WHERE id=?").run(uid); refreshUserScreens(uid); }
+        throw e; // 500 → Stripe reintenta y corrige el estado cuando la API responda
       }
+      if(u){ db.prepare("UPDATE users SET sub_status='active' WHERE id=?").run(uid); refreshUserScreens(uid); }
       break;
     }
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted":
+      // Stripe no garantiza el orden de los eventos: se relee la suscripción para no aplicar un estado viejo
+      try{ if(await syncSubscriptionById(o.id)) break; }
+      catch(e){ applySubscription(o); throw e; }
       applySubscription(o);
       break;
     case "invoice.paid":
@@ -435,12 +438,12 @@ async function handleStripeEvent(event){
       const u = userForSub(o);
       if(!u) break;
       const subId = invoiceSubId(o) || u.stripe_sub_id;
-      let synced = false;
-      try{ synced = await syncSubscriptionById(subId, u); }catch(e){ console.error("invoice sync:", e.message||e); }
-      if(!synced){
+      try{ if(await syncSubscriptionById(subId, u)) break; }
+      catch(e){
         db.prepare("UPDATE users SET sub_status=? WHERE id=?")
           .run(event.type==="invoice.paid" ? "active" : "past_due", u.id);
         refreshUserScreens(u.id);
+        throw e;
       }
       break;
     }
@@ -954,13 +957,23 @@ function wsSend(token, msg){
 }
 
 /* envía a una pantalla lo que le toca: su contenido, o "en pausa" si la cuenta no tiene acceso */
+/* las teles con un tv.html anterior a este despliegue no conocen el mensaje "locked":
+   a esas se les manda el aviso de pausa como un estado normal (lo pintan igual) */
+const LEGACY_LOCKED_STATE = {
+  messages:[{secs:9999, lines:["","","","PANTALLA EN PAUSA","","REACTIVALA EN","FLAPPIT.COM/PANEL","","",""]}],
+  trans:3, cols:23, rows:10, align:"center", format:"16:9",
+  textColor:"#FFFFFF", flapColor:"#19191B", clock:true, sound:false, logoOn:false, logoTxt:""
+};
 function sendScreenView(ws, s){
   if(!ws || ws.readyState!==1 || !s || !s.user_id) return;
   const locked = screenLocked(s);
   ws._locked = locked;
   try{
-    if(locked) ws.send(JSON.stringify({type:"locked"}));
-    else { const st = parseState(s.state); if(st) ws.send(JSON.stringify({type:"state", state:st})); }
+    if(locked) ws.send(JSON.stringify(ws._c2 ? {type:"locked"} : {type:"state", state:LEGACY_LOCKED_STATE}));
+    else {
+      const st = parseState(s.state);
+      ws.send(JSON.stringify(st ? {type:"state", state:st} : {type:"paired"})); // vinculada sin contenido: "esperando contenido"
+    }
   }catch(e){}
 }
 /* tras un cambio de suscripción: cada pantalla del usuario se pausa o se reanuda al instante */
@@ -980,8 +993,10 @@ wss.on("connection", (ws, req)=>{
   const token = url.searchParams.get("token");
   const s = token && db.prepare("SELECT * FROM screens WHERE token=?").get(token);
   if(!s){ try{ ws.close(4001, "token-desconocido"); }catch(e){} return; } // la TV pedirá un código nuevo
+  ws._c2 = url.searchParams.get("c") === "2"; // tv.html actual (entiende locked/hello/4002)
   const prev = sockets.get(token);
-  if(prev && prev!==ws){ try{ prev.close(4002, "reemplazada"); }catch(e){} }
+  // solo se echa a la conexión anterior si es de un tv.html actual (el antiguo reconectaría en bucle)
+  if(prev && prev!==ws && prev._c2){ try{ prev.close(4002, "reemplazada"); }catch(e){} }
   sockets.set(token, ws);
   ws.isAlive = true; ws._seen = now();
   db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(ws._seen, s.id);
