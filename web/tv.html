@@ -29,9 +29,11 @@
     background:rgba(0,0,0,.55); color:#aaa; border:1px solid #333;
     border-radius:999px; padding:6px 14px; font-size:12px; cursor:pointer; display:none;}
   #net{position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%;
-    background:#c33; opacity:.7;}
-  #net.on{background:#2c2;}
+    background:#c33; opacity:.7; transition:opacity .6s;}
+  #net.on{background:#2c2; opacity:0;}   /* conectado: el punto desaparece (nada que distraiga en el lobby) */
+  body.idle, body.idle *{cursor:none !important;} /* el puntero del ratón se oculta solo */
 </style>
+<script src="/vendor/qrcode.js"></script>
 </head>
 <body>
 <canvas id="tv"></canvas>
@@ -46,7 +48,7 @@
    2) Muestra el código de vinculación en flaps hasta que el panel la reclama
    3) Recibe el estado por WebSocket y lo muestra; si cae la red, sigue con lo último */
 
-const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
+const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%/()=*\"$;";
 const LEN = CHARSET.length;
 const FLIP_ANIM = 65;
 const CELL_AR = 0.70;
@@ -64,14 +66,20 @@ const TV_LANG = (function(){ try{
 }catch(e){ return "es"; } })();
 const TVL = TV_LANG==="en" ? {
   pairLine1:"PAIRING CODE",
-  pairLine2:"ENTER IT IN YOUR PANEL",
+  pairLine2:"ENTER IT AT",
+  pairLine3:"FLAPPIT.COM/PANEL",
+  qrCaption:"OR SCAN WITH YOUR PHONE",
   fsHint:"Tap for full screen",
-  waiting:["","","PREVIEW","","WAITING FOR THE PANEL...",""]
+  waiting:["","","PREVIEW","","WAITING FOR THE PANEL...",""],
+  locked:["","","","SCREEN PAUSED","","REACTIVATE IT AT","FLAPPIT.COM/PANEL","","",""]
 } : {
   pairLine1:"CODIGO DE VINCULACION",
-  pairLine2:"ESCRIBELO EN TU PANEL",
+  pairLine2:"ESCRIBELO EN",
+  pairLine3:"FLAPPIT.COM/PANEL",
+  qrCaption:"O ESCANEA CON TU MOVIL",
   fsHint:"Toca para pantalla completa",
-  waiting:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""]
+  waiting:["","","PREVISUALIZACION","","ESPERANDO AL PANEL...",""],
+  locked:["","","","PANTALLA EN PAUSA","","REACTIVALA EN","FLAPPIT.COM/PANEL","","",""]
 };
 try{ document.getElementById("fsHint").textContent = TVL.fsHint; }catch(e){}
 
@@ -246,6 +254,9 @@ const sndBtn = document.getElementById("sndBtn");
 
 /* El código aparece DENTRO del panel (con su animación de flaps). Las 4 casillas del
    código se resaltan (fondo blanco, letra roja, peso 600) vía el marcador `hl`. */
+/* Pantalla de vinculación: tablero a la izquierda (arriba en vertical) y, al lado, un QR que
+   abre el panel en el móvil con el código ya puesto (flappit.com/panel?pair=CODE): se vincula
+   sin teclear nada. Quien prefiera, escribe el código a mano. */
 const PAIRING_STATE = (code)=>({
   messages:[{secs:9999, lines:[
     "", "FLAPPIT", "",
@@ -254,14 +265,22 @@ const PAIRING_STATE = (code)=>({
     (code||"????").split("").join(" "),   // fila 5: el código
     "",
     TVL.pairLine2,
+    TVL.pairLine3,
     "",
-    "FLAPPIT.COM",
     ""
   ]}],
   hl:{ row:5, flap:"#FFFFFF", text:"#E01414", weight:600 }, // casillas del código en blanco+rojo
-  trans:3, cols:33, rows:11, align:"center", format:"16:9",
+  qr: code ? (location.origin + "/panel?pair=" + encodeURIComponent(code)) : null,
+  trans:3, cols:23, rows:11, align:"center", format:"16:9",
   textColor:"#FFFFFF", flapColor:"#19191B",
   clock:false, sound:false, logoOn:false, logoTxt:"FLAPPIT"
+});
+/* cuenta sin suscripción activa (prueba terminada o cancelada): mensaje neutro, sin contenido */
+const LOCKED_STATE = ()=>({
+  messages:[{secs:9999, lines:TVL.locked}],
+  trans:3, cols:23, rows:10, align:"center", format:"16:9",
+  textColor:"#FFFFFF", flapColor:"#19191B",
+  clock:true, sound:false, logoOn:false, logoTxt:""
 });
 
 let S = null;
@@ -311,7 +330,13 @@ function setup(){
   const pad = Math.min(sw, sh) * 0.03;          // marco de carcasa
   const bandF = hasBand ? 1.15 : 0;             // alto de franja ≈ 1.15 celdas
   const gapF  = hasBand ? 0.4 : 0;              // separación rejilla–franja ≈ 0.4 celdas
-  const availW = sw - 2*pad, availH = sh - 2*pad;
+  // pantalla de vinculación con QR: se reserva sitio al lado (horizontal) o debajo (vertical)
+  const withQR = !!S.qr, land = sw >= sh;
+  const gapG = withQR ? Math.min(sw, sh)*0.06 : 0;       // aire entre tablero y QR
+  const qrBudgetW = withQR && land ? sw*0.25 : 0;
+  const qrBudgetH = withQR && !land ? sh*0.30 : 0;
+  const availW = sw - 2*pad - qrBudgetW - (land ? gapG : 0);
+  const availH = sh - 2*pad - qrBudgetH - (!land ? gapG : 0);
   const cellHByW = availW / (cols * CELL_AR);   // límite por ancho
   const cellHByH = availH / (rows + gapF + bandF); // límite por alto
   const cellH = Math.min(cellHByW, cellHByH);
@@ -319,9 +344,23 @@ function setup(){
   const gridW = cols * cellW, gridH = rows * cellH;
   const bandH = bandF * cellH, gapBand = gapF * cellH;
   const boardW = gridW, boardH = gridH + gapBand + bandH;
-  const offX = sx + (sw - boardW) / 2;
-  const offY = sy + (sh - boardH) / 2;
-  grid = {cols, rows, cellW, cellH, offX, offY, sx, sy, sw, sh, dpr,
+  let offX = sx + (sw - boardW) / 2;
+  let offY = sy + (sh - boardH) / 2;
+  let qr = null;
+  if(withQR){
+    if(land){
+      const size = Math.min(qrBudgetW, boardH*0.62);
+      const groupW = boardW + gapG + size;
+      offX = sx + (sw - groupW) / 2;
+      qr = {x: offX + boardW + gapG, y: offY + (boardH - size*1.16)/2, size};
+    } else {
+      const size = Math.min(sw*0.46, qrBudgetH*0.78);
+      const groupH = boardH + gapG + size*1.16;
+      offY = sy + (sh - groupH) / 2;
+      qr = {x: sx + (sw - size)/2, y: offY + boardH + gapG, size};
+    }
+  }
+  grid = {cols, rows, cellW, cellH, offX, offY, sx, sy, sw, sh, dpr, qr,
           bandH, bandX: offX, bandY: offY + gridH + gapBand, bandW: gridW};
   if(mediaMode==="video") positionVideo();
   const old = cells;
@@ -580,6 +619,43 @@ function render(now){
     if(vertical){ ctx.textAlign = "center"; ctx.fillText("FLAPPIT.COM", bx + bw/2, by+bandH/2); }
     else { ctx.textAlign = "right"; ctx.fillText("FLAPPIT.COM", bx + bw - bandH*0.4, by+bandH/2); }
   }
+  if(grid.qr && S.qr) drawQR(grid.qr);
+}
+
+/* QR de vinculación: se genera UNA vez en un lienzo aparte (barato de repintar en teles flojas) */
+let qrCache = null;
+function drawQR(q){
+  if(typeof qrcode === "undefined") return;
+  const size = Math.max(40, Math.round(q.size));
+  if(!qrCache || qrCache.url !== S.qr || qrCache.size !== size){
+    try{
+      const o = qrcode(0, "M"); o.addData(S.qr); o.make();
+      const n = o.getModuleCount(), quiet = 2, total = n + quiet*2;
+      const cv = document.createElement("canvas"); cv.width = size; cv.height = size;
+      const c = cv.getContext("2d");
+      c.fillStyle = "#ffffff";
+      const r = size*0.05;
+      c.beginPath(); if(c.roundRect) c.roundRect(0,0,size,size,r); else c.rect(0,0,size,size); c.fill();
+      c.fillStyle = "#0a0a0c";
+      for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+        if(!o.isDark(y,x)) continue;
+        const x0 = Math.round((x+quiet)*size/total), x1 = Math.round((x+quiet+1)*size/total);
+        const y0 = Math.round((y+quiet)*size/total), y1 = Math.round((y+quiet+1)*size/total);
+        c.fillRect(x0, y0, x1-x0, y1-y0);
+      }
+      qrCache = {url:S.qr, size, cv};
+    }catch(e){ qrCache = null; return; }
+  }
+  ctx.drawImage(qrCache.cv, Math.round(q.x), Math.round(q.y));
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  let fs = size*0.075;
+  ctx.font = `500 ${fs}px 'Roboto Condensed','Helvetica Neue',Arial,sans-serif`;
+  try{ ctx.letterSpacing = Math.round(size*0.01)+"px"; }catch(e){}
+  const tw = ctx.measureText(TVL.qrCaption).width;
+  if(tw > size){ fs *= size/tw; ctx.font = `500 ${fs}px 'Roboto Condensed','Helvetica Neue',Arial,sans-serif`; }
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillText(TVL.qrCaption, q.x + size/2, q.y + size + size*0.06);
+  try{ ctx.letterSpacing = "0px"; }catch(e){}
 }
 
 /* destino aleatorio para la fase de giro cuando se construye una foto */
@@ -686,9 +762,9 @@ function ensureVideoEl(){
   videoEl.addEventListener("ended", ()=>{
     if(!S) return;
     const loopOn = S.loop !== false;
-    if(S.messages.length > 1){
-      const next = (msgIdx+1) % S.messages.length;
-      if(!loopOn && next === 0){ msgIdx = 0; showCurrent(); return; } // cierra en la pantalla 1
+    if(activeList().length > 1){
+      const next = nextActive(msgIdx);
+      if(!loopOn && next <= msgIdx){ msgIdx = next; showCurrent(); return; } // cierra en el primero
       msgIdx = next; showCurrent(); scheduleRot();
     } else {
       if(loopOn){ try{ videoEl.currentTime = 0; videoEl.play(); }catch(e){} }
@@ -722,9 +798,47 @@ function stopVideo(){
   if(mediaMode==="video") mediaMode = null;
 }
 
+/* ---------- programación horaria ----------
+   Cada contenido puede llevar m.sched = {from:"07:00", to:"11:00", days:[1,2,3,4,5]} (0 = domingo).
+   Fuera de su franja no se muestra. Franjas que cruzan la medianoche (22:00–02:00) valen.
+   En la previsualización del panel se muestra todo (para poder revisar cada contenido). */
+function hmToMin(v){ const m = /^(\d{1,2}):(\d{2})$/.exec(v||""); return m ? (+m[1])*60 + (+m[2]) : null; }
+function isActive(m, d){
+  const sc = m && m.sched;
+  if(!sc || IS_PREVIEW) return true;
+  d = d || new Date();
+  if(Array.isArray(sc.days) && sc.days.length && sc.days.length < 7 && sc.days.indexOf(d.getDay()) < 0) return false;
+  const a = hmToMin(sc.from), b = hmToMin(sc.to);
+  if(a==null || b==null || a===b) return true;
+  const t = d.getHours()*60 + d.getMinutes();
+  return a < b ? (t >= a && t < b) : (t >= a || t < b);
+}
+function activeList(){
+  const d = new Date(), r = [];
+  if(S && S.messages) S.messages.forEach((m,i)=>{ if(isActive(m, d)) r.push(i); });
+  return r;
+}
+/* siguiente contenido visible ahora después de "from" (o -1 si no hay ninguno) */
+function nextActive(from){
+  const n = S.messages.length, d = new Date();
+  for(let k=1;k<=n;k++){ const i = ((from<0?-1:from)+k+n) % n; if(isActive(S.messages[i], d)) return i; }
+  return -1;
+}
+let schedSig = "";
+
 function showCurrent(){
   if(!S || !S.messages.length) return;
-  msgIdx = msgIdx % S.messages.length;
+  if(msgIdx >= 0) msgIdx = msgIdx % S.messages.length;
+  if(msgIdx < 0 || !isActive(S.messages[msgIdx])){
+    msgIdx = nextActive(msgIdx);
+    if(msgIdx < 0){
+      // nada programado para esta hora: tablero en blanco (con reloj/logo si los hay)
+      stopVideo(); mediaMode = null; plainImg = null;
+      prevImg = curImg; prevImgBuf = curImgBuf; curImg = null; curImgBuf = null;
+      transition(targetsFor([], S));
+      return;
+    }
+  }
   const m = S.messages[msgIdx];
   const wasPhoto = (mediaMode==="photo"); // veníamos de una foto plana (modo ligero)
   if(m.type==="video" && m.src){ showVideoItem(m); return; }
@@ -803,26 +917,38 @@ function transMsFor(cur){
   return Math.round(Math.max(800,(S.trans||3)*1000) * 1.7); // texto: giro + cola de suspense final
 }
 function scheduleRot(){
-  clearTimeout(rotTimer);
-  if(!S || !S.messages.length) return;
+  clearTimeout(rotTimer); rotTimer = null;
+  if(!S || !S.messages.length || msgIdx < 0) return;
   const cur = S.messages[msgIdx % S.messages.length];
   if(cur.type==="video"){ return; } // el fin del vídeo (evento "ended") controla el avance
-  if(S.messages.length <= 1) return; // una sola pantalla: nada que rotar
+  if(activeList().length <= 1) return; // un solo contenido visible: nada que rotar (el vigilante de horarios reacciona si cambia)
   // DURACIÓN = tiempo de contemplación PURO, que empieza cuando la transición ya ha concluido.
   // Tiempo total en pantalla = transición + duración (no se solapan).
   const dwellMs = Math.max(2, cur.secs || 20) * 1000;
   const waitMs  = transMsFor(cur) + dwellMs;
   const loopOn = S.loop !== false; // por defecto: loop infinito
   rotTimer = setTimeout(()=>{
-    const next = (msgIdx+1) % S.messages.length;
-    if(!loopOn && next === 0){
-      // loop apagado: cierra el ciclo volviendo a la pantalla 1 y se queda ahí
-      msgIdx = 0; showCurrent();
+    rotTimer = null;
+    const next = nextActive(msgIdx);
+    if(next < 0){ msgIdx = -1; showCurrent(); return; }
+    if(!loopOn && next <= msgIdx){
+      // loop apagado: cierra el ciclo volviendo al primer contenido y se queda ahí
+      msgIdx = next; showCurrent();
       return;
     }
     msgIdx = next; showCurrent(); scheduleRot();
   }, waitMs);
 }
+/* vigilante de horarios: al entrar o salir un contenido de su franja, la pantalla reacciona sola */
+setInterval(()=>{
+  if(!S || !S.messages || !S.messages.some(m=>m && m.sched)) return;
+  const act = activeList(), sig = act.join(",");
+  if(sig === schedSig) return;
+  schedSig = sig;
+  if(!act.length){ if(msgIdx !== -1){ clearTimeout(rotTimer); rotTimer = null; msgIdx = -1; showCurrent(); } return; }
+  if(msgIdx < 0 || act.indexOf(msgIdx) < 0){ showCurrent(); scheduleRot(); return; }
+  if(!rotTimer) scheduleRot();
+}, 20000);
 setInterval(()=>{ if(S && S.clock && !animOn) render(performance.now()); }, 30000);
 function addFlutter(){
   if(!cells.length) return;
@@ -963,15 +1089,47 @@ function applyState(s, system){
     hadContent = true;
   }
   msgIdx = 0;
+  schedSig = activeList().join(",");
   showCurrent();
   scheduleRot();
-  if(!IS_PREVIEW){
+  if(!IS_PREVIEW && !system){
     try{ localStorage.setItem("flapsLastState", JSON.stringify(s)); }catch(e){}
   }
 }
 
 let token = null, ws = null, retry = 1000;
+let pageVer = null; // versión de tv.html con la que se cargó esta página (ver servidor: TV_VERSION)
 const net = document.getElementById("net");
+const PAIRED_STATE = ()=>({
+  messages:[{secs:9999, lines:["","","","FLAPPIT","", (TV_LANG==="en" ? "SCREEN LINKED" : "PANTALLA VINCULADA"), "", (TV_LANG==="en" ? "WAITING FOR CONTENT..." : "ESPERANDO CONTENIDO..."),"","",""]}],
+  trans:2, cols:23, rows:11, align:"center", format:"16:9",
+  textColor:"#FFFFFF", flapColor:"#19191B",
+  clock:false, sound:false, logoOn:false, logoTxt:""
+});
+function showLocked(){
+  try{ localStorage.removeItem("flapsLastState"); }catch(e){} // sin acceso: no se reproduce contenido guardado
+  applyState(LOCKED_STATE(), true);
+}
+/* tras un despliegue, la versión de tv.html cambia: la pantalla se recarga sola (con un pequeño
+   retardo aleatorio para que no lleguen todas las teles a la vez) — solo si hay red */
+function checkVersion(v){
+  if(!v) return;
+  if(!pageVer){ pageVer = v; return; }
+  if(v !== pageVer) safeReload(2000 + Math.random()*20000);
+}
+function safeReload(delay){
+  setTimeout(()=>{
+    fetch("/tv", {method:"HEAD", cache:"no-store"})
+      .then(r=>{ if(r.ok) location.reload(); })
+      .catch(()=>{});
+  }, delay||0);
+}
+/* higiene para aparatos encendidos semanas: recarga diaria a las 4:xx si hay red */
+const BOOT_T = Date.now();
+setInterval(()=>{
+  if(IS_PREVIEW || Date.now() - BOOT_T < 20*3600*1000) return;
+  if(new Date().getHours() === 4) safeReload(Math.random()*30*60*1000);
+}, 30*60*1000);
 
 async function hello(){
   if(IS_PREVIEW){
@@ -984,7 +1142,7 @@ async function hello(){
       messages:[{secs:9999, lines:TVL.waiting}],
       trans:2, cols:33, rows:11, align:"center", format:"16:9",
       textColor:"#FFFFFF", flapColor:"#19191B",
-      clock:false, sound:false, logoOn:true, logoTxt:(TV_LANG==="en"?"PREVIEW - THIS IS HOW YOUR TV WILL LOOK":"PREVISUALIZACION - ASI SE VERA EN SU TV")
+      clock:false, sound:false, logoOn:true, logoTxt:(TV_LANG==="en"?"PREVIEW - THIS IS HOW YOUR TV WILL LOOK":"PREVISUALIZACION - ASI SE VERA EN TU TV")
     }, true);
     var _pt = window.opener || (window.parent !== window ? window.parent : null);
     if(_pt){ try{ _pt.postMessage({type:"previewReady"}, "*"); }catch(e){} }
@@ -1006,33 +1164,70 @@ async function hello(){
     setTimeout(hello, 5000);
     return;
   }
+  if(!r || !r.token){ setTimeout(hello, 8000); return; } // respuesta inesperada (p. ej. límite de peticiones)
   token = r.token;
+  checkVersion(r.v);
   try{ localStorage.setItem("flapsScreenToken", token); }catch(e){}
-  if(r.paired && r.state) applyState(r.state);
+  if(r.paired && r.locked) showLocked();
+  else if(r.paired && r.state) applyState(r.state);
+  else if(r.paired) applyState(PAIRED_STATE(), true);
   else applyState(PAIRING_STATE(r.code||"????"), true);
   connectWS();
 }
 
 function connectWS(){
+  if(!token) return;
   const proto = location.protocol==="https:" ? "wss" : "ws";
-  ws = new WebSocket(proto+"://"+location.host+"/ws?token="+encodeURIComponent(token));
-  ws.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
-  ws.onmessage = e=>{
+  const sock = new WebSocket(proto+"://"+location.host+"/ws?token="+encodeURIComponent(token));
+  ws = sock;
+  sock.onopen = ()=>{ net.classList.add("on"); retry = 1000; };
+  sock.onmessage = e=>{
     let m; try{ m = JSON.parse(e.data); }catch(err){ return; }
     if(m.type==="state") applyState(m.state);
-    else if(m.type==="paired"){ /* esperando primer estado */ }
+    else if(m.type==="hello") checkVersion(m.v);
+    else if(m.type==="locked") showLocked();
+    else if(m.type==="paired") applyState(PAIRED_STATE(), true);
     else if(m.type==="unpaired"){
-      try{ localStorage.removeItem("flapsScreenToken"); }catch(e2){}
-      token = null; hello();
+      try{ localStorage.removeItem("flapsScreenToken"); localStorage.removeItem("flapsLastState"); }catch(e2){}
+      token = null; ws = null; try{ sock.close(); }catch(e3){} hello();
     }
   };
-  ws.onclose = ()=>{
+  sock.onclose = (e)=>{
+    if(ws !== sock) return; // conexión antigua ya sustituida: no reabrir otra (evita bucles)
     net.classList.remove("on");
-    setTimeout(connectWS, retry);
+    if(e && e.code === 4001){ // el servidor no conoce este token (pantalla borrada): pedir código nuevo
+      try{ localStorage.removeItem("flapsScreenToken"); }catch(e2){}
+      token = null; ws = null; setTimeout(hello, 1000); return;
+    }
+    // 4002: otra pestaña/aparato usa esta misma pantalla → reintento lento para no pelearse
+    setTimeout(connectWS, e && e.code === 4002 ? 5*60*1000 : retry);
     retry = Math.min(retry*1.6, 20000);
   };
-  ws.onerror = ()=>{ try{ ws.close(); }catch(e){} };
+  sock.onerror = ()=>{ try{ sock.close(); }catch(e){} };
 }
+
+/* la pantalla no se apaga ni se atenúa mientras Flappit está abierto (Wake Lock, si el navegador lo permite) */
+let wakeLock = null;
+async function keepAwake(){
+  if(IS_PREVIEW || !("wakeLock" in navigator) || document.hidden) return;
+  try{
+    if(wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request("screen");
+  }catch(e){}
+}
+keepAwake();
+document.addEventListener("visibilitychange", keepAwake);
+document.addEventListener("click", keepAwake);
+
+/* el puntero se esconde a los 3 s sin moverse (en una tele no pinta nada) */
+let idleT = null;
+function wakeCursor(){
+  document.body.classList.remove("idle");
+  clearTimeout(idleT);
+  idleT = setTimeout(()=>document.body.classList.add("idle"), 3000);
+}
+document.addEventListener("mousemove", wakeCursor);
+wakeCursor();
 
 window.addEventListener("resize", ()=>{
   if(!S) return;

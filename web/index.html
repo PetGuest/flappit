@@ -230,18 +230,14 @@
   .billNote{text-align:center; color:var(--muted); font-size:12.5px; margin-top:-18px; margin-bottom:28px; min-height:16px;}
   .rv{opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease;}
   .rv.in{opacity:1; transform:none;}
-  #cookieBar{position:fixed; left:16px; right:16px; bottom:16px; z-index:80;
-    background:#141418; border:1px solid var(--line); border-radius:14px;
-    padding:14px 18px; display:none; gap:14px; align-items:center; flex-wrap:wrap;
-    box-shadow:0 16px 50px rgba(0,0,0,.6); max-width:640px; margin:0 auto;}
-  #cookieBar p{margin:0; font-size:13px; color:var(--muted); flex:1; min-width:220px;}
-  #cookieBar .cta{padding:9px 18px; font-size:13px;}
 
   /* movil: pares de botones CTA no se pegan (apilados y con aire) */
   @media(max-width:600px){
     .hero .cta, .finale .cta, .final .cta{ display:block; width:auto; max-width:min(340px,88%); margin:0 auto; }
     .hero .cta + .cta, .finale .cta + .cta, .final .cta + .cta{ margin:12px auto 0 !important; }
   }
+  .compat{text-align:center; color:var(--muted); font-size:13px; max-width:760px; margin:26px auto 0; line-height:1.7;}
+  .compat b{color:var(--text); font-weight:600;}
   .intent{display:flex; gap:10px; justify-content:center; margin:0 auto 26px; max-width:520px;}
   .intent a{flex:1 1 0; padding:12px 14px; border:1px solid var(--line); border-radius:14px; color:var(--text); font-weight:700; font-size:14.5px; background:var(--panel); text-decoration:none; line-height:1.25; text-align:center;}
   .intent a span{display:block; font-size:12px; color:var(--muted); font-weight:500; margin-top:3px;}
@@ -283,13 +279,16 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "¿Qué necesito comprar?", "acceptedAnswer": { "@type": "Answer", "text": "Nada, si tu televisor es Smart TV y tiene navegador. Solo tendrás que abrir Flappit en la pantalla y vincularla con tu cuenta. Si la TV es antigua, puedes usar un stick HDMI ya configurado." } },
+        { "@type": "Question", "name": "¿Qué necesito comprar?", "acceptedAnswer": { "@type": "Answer", "text": "Nada, si tu tele es Smart TV con navegador: abres flappit.com/tv, escaneas el QR con el móvil y listo. Si no tiene navegador, basta un stick HDMI tipo Fire TV Stick (desde unos 30 €). Un ordenador o una tablet conectados a la tele también sirven." } },
         { "@type": "Question", "name": "¿Quién lo maneja en el día a día?", "acceptedAnswer": { "@type": "Answer", "text": "Cualquier persona del equipo. Desde recepción pueden escribir mensajes, cambiar contenidos o programar una secuencia desde el móvil o el ordenador." } },
         { "@type": "Question", "name": "¿Necesito un técnico?", "acceptedAnswer": { "@type": "Answer", "text": "No. Flappit está pensado para que lo pueda activar cualquier equipo de hotel o negocio sin conocimientos técnicos." } },
         { "@type": "Question", "name": "¿Qué pasa si se corta internet?", "acceptedAnswer": { "@type": "Answer", "text": "La pantalla mantiene el último contenido guardado y se reconecta automáticamente cuando vuelve la conexión. No se queda en negro." } },
         { "@type": "Question", "name": "¿Puedo usar mi logo y mis colores?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Puedes personalizar la franja de marca, los colores del panel, el logo y otros elementos visuales para que encaje con la identidad de tu negocio." } },
         { "@type": "Question", "name": "¿Funciona en pantallas verticales?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Flappit funciona en pantallas horizontales y verticales, como televisores de lobby o tótems de recepción." } },
-        { "@type": "Question", "name": "¿Hay permanencia?", "acceptedAnswer": { "@type": "Answer", "text": "No. La suscripción es mensual, los primeros 7 días son gratis y puedes cancelar cuando quieras con 2 clics." } }
+        { "@type": "Question", "name": "¿Puedo programar mensajes por horario?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Cada mensaje o foto puede tener su franja y sus días: el desayuno de 7 a 11, el menú a mediodía, el happy hour por la tarde. La pantalla los muestra solos, a su hora." } },
+        { "@type": "Question", "name": "¿Hay permanencia?", "acceptedAnswer": { "@type": "Answer", "text": "No. Pagas mes a mes (o al año, con un 20 % de descuento) y cancelas cuando quieras desde el panel." } },
+        { "@type": "Question", "name": "¿Qué pasa cuando termina la prueba?", "acceptedAnswer": { "@type": "Answer", "text": "Nunca cobramos sin que elijas un plan. Si no te suscribes, tus pantallas se ponen en pausa y conservas todo tu contenido. En cuanto eliges plan, vuelven a emitir al instante." } },
+        { "@type": "Question", "name": "¿Emitís factura?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Al suscribirte indicas el nombre de tu empresa y tu NIF/CIF, y tienes todas tus facturas (IVA incluido) en el panel, en «Gestionar suscripción»." } }
       ]
     }
   ]
@@ -322,16 +321,16 @@
     </div>
     <h1>Convierte cualquier pantalla en un<br><em>panel informativo espectacular.</em></h1>
     <p style="color:var(--text); font-weight:600; font-size:clamp(14px,1.8vw,17px); letter-spacing:.2px; max-width:none; margin:0 auto 14px;">Mensajes que giran. Miradas que se quedan. Un espacio con más magia.</p>
-    <p>Flappit lleva el encanto de los antiguos paneles de aeropuerto a la televisión que ya tienes en tu lobby. Escribe desde el móvil de recepción y el mensaje aparece al instante, girando letra a letra, con su clac-clac inconfundible.<br><b style="color:var(--text);">Sin instalación. Sin obras. Sin técnico.</b></p>
+    <p>El encanto de los paneles de aeropuerto, en la tele que ya tienes en recepción. Escribe desde el móvil y el mensaje aparece al instante, girando letra a letra, con su clac-clac.<br><b style="color:var(--text);">Sin instalación. Sin obras. Sin técnico.</b></p>
     <button class="cta" onclick="location.href='#try'">Escribir mi primer mensaje</button>
     <button class="cta ghost" style="margin-left:10px;" onclick="location.href='#how'">Ver cómo funciona</button>
     <div class="heroBoard"><div class="tvFrame"><canvas id="heroCv" role="img" aria-label="Demostración animada de un panel split-flap con mensajes de hotel"></canvas></div></div>
     <div class="sndRow"><button id="heroSnd">Activar sonido</button></div>
     <div class="trust">
       <span><b>7 días</b> gratis</span>
+      <span><b>Sin</b> tarjeta</span>
       <span><b>Sin</b> permanencia</span>
       <span>Cualquier <b>Smart TV</b></span>
-      <span>Cancela con <b>2 clics</b></span>
     </div>
   </div>
 
@@ -377,20 +376,21 @@
       <div class="step">
         <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
         <div class="k">PASO 1</div><h3>Abre Flappit en tu TV</h3>
-        <p>Entra en flappit.com desde el navegador de tu Smart TV. ¿La pantalla es antigua? Puedes usar un stick HDMI ya preparado: enchufar y listo.</p>
+        <p>Entra en flappit.com/tv desde el navegador de tu Smart TV. ¿Tu tele no tiene navegador? Un stick HDMI tipo Fire TV Stick lo resuelve: enchufar y listo.</p>
       </div>
       <div class="step">
         <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5-5"/><path d="M11 6.5l1-1a4 4 0 0 1 5.7 5.7l-1 1"/><path d="M13 17.5l-1 1a4 4 0 0 1-5.7-5.7l1-1"/></svg></div>
-        <div class="k">PASO 2</div><h3>Vincula la pantalla</h3>
-        <p>La TV muestra un código de 4 letras. Escríbelo en tu panel de control y la pantalla queda conectada.</p>
+        <div class="k">PASO 2</div><h3>Vincúlala con el móvil</h3>
+        <p>La tele muestra un código QR. Escanéalo con el móvil (o escribe su código de 4 letras en el panel) y queda conectada.</p>
       </div>
       <div class="step">
         <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
         <div class="k">PASO 3</div><h3>Publica tu contenido</h3>
-        <p>Escribe mensajes y sube fotos. Ordena la secuencia y decide cuánto dura cada contenido. Todo aparece en pantalla al instante.</p>
+        <p>Escribe mensajes, elige una plantilla o sube fotos. Programa cada uno a su hora: el desayuno por la mañana, el happy hour por la tarde.</p>
       </div>
     </div>
-    <p style="text-align:center; margin-top:24px;"><a href="instalacion.html">Ver instalación paso a paso →</a></p>
+    <p class="compat">Funciona con <b>Smart TV con navegador</b> · <b>Fire TV Stick</b> · <b>Android TV</b> · <b>ordenador o tablet por HDMI</b> · <b>tótems verticales</b></p>
+    <p style="text-align:center; margin-top:14px;"><a href="/instalacion.html">Ver instalación paso a paso →</a></p>
   </section>
 </div>
 
@@ -413,7 +413,7 @@
 <div class="wrap">
   <section id="content">
     <h2><em>Mucho más</em> que un cartel bonito.</h2>
-    <p class="sub">Flappit convierte tu pantalla en un punto de atención vivo. Puedes mostrar mensajes y fotografías en una secuencia programada, cambiarlos cuando quieras y mantener siempre el lobby actualizado.</p>
+    <p class="sub">Flappit convierte tu pantalla en un punto de atención vivo. Muestra mensajes y fotos en secuencia, prográmalos por horas y cámbialos cuando quieras.</p>
     <div class="ctypes">
       <div class="ctype">
         <div class="ci" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="13" rx="2"/><path d="M3 9h18"/><path d="M8 4.5v13M16 4.5v13"/></svg></div>
@@ -428,7 +428,7 @@
         <div style="font-family:ui-monospace,monospace;font-size:12px;color:var(--brand);letter-spacing:1px;margin-top:12px;">SPA ABIERTO HASTA LAS 21H</div>
       </div>
     </div>
-    <p class="sub" style="max-width:740px; margin:26px auto 0;">Combina mensajes y fotos en bucle. Cambia la secuencia desde el panel cuando lo necesites, sin tocar la televisión.</p>
+    <p class="sub" style="max-width:740px; margin:26px auto 0;">Combina mensajes y fotos en bucle, cada uno con su horario. Todo se cambia desde el panel, sin tocar la televisión.</p>
   </section>
 
   <section>
@@ -448,20 +448,20 @@
     <h2>Todo lo que necesitas. <em>Nada que instalar.</em></h2>
     <div class="featTicker"><canvas id="featCv" role="img" aria-label="Ticker split-flap con los nombres de las funciones"></canvas></div>
     <div class="feats">
-      <div class="feat"><div class="dot"></div><div><b>Sin instalación</b><span>Abre una web en tu TV. Sin obras, sin cables nuevos y sin esperar a un técnico.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Control desde recepción</b><span>Tu equipo puede cambiar mensajes desde el móvil o el ordenador, de forma sencilla y sin formación técnica.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Mensajes y fotos</b><span>Combina texto split-flap y fotografías en la misma pantalla. Tú decides el orden, la duración y el estilo.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Tu marca siempre presente</b><span>Añade tu logo, tus colores corporativos y un reloj en tiempo real para integrar Flappit en la estética de tu negocio.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Clac-clac auténtico</b><span>El sonido de los paneles clásicos de aeropuerto. Puedes activarlo, bajarlo o dejarlo en silencio.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Preparado para cortes</b><span>Si se interrumpe la conexión, Flappit mantiene en pantalla el último contenido guardado. Tu pantalla no se queda en negro.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Horizontal o vertical</b><span>Funciona en televisores de lobby y en tótems verticales. El panel se adapta al formato de tu pantalla.</span></div></div>
-      <div class="feat"><div class="dot"></div><div><b>Secuencias a tu ritmo</b><span>Transiciones rápidas para informar o giros más teatrales para crear efecto sorpresa.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Sin instalación</b><span>Abre una web en tu tele. Sin obras, sin cables nuevos y sin esperar a un técnico.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Control desde el móvil</b><span>Cualquiera del equipo cambia los mensajes desde el móvil o el ordenador. Sin formación.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Programación por horas</b><span>Cada mensaje sale en su franja: el desayuno de 7 a 11, el menú a mediodía, el happy hour por la tarde.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Plantillas listas</b><span>Bienvenidas, menús, clases, turnos y ofertas para hotel, restaurante, gimnasio, clínica o tienda. Eliges, editas y listo.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Tu marca siempre presente</b><span>Tu logo, tus colores y un reloj en tiempo real, integrados en la estética de tu negocio.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Clac-clac auténtico</b><span>El sonido de los paneles clásicos de aeropuerto. Actívalo o déjalo en silencio.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Preparado para cortes</b><span>Si se cae la conexión, la pantalla sigue mostrando lo último. Nunca se queda en negro.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Horizontal o vertical</b><span>Televisores de lobby o tótems verticales: el panel se adapta al formato de tu pantalla.</span></div></div>
     </div>
   </section>
 
   <section id="prices">
     <h2>Precios sencillos. <em>Magia desde el primer día.</em></h2>
-    <p class="sub">Empieza con 7 días de prueba gratis, sin tarjeta. Sin permanencia: cancela cuando quieras con 2 clics.</p>
+    <p class="sub">7 días gratis, sin tarjeta. Sin permanencia: cancelas cuando quieras desde el panel.</p>
     <div class="billing">
       <button class="on" data-b="m">Mensual</button>
       <button data-b="y">Anual −20%</button>
@@ -471,11 +471,11 @@
       <div class="price">
         <div class="tag">Prueba gratis</div>
         <div class="amt"><span>0€</span><small>/7 días</small></div>
-        <p style="color:var(--muted); font-size:13px; margin:6px 0 0;">Prueba Flappit completo, sin tarjeta, durante 7 días.</p>
+        <p style="color:var(--muted); font-size:13px; margin:6px 0 0;">Flappit completo durante 7 días. Sin tarjeta.</p>
         <ul>
           <li>Todas las funciones</li>
-          <li>1 pantalla</li>
-          <li>Mensajes y fotos</li>
+          <li>Hasta 3 pantallas</li>
+          <li>Plantillas y horarios</li>
           <li>Tu logo y colores</li>
           <li>Sin tarjeta ni permanencia</li>
         </ul>
@@ -488,11 +488,11 @@
         <ul>
           <li>1 pantalla vinculada</li>
           <li>Panel de control a medida</li>
-          <li>Contenidos ilimitados</li>
+          <li>Plantillas y programación por horas</li>
           <li>Logo y colores de tu marca</li>
           <li>Soporte por email</li>
         </ul>
-        <button class="cta ghost" onclick="goPlan('uno')">Suscribirse</button>
+        <button class="cta ghost" onclick="goPlan('uno')">Probar 7 días gratis</button>
       </div>
       <div class="price hot">
         <div><span class="hotTag">EL MÁS ELEGIDO</span></div>
@@ -506,11 +506,11 @@
           <li>Stick preconfigurado incluido</li>
           <li>Soporte prioritario</li>
         </ul>
-        <button class="cta" onclick="goPlan('tres')">Suscribirse</button>
+        <button class="cta" onclick="goPlan('tres')">Probar 7 días gratis</button>
       </div>
       <div class="price">
         <div class="tag">Cadenas y grupos</div>
-        <div class="amt">Hablemos</div>
+        <div class="amt" style="font-size:32px;">Hablemos</div>
         <p style="color:var(--muted); font-size:13px; margin:6px 0 0;">Para grupos hoteleros, varias sedes, campañas patrocinadas o despliegues personalizados.</p>
         <ul>
           <li>Pantallas ilimitadas</li>
@@ -527,7 +527,7 @@
   <section id="faq">
     <h2>Preguntas frecuentes</h2>
     <details><summary>¿Qué necesito comprar?</summary>
-      <p>Nada, si tu televisor es Smart TV y tiene navegador. Solo tendrás que abrir Flappit en la pantalla y vincularla con tu cuenta. Si la TV es antigua, puedes usar un stick HDMI ya configurado.</p></details>
+      <p>Nada, si tu tele es Smart TV con navegador: abres flappit.com/tv, escaneas el QR con el móvil y listo. Si no tiene navegador, basta un stick HDMI tipo Fire TV Stick (desde unos 30 €). Un ordenador o una tablet conectados a la tele también sirven.</p></details>
     <details><summary>¿Quién lo maneja en el día a día?</summary>
       <p>Cualquier persona del equipo. Desde recepción pueden escribir mensajes, cambiar contenidos o programar una secuencia desde el móvil o el ordenador.</p></details>
     <details><summary>¿Necesito un técnico?</summary>
@@ -538,8 +538,14 @@
       <p>Sí. Puedes personalizar la franja de marca, los colores del panel, el logo y otros elementos visuales para que encaje con la identidad de tu negocio.</p></details>
     <details><summary>¿Funciona en pantallas verticales?</summary>
       <p>Sí. Flappit funciona en pantallas horizontales y verticales, como televisores de lobby o tótems de recepción.</p></details>
+    <details><summary>¿Puedo programar mensajes por horario?</summary>
+      <p>Sí. Cada mensaje o foto puede tener su franja y sus días: el desayuno de 7 a 11, el menú a mediodía, el happy hour por la tarde. La pantalla los muestra solos, a su hora.</p></details>
     <details><summary>¿Hay permanencia?</summary>
-      <p>No. La suscripción es mensual, los primeros 7 días son gratis y puedes cancelar cuando quieras con 2 clics.</p></details>
+      <p>No. Pagas mes a mes (o al año, con un 20 % de descuento) y cancelas cuando quieras desde el panel.</p></details>
+    <details><summary>¿Qué pasa cuando termina la prueba?</summary>
+      <p>Nunca cobramos sin que elijas un plan. Si no te suscribes, tus pantallas se ponen en pausa y conservas todo tu contenido. En cuanto eliges plan, vuelven a emitir al instante.</p></details>
+    <details><summary>¿Emitís factura?</summary>
+      <p>Sí. Al suscribirte indicas el nombre de tu empresa y tu NIF/CIF, y tienes todas tus facturas (IVA incluido) en el panel, en «Gestionar suscripción».</p></details>
   </section>
 
   <div class="finale">
@@ -578,14 +584,10 @@
   </div>
 </div>
 
-<div id="cookieBar">
-  <p>Usamos únicamente cookies y almacenamiento técnico imprescindible para que la web funcione. Sin rastreo y sin publicidad. <a href="legal.html#cookies">Más info</a>.</p>
-  <button class="cta" id="cookieOk">Entendido</button>
-</div>
 
 <script>
 "use strict";
-const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
+const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%/()=*\"$;";
 const LEN = CHARSET.length;
 const FLIP_ANIM = 65;
 const CELL_AR = 0.70;
@@ -1224,8 +1226,8 @@ setInterval(()=>{
 /* ---------- features: ticker de flaps sincronizado ---------- */
 const featB = FlapBoard(document.getElementById("featCv"), 18, 1);
 const featCards = [...document.querySelectorAll(".feat")];
-const FEAT_NAMES = ["SIN INSTALACION","DESDE EL MOVIL","MULTI PANTALLA","TU MARCA Y LOGO",
-                    "SONIDO REAL","ANTI CORTES","GIRO VERTICAL","MODO TEATRO"];
+const FEAT_NAMES = ["SIN INSTALACION","DESDE EL MOVIL","POR HORARIOS","PLANTILLAS",
+                    "TU MARCA Y LOGO","SONIDO REAL","ANTI CORTES","GIRO VERTICAL"];
 let featIdx = -1;
 function nextFeat(){
   if(!cvOn("featCv")) return;
@@ -1250,8 +1252,8 @@ document.querySelectorAll("section h2, section .sub, .step, .ctype, .price, deta
   .forEach((el,i)=>{ el.classList.add("rv"); el.dataset.i = i%3; io.observe(el); });
 
 /* precios: mensual / anual */
-const PRICES = {m:{p1:"19€", p3:"39€", note:"Precios con IVA incluido."},
-                y:{p1:"15€", p3:"31€", note:"Facturado anualmente: 180€ y 372€ al año. Dos meses y pico gratis. Precios con IVA incluido."}};
+const PRICES = {m:{p1:"19€", p3:"39€", note:"IVA incluido · Factura con los datos de tu empresa."},
+                y:{p1:"15€", p3:"31€", note:"Pago anual: 180 € y 372 € al año (ahorras 48 € y 96 €). IVA incluido."}};
 let bill = "m";
 document.querySelectorAll(".billing button").forEach(b=>{
   b.addEventListener("click", ()=>{
@@ -1267,16 +1269,6 @@ function goPlan(plan){
   location.href = "/panel?plan="+plan+"&bill="+bill;
 }
 
-/* cookies (solo técnicas) */
-try{
-  if(!localStorage.getItem("flapsCookiesOk")){
-    document.getElementById("cookieBar").style.display = "flex";
-  }
-  document.getElementById("cookieOk").addEventListener("click", ()=>{
-    localStorage.setItem("flapsCookiesOk","1");
-    document.getElementById("cookieBar").style.display = "none";
-  });
-}catch(e){}
 </script>
 <script>
 (function(){var b=document.getElementById("navBurger"),l=document.querySelector("nav .links");

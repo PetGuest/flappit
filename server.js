@@ -35,6 +35,12 @@ const MEDIA_MAX = (+process.env.MEDIA_MAX_MB || 250) * 1024 * 1024;
 const MEDIA_EXT = ["mp4","webm","mov","m4v","ogg","ogv","png","jpg","jpeg","gif","webp"];
 const TRIAL_DAYS = 7;
 const PLAN_LIMITS = { uno: 1, tres: 3, cadena: 99 };
+/* versión de la página de la TV: si cambia tras un despliegue, las pantallas se recargan solas
+   al reconectar (así ninguna tele se queda para siempre con un tv.html antiguo) */
+const TV_VERSION = (()=>{
+  try{ return crypto.createHash("sha1").update(fs.readFileSync(path.join(__dirname,"web","tv.html"))).digest("hex").slice(0,12); }
+  catch(e){ return String(Date.now()); }
+})();
 
 /* ---------- base de datos ---------- */
 const db = new Database(DB_FILE);
@@ -84,6 +90,9 @@ CREATE TABLE IF NOT EXISTS resets(
   addCol("stripe_sub_id", "TEXT");
   addCol("current_period_end", "INTEGER");
   addCol("is_admin", "INTEGER DEFAULT 0");
+  addCol("cancel_at", "INTEGER");            // fecha en que se cancelará la suscripción (si el cliente la canceló)
+  addCol("lang", "TEXT DEFAULT 'es'");       // idioma de los correos
+  addCol("mail_sent", "TEXT DEFAULT ''");    // correos de ciclo de vida ya enviados (welcome,t2,t0)
 }
 // concede permiso de administrador a la cuenta propietaria (idempotente en cada arranque)
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "marcel@petguest.eu").toLowerCase().trim();
@@ -98,32 +107,67 @@ function stripe(){
   return _stripe;
 }
 
-/* ---------- email (SMTP, para recuperación de contraseña) ----------
-   Se configura con SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS (+ MAIL_FROM opcional).
-   Con DonDominio: SMTP_HOST=mailsrv1.dondominio.com, SMTP_PORT=465, SMTP_USER=hello@flappit.com.
-   Si no está configurado, /api/forgot responde 503 y el panel muestra el email de contacto. */
-let _mailer = null;
-function mailer(){
-  if(!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
-  if(!_mailer){
+/* ---------- email (recuperación de contraseña, bienvenida y avisos de la prueba) ----------
+   Dos vías, la primera que esté configurada:
+   1) RESEND_API_KEY → API HTTPS de Resend (funciona en Railway Hobby, que bloquea el SMTP saliente).
+      Requiere verificar el dominio flappit.com en Resend (3 registros DNS en DonDominio).
+   2) SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS → nodemailer (solo en planes con SMTP abierto).
+   MAIL_FROM opcional (por defecto "Flappit" <hello@flappit.com>).
+   Si no hay ninguna, /api/forgot responde 503 y el panel muestra el email de contacto. */
+let _smtp = null;
+function mailReady(){
+  return !!(process.env.RESEND_API_KEY
+    || (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS));
+}
+function mailFrom(){
+  return process.env.MAIL_FROM || ('"Flappit" <'+(process.env.SMTP_USER || "hello@flappit.com")+'>');
+}
+async function sendMail({to, subject, text}){
+  if(process.env.RESEND_API_KEY){
+    const r = await fetch("https://api.resend.com/emails", {
+      method:"POST",
+      headers:{ "Authorization":"Bearer "+process.env.RESEND_API_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ from: mailFrom(), to:[to], subject, text, reply_to:"hello@flappit.com" })
+    });
+    if(!r.ok) throw new Error("resend "+r.status+" "+(await r.text().catch(()=>"")).slice(0,200));
+    return;
+  }
+  if(!_smtp){
     const port = +process.env.SMTP_PORT || 465;
-    _mailer = require("nodemailer").createTransport({
+    _smtp = require("nodemailer").createTransport({
       host: process.env.SMTP_HOST, port, secure: port === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
     });
   }
-  return _mailer;
+  await _smtp.sendMail({ from: mailFrom(), to, subject, text });
+}
+function sendMailQuiet(msg, what){
+  if(!mailReady()) return;
+  sendMail(msg).catch(e=>console.error("email "+(what||"")+":", e && (e.message||e)));
 }
 
 /* ---------- utilidades ---------- */
 const now = () => Date.now();
-// ¿el usuario tiene acceso ahora mismo? (suscripción activa, o prueba vigente)
+/* ¿el usuario tiene acceso ahora mismo?
+   - suscripción activa o en periodo de prueba de Stripe
+   - pago pendiente (past_due): cortesía mientras Stripe reintenta el cobro (un hotel no debe
+     quedarse con la pantalla en pausa por una tarjeta caducada; el panel avisa para que la cambie)
+   - prueba gratuita vigente, sea cual sea el estado (si el primer pago queda "incomplete",
+     no pierde los días de prueba que le quedan)
+   - administradores: siempre (demos comerciales) */
+const PAID_STATUSES = ["active", "trialing", "past_due"];
 function entitled(u){
   if(!u) return false;
-  if(u.sub_status==="active" || u.sub_status==="trialing") return true;
-  if(u.sub_status==="trial" && u.trial_until && u.trial_until > now()) return true;
+  if(u.is_admin) return true;
+  if(PAID_STATUSES.includes(u.sub_status)) return true;
+  if(u.trial_until && u.trial_until > now()) return true;
   return false;
 }
+function parseState(json){
+  if(!json) return null;
+  try{ return JSON.parse(json); }catch(e){ return null; }
+}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const hash = (pass, salt) => crypto.scryptSync(pass, salt, 64).toString("hex");
 const hmac = (s) => crypto.createHmac("sha256", SECRET).update(s).digest("hex");
 /* comparación en tiempo constante (evita ataques de temporización sobre firmas/hashes) */
@@ -210,9 +254,14 @@ setInterval(()=>{ // purga de cubos caducados y de tokens de reset vencidos
   rlBuckets.forEach((b,k)=>{ if(b.reset<t) rlBuckets.delete(k); });
   try{ db.prepare("DELETE FROM resets WHERE expires<?").run(t); }catch(e){}
 }, 60000).unref();
+/* pantallas sin vincular que llevan 3 días sin dar señal: fuera (cada visita a /tv crea una) */
+setInterval(()=>{
+  try{ db.prepare("DELETE FROM screens WHERE user_id IS NULL AND last_seen<?").run(Date.now()-3*86400000); }catch(e){}
+}, 60*60*1000).unref();
 
 /* ---------- app ---------- */
 const app = express();
+app.disable("x-powered-by");
 
 /* cabeceras de seguridad en todas las respuestas */
 app.use((req, res, next)=>{
@@ -255,9 +304,14 @@ app.post("/api/stripe/webhook", express.raw({type:"application/json"}), (req,res
   }catch(err){
     return res.status(400).send("firma-invalida");
   }
-  try{ handleStripeEvent(event); }
-  catch(e){ console.error("stripe webhook:", e); }
-  res.json({received:true});
+  Promise.resolve()
+    .then(()=>handleStripeEvent(event))
+    .then(()=>res.json({received:true}))
+    .catch(e=>{
+      // 500 → Stripe reintenta la entrega (fallos transitorios, p. ej. la API de Stripe no respondió)
+      console.error("stripe webhook", event.type, "-", e && (e.stack||e));
+      res.status(500).json({error:"webhook"});
+    });
 });
 
 function userForSub(o){
@@ -306,44 +360,88 @@ function creatorEmail(req){
   return db.prepare("SELECT 1 FROM creators WHERE email=?").get(email) ? email : null;
 }
 
-function handleStripeEvent(event){
+/* Fin del periodo actual. Desde la API 2025-03-31 ("basil") Stripe lo mueve de la suscripción
+   a cada línea (items.data[].current_period_end): se leen ambos sitios. */
+function subPeriodEnd(sub){
+  const top = sub && sub.current_period_end;
+  const it = sub && sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].current_period_end;
+  const v = top || it || 0;
+  return v ? v*1000 : null;
+}
+function subCancelAt(sub){
+  if(!sub) return null;
+  if(sub.cancel_at) return sub.cancel_at*1000;
+  if(sub.cancel_at_period_end) return subPeriodEnd(sub);
+  return null;
+}
+/* id de suscripción de una factura (API antigua: invoice.subscription; nueva: invoice.parent...) */
+function invoiceSubId(inv){
+  if(!inv) return null;
+  if(typeof inv.subscription === "string") return inv.subscription;
+  if(inv.subscription && inv.subscription.id) return inv.subscription.id;
+  const p = inv.parent && inv.parent.subscription_details && inv.parent.subscription_details.subscription;
+  if(p) return typeof p === "string" ? p : p.id;
+  return null;
+}
+/* vuelca el estado real de una suscripción de Stripe en el usuario y avisa a sus pantallas */
+function applySubscription(sub, userHint){
+  const u = userHint || userForSub(sub);
+  if(!u) return;
+  const status = sub.status;
+  // un evento tardío de una suscripción ANTERIOR (cancelada) no pisa la vigente
+  if(u.stripe_sub_id && u.stripe_sub_id!==sub.id && ["canceled","incomplete","incomplete_expired"].includes(status)) return;
+  db.prepare(`UPDATE users SET sub_status=?,
+              stripe_customer_id=COALESCE(?,stripe_customer_id),
+              stripe_sub_id=?, current_period_end=?, cancel_at=?, plan=COALESCE(?,plan) WHERE id=?`)
+    .run(status, (typeof sub.customer==="string" ? sub.customer : (sub.customer && sub.customer.id)) || null,
+         sub.id, subPeriodEnd(sub), status==="canceled" ? null : subCancelAt(sub), planFromSub(sub), u.id);
+  refreshUserScreens(u.id);
+}
+async function syncSubscriptionById(subId, userHint){
+  const s = stripe();
+  if(!s || !subId) return false;
+  const sub = await s.subscriptions.retrieve(subId);
+  applySubscription(sub, userHint);
+  return true;
+}
+
+async function handleStripeEvent(event){
   const o = event.data.object;
   switch(event.type){
     case "checkout.session.completed": {
       if(o.metadata && o.metadata.creator === "1"){ grantCreator(o); break; }   // vídeos sin marca: pago único, sin cuenta
       const uid = o.metadata && o.metadata.user_id ? +o.metadata.user_id
                 : (o.client_reference_id ? +o.client_reference_id : null);
-      if(uid){
-        db.prepare("UPDATE users SET stripe_customer_id=?, stripe_sub_id=?, sub_status='active' WHERE id=?")
-          .run(o.customer||null, o.subscription||null, uid);
+      if(!uid) break;
+      db.prepare("UPDATE users SET stripe_customer_id=COALESCE(?,stripe_customer_id), stripe_sub_id=COALESCE(?,stripe_sub_id) WHERE id=?")
+        .run(o.customer||null, o.subscription||null, uid);
+      const u = db.prepare("SELECT * FROM users WHERE id=?").get(uid);
+      // estado real de la suscripción (active, o trialing si se suscribió durante la prueba)
+      let synced = false;
+      try{ synced = await syncSubscriptionById(o.subscription, u); }catch(e){ console.error("checkout sync:", e.message||e); }
+      if(!synced && u){
+        db.prepare("UPDATE users SET sub_status='active' WHERE id=?").run(uid);
+        refreshUserScreens(uid);
       }
       break;
     }
     case "customer.subscription.created":
-    case "customer.subscription.updated": {
-      const u = userForSub(o);
-      if(u){
-        db.prepare(`UPDATE users SET sub_status=?,
-                    stripe_customer_id=COALESCE(stripe_customer_id,?),
-                    stripe_sub_id=?, current_period_end=?, plan=COALESCE(?,plan) WHERE id=?`)
-          .run(o.status, o.customer||null, o.id,
-               (o.current_period_end||0)*1000, planFromSub(o), u.id);
-      }
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      applySubscription(o);
       break;
-    }
-    case "customer.subscription.deleted": {
-      const u = userForSub(o);
-      if(u) db.prepare("UPDATE users SET sub_status='canceled' WHERE id=?").run(u.id);
-      break;
-    }
+    case "invoice.paid":
     case "invoice.payment_failed": {
       const u = userForSub(o);
-      if(u) db.prepare("UPDATE users SET sub_status='past_due' WHERE id=?").run(u.id);
-      break;
-    }
-    case "invoice.paid": {
-      const u = userForSub(o);
-      if(u) db.prepare("UPDATE users SET sub_status='active' WHERE id=?").run(u.id);
+      if(!u) break;
+      const subId = invoiceSubId(o) || u.stripe_sub_id;
+      let synced = false;
+      try{ synced = await syncSubscriptionById(subId, u); }catch(e){ console.error("invoice sync:", e.message||e); }
+      if(!synced){
+        db.prepare("UPDATE users SET sub_status=? WHERE id=?")
+          .run(event.type==="invoice.paid" ? "active" : "past_due", u.id);
+        refreshUserScreens(u.id);
+      }
       break;
     }
   }
@@ -363,26 +461,33 @@ app.get(["/en","/en/"], (req,res)=>res.sendFile(path.join(__dirname,"web","en","
 /* ---- cuentas ---- */
 app.post("/api/register", rateLimit("reg", 10, 60*60*1000), (req,res)=>{
   const {email, password, business, plan, bill} = req.body || {};
-  if(!email || !password || password.length<8)
+  const mail = String(email||"").toLowerCase().trim();
+  const lang = (req.body||{}).lang === "en" ? "en" : "es";
+  if(!EMAIL_RE.test(mail) || mail.length>160) return res.status(400).json({error:"email-invalido"});
+  if(typeof password!=="string" || password.length<8 || password.length>200)
     return res.status(400).json({error:"datos-invalidos"});
+  const biz = String(business||"").replace(/\s+/g," ").trim().slice(0,60);
   const salt = crypto.randomBytes(16).toString("hex");
+  let r;
   try{
-    const r = db.prepare(`INSERT INTO users(email,pass,salt,business,plan,bill,trial_until,created)
-      VALUES(?,?,?,?,?,?,?,?)`)
-      .run(email.toLowerCase().trim(), hash(password,salt), salt,
-           (business||"").slice(0,60), PLAN_LIMITS[plan]?plan:"tres",
-           bill==="y"?"y":"m", now()+TRIAL_DAYS*86400000, now());
-    setCookie(res, "sid", makeSession(r.lastInsertRowid), 60*60*24*30);
-    res.json({ok:true});
+    r = db.prepare(`INSERT INTO users(email,pass,salt,business,plan,bill,trial_until,created,lang)
+      VALUES(?,?,?,?,?,?,?,?,?)`)
+      .run(mail, hash(password,salt), salt,
+           biz, PLAN_LIMITS[plan]?plan:"tres",
+           bill==="y"?"y":"m", now()+TRIAL_DAYS*86400000, now(), lang);
   }catch(e){
-    res.status(409).json({error:"email-existe"});
+    return res.status(409).json({error:"email-existe"});
   }
+  try{ if(mail===ADMIN_EMAIL) db.prepare("UPDATE users SET is_admin=1 WHERE id=?").run(r.lastInsertRowid); }catch(e){}
+  setCookie(res, "sid", makeSession(r.lastInsertRowid), 60*60*24*30);
+  res.json({ok:true});
+  sendLifecycleMail(db.prepare("SELECT * FROM users WHERE id=?").get(r.lastInsertRowid), "welcome");
 });
 
 app.post("/api/login", rateLimit("login", 20, 15*60*1000), (req,res)=>{
   const {email, password} = req.body || {};
-  const u = db.prepare("SELECT * FROM users WHERE email=?").get((email||"").toLowerCase().trim());
-  if(!u || !safeEqual(hash(password||"", u.salt), u.pass))
+  const u = db.prepare("SELECT * FROM users WHERE email=?").get(String(email||"").toLowerCase().trim());
+  if(!u || typeof password!=="string" || password.length>200 || !safeEqual(hash(password, u.salt), u.pass))
     return res.status(401).json({error:"credenciales"});
   setCookie(res, "sid", makeSession(u.id), 60*60*24*30);
   res.json({ok:true});
@@ -399,8 +504,7 @@ app.post("/api/logout", (req,res)=>{
    no permite restablecer contraseñas ajenas). Caduca en 1 hora y es de un solo uso. */
 const RESET_TTL = 60*60*1000;
 app.post("/api/forgot", rateLimit("forgot", 5, 15*60*1000), (req,res)=>{
-  const m = mailer();
-  if(!m) return res.status(503).json({error:"email-no-configurado"});
+  if(!mailReady()) return res.status(503).json({error:"email-no-configurado"});
   const email = ((req.body||{}).email || "").toLowerCase().trim();
   const lang = (req.body||{}).lang === "en" ? "en" : "es";
   if(!email || !email.includes("@")) return res.status(400).json({error:"datos-invalidos"});
@@ -414,23 +518,20 @@ app.post("/api/forgot", rateLimit("forgot", 5, 15*60*1000), (req,res)=>{
   const base = process.env.BASE_URL || "https://flappit.com";
   const link = base+"/reset?token="+token+(lang==="en" ? "&lang=en" : "");
   const subject = lang==="en" ? "Reset your Flappit password"
-                              : "Restablecer su contraseña de Flappit";
+                              : "Crea una contraseña nueva para Flappit";
   const text = lang==="en"
     ? "Someone (hopefully you) asked to reset the password of this Flappit account.\n\n"
       +"Open this link to set a new password (valid for 1 hour):\n"+link+"\n\n"
-      +"If you didn't request it, ignore this email; your password stays the same."
-    : "Alguien (esperamos que usted) ha pedido restablecer la contraseña de esta cuenta de Flappit.\n\n"
-      +"Abra este enlace para crear una contraseña nueva (caduca en 1 hora):\n"+link+"\n\n"
-      +"Si no lo ha pedido usted, ignore este correo; su contraseña seguirá siendo la misma.";
-  m.sendMail({
-    from: process.env.MAIL_FROM || ('"Flappit" <'+process.env.SMTP_USER+'>'),
-    to: u.email, subject, text
-  }).catch(e=>console.error("email de reset:", e && (e.message||e)));
+      +"If you didn't request it, ignore this email; your password stays the same.\n\n— Flappit"
+    : "Alguien (esperamos que tú) ha pedido restablecer la contraseña de esta cuenta de Flappit.\n\n"
+      +"Abre este enlace para crear una contraseña nueva (caduca en 1 hora):\n"+link+"\n\n"
+      +"Si no lo has pedido, ignora este correo: tu contraseña sigue siendo la misma.\n\n— Flappit";
+  sendMailQuiet({to: u.email, subject, text}, "reset");
 });
 
 app.post("/api/reset", rateLimit("reset", 10, 15*60*1000), (req,res)=>{
   const {token, password} = req.body || {};
-  if(!token || !password || password.length<8)
+  if(!token || typeof password!=="string" || password.length<8 || password.length>200)
     return res.status(400).json({error:"datos-invalidos"});
   const r = db.prepare("SELECT * FROM resets WHERE token_hash=?").get(hmac(String(token)));
   if(!r || r.expires < now()) return res.status(400).json({error:"enlace-invalido"});
@@ -449,25 +550,33 @@ app.get("/api/me", auth, (req,res)=>{
     screens_limit: PLAN_LIMITS[u.plan] || 1,
     entitled: entitled(u),
     has_customer: !!u.stripe_customer_id,
+    has_sub: !!u.stripe_sub_id && PAID_STATUSES.includes(u.sub_status),
     current_period_end: u.current_period_end || null,
+    cancel_at: u.cancel_at || null,
     billing_ready: !!process.env.STRIPE_SECRET_KEY,
     is_admin: !!u.is_admin
   });
+});
+/* el panel cambia de idioma → los correos también */
+app.put("/api/me/lang", auth, (req,res)=>{
+  const lang = (req.body||{}).lang === "en" ? "en" : "es";
+  db.prepare("UPDATE users SET lang=? WHERE id=?").run(lang, req.user.id);
+  res.json({ok:true});
 });
 
 /* ---- panel interno de administración (solo admin) ---- */
 app.get("/api/admin/users", auth, requireAdmin, (req,res)=>{
   const rows = db.prepare(`
     SELECT u.id, u.email, u.business, u.plan, u.bill, u.sub_status, u.trial_until, u.created,
-           u.current_period_end, u.stripe_customer_id,
+           u.current_period_end, u.stripe_customer_id, u.cancel_at, u.is_admin,
            (SELECT COUNT(*) FROM screens s WHERE s.user_id=u.id) AS screens
     FROM users u ORDER BY u.created DESC`).all();
   const users = rows.map(r=>({
     id:r.id, email:r.email, business:r.business, plan:r.plan, bill:r.bill,
     sub_status:r.sub_status, trial_until:r.trial_until, created:r.created,
-    current_period_end:r.current_period_end, screens:r.screens,
+    current_period_end:r.current_period_end, cancel_at:r.cancel_at, screens:r.screens,
     screens_limit: PLAN_LIMITS[r.plan] || 1,
-    has_customer: !!r.stripe_customer_id, entitled: entitled(r)
+    has_customer: !!r.stripe_customer_id, entitled: entitled(r), is_admin: !!r.is_admin
   }));
   const stats = db.prepare("SELECT key, n FROM stats").all();
   res.json({ users, now: now(), stats });
@@ -485,6 +594,17 @@ app.post("/api/admin/users/:id/reset-password", auth, requireAdmin, (req,res)=>{
   db.prepare("UPDATE users SET pass=?, salt=? WHERE id=?").run(hash(pw,salt), salt, u.id);
   db.prepare("DELETE FROM resets WHERE user_id=?").run(u.id); // invalida enlaces de email pendientes
   res.json({ok:true, email:u.email, password:pw});
+});
+
+/* admin: alarga la prueba N días (por defecto 7) — para hoteles que piden más tiempo en la demo */
+app.post("/api/admin/users/:id/extend-trial", auth, requireAdmin, (req,res)=>{
+  const u = db.prepare("SELECT * FROM users WHERE id=?").get(+req.params.id);
+  if(!u) return res.status(404).json({error:"usuario-no-encontrado"});
+  const days = Math.max(1, Math.min(90, Math.round(+((req.body||{}).days) || 7)));
+  const until = Math.max(now(), u.trial_until||0) + days*86400000;
+  db.prepare("UPDATE users SET trial_until=?, mail_sent=REPLACE(REPLACE(mail_sent,'t2',''),'t0','') WHERE id=?").run(until, u.id);
+  refreshUserScreens(u.id);   // si estaba en pausa, sus pantallas vuelven a emitir ya
+  res.json({ok:true, trial_until:until});
 });
 
 /* admin: pantallas de cualquier cuenta, con desvinculación */
@@ -513,14 +633,21 @@ app.post("/api/stat/:key", rateLimit("stat", 30, 60000), (req,res)=>{
 });
 
 /* ---- pantallas ---- */
-app.post("/api/screen/hello", (req,res)=>{
+/* ¿qué debe mostrar una pantalla vinculada? su contenido, o "en pausa" si la cuenta no tiene acceso */
+function screenLocked(s){
+  if(!s || !s.user_id) return false;
+  const u = db.prepare("SELECT * FROM users WHERE id=?").get(s.user_id);
+  return !entitled(u);
+}
+app.post("/api/screen/hello", rateLimit("hello", 120, 15*60*1000), (req,res)=>{
   const {token} = req.body || {};
   if(token){
-    const s = db.prepare("SELECT * FROM screens WHERE token=?").get(token);
+    const s = db.prepare("SELECT * FROM screens WHERE token=?").get(String(token));
     if(s){
       db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(now(), s.id);
-      return res.json({token:s.token, code:s.code, paired:!!s.user_id,
-                       state: s.state ? JSON.parse(s.state) : null});
+      const locked = screenLocked(s);
+      return res.json({token:s.token, code:s.code, paired:!!s.user_id, locked,
+                       state: locked ? null : parseState(s.state), v: TV_VERSION});
     }
   }
   const t = crypto.randomUUID();
@@ -529,7 +656,7 @@ app.post("/api/screen/hello", (req,res)=>{
     code = pairCode();
   db.prepare("INSERT INTO screens(token,code,last_seen,created) VALUES(?,?,?,?)")
     .run(t, code, now(), now());
-  res.json({token:t, code, paired:false, state:null});
+  res.json({token:t, code, paired:false, state:null, v: TV_VERSION});
 });
 
 app.post("/api/pair", rateLimit("pair", 15, 15*60*1000), auth, requirePaid, (req,res)=>{
@@ -540,10 +667,11 @@ app.post("/api/pair", rateLimit("pair", 15, 15*60*1000), auth, requirePaid, (req
   const count = db.prepare("SELECT COUNT(*) n FROM screens WHERE user_id=?").get(req.user.id).n;
   const limit = PLAN_LIMITS[req.user.plan] || 1;
   if(count>=limit) return res.status(403).json({error:"limite-plan", limit});
+  const nm = (String(name||"").replace(/\s+/g," ").trim() || ("Pantalla "+(count+1))).slice(0,40);
   db.prepare("UPDATE screens SET user_id=?, name=?, code=NULL WHERE id=?")
-    .run(req.user.id, (name||"Pantalla "+(count+1)).slice(0,40), s.id);
+    .run(req.user.id, nm, s.id);
   wsSend(s.token, {type:"paired"});
-  res.json({ok:true, id:s.id, name:name||("Pantalla "+(count+1))});
+  res.json({ok:true, id:s.id, name:nm});
 });
 
 app.get("/api/screens", auth, (req,res)=>{
@@ -579,7 +707,7 @@ app.delete("/api/screens/:id", auth, (req,res)=>{
 
 app.get("/api/screens/:id/state", auth, (req,res)=>{
   const s = ownScreen(req,res); if(!s) return;
-  res.json({state: s.state ? JSON.parse(s.state) : null});
+  res.json({state: parseState(s.state)});
 });
 
 app.put("/api/screens/:id/state", auth, requirePaid, (req,res)=>{
@@ -632,6 +760,18 @@ app.post("/api/media", auth, requirePaid, (req,res)=>{
 app.get("/api/subscribe", auth, async (req,res)=>{
   const s = stripe();
   if(!s) return res.json({url:null, note:"stripe-no-configurado"});
+  const base = process.env.BASE_URL || ("http://localhost:"+PORT);
+  const lang = req.query.lang==="en" ? "en" : (req.user.lang==="en" ? "en" : "es");
+  try{
+    /* ¿ya tiene una suscripción viva? → al portal (cambiar de plan, tarjeta…), nunca una segunda suscripción */
+    if(req.user.stripe_customer_id && req.user.stripe_sub_id && PAID_STATUSES.includes(req.user.sub_status)){
+      const ps = await s.billingPortal.sessions.create({ customer:req.user.stripe_customer_id, return_url:base+"/panel?portal=1" });
+      return res.json({url:ps.url, portal:true});
+    }
+  }catch(e){
+    console.error("portal:", e && (e.message||e));
+    return res.status(500).json({error:"stripe", detail:String(e.message||e)});
+  }
   /* el usuario elige plan y periodicidad en el selector del panel; se persiste su elección */
   const plan = (req.query.plan==="uno" || req.query.plan==="tres") ? req.query.plan : req.user.plan;
   const bill = (req.query.bill==="m" || req.query.bill==="y") ? req.query.bill : req.user.bill;
@@ -642,23 +782,35 @@ app.get("/api/subscribe", auth, async (req,res)=>{
     ? (plan==="uno" ? process.env.STRIPE_PRICE_UNO_Y : process.env.STRIPE_PRICE_TRES_Y)
     : (plan==="uno" ? process.env.STRIPE_PRICE_UNO_M : process.env.STRIPE_PRICE_TRES_M);
   if(!price) return res.json({url:null, note:"precio-no-configurado"});
-  const base = process.env.BASE_URL || ("http://localhost:"+PORT);
   try{
+    /* si aún le quedan días de prueba, no se le cobra hasta que acaben (Stripe exige ≥48 h de margen) */
+    const trialLeft = (req.user.trial_until||0) - now();
+    const trialEnd = trialLeft > 49*3600*1000 ? Math.floor(req.user.trial_until/1000) : null;
+    const taxRate = process.env.STRIPE_TAX_RATE; // p. ej. IVA 21 % incluido → factura con el IVA desglosado
     const session = await s.checkout.sessions.create({
       mode:"subscription",
-      line_items:[{price, quantity:1}],
+      line_items:[{price, quantity:1, ...(taxRate ? {tax_rates:[taxRate]} : {})}],
       // reutiliza el cliente de Stripe si ya existe (para que el portal funcione)
       ...(req.user.stripe_customer_id
-          ? {customer:req.user.stripe_customer_id}
+          ? {customer:req.user.stripe_customer_id, customer_update:{name:"auto", address:"auto"}}
           : {customer_email:req.user.email}),
       client_reference_id:String(req.user.id),
-      success_url:base+"/panel?sub=ok",
+      // factura a nombre de la empresa, con su NIF/CIF y dirección (lo que necesita un hotel para deducir el IVA)
+      billing_address_collection:"required",
+      tax_id_collection:{enabled:true},
+      allow_promotion_codes:true,
+      locale: lang,
+      success_url:base+"/panel?sub=ok&cs={CHECKOUT_SESSION_ID}",
       cancel_url:base+"/panel?sub=cancel",
       metadata:{user_id:String(req.user.id)},
-      subscription_data:{metadata:{user_id:String(req.user.id)}} // el user_id viaja en los eventos de la suscripción
+      subscription_data:{
+        metadata:{user_id:String(req.user.id)}, // el user_id viaja en los eventos de la suscripción
+        ...(trialEnd ? {trial_end: trialEnd} : {})
+      }
     });
     res.json({url:session.url});
   }catch(e){
+    console.error("checkout:", e && (e.message||e));
     res.status(500).json({error:"stripe", detail:String(e.message||e)});
   }
 });
@@ -677,7 +829,7 @@ app.get("/api/creator/checkout", rateLimit("crchk", 20, 15*60*1000), async (req,
   try{
     const session = await s.checkout.sessions.create({
       mode:"payment",
-      line_items:[{price, quantity:1}],
+      line_items:[{price, quantity:1, ...(process.env.STRIPE_TAX_RATE ? {tax_rates:[process.env.STRIPE_TAX_RATE]} : {})}],
       success_url: base+creatorPage(lang)+"?cs={CHECKOUT_SESSION_ID}",
       cancel_url: base+creatorPage(lang)+"?cs=cancel",
       metadata:{creator:"1"},
@@ -703,8 +855,7 @@ app.get("/api/creator/claim", rateLimit("crclaim", 30, 15*60*1000), async (req,r
 });
 // otro dispositivo: enlace mágico por email (1 hora)
 app.post("/api/creator/recover", rateLimit("crrec", 5, 15*60*1000), (req,res)=>{
-  const m = mailer();
-  if(!m) return res.status(503).json({error:"email-no-configurado"});
+  if(!mailReady()) return res.status(503).json({error:"email-no-configurado"});
   const email = ((req.body||{}).email || "").toLowerCase().trim();
   const lang = (req.body||{}).lang === "en" ? "en" : "es";
   if(!email || !email.includes("@")) return res.status(400).json({error:"datos-invalidos"});
@@ -716,8 +867,7 @@ app.post("/api/creator/recover", rateLimit("crrec", 5, 15*60*1000), (req,res)=>{
   const text = lang==="en"
     ? "Open this link on the device where you want to make videos without the watermark (valid for 1 hour):\n"+link+"\n\nIf you didn't request it, ignore this email."
     : "Abre este enlace en el dispositivo donde quieras crear vídeos sin marca (caduca en 1 hora):\n"+link+"\n\nSi no lo has pedido tú, ignora este correo.";
-  m.sendMail({from: process.env.MAIL_FROM || ('"Flappit" <'+process.env.SMTP_USER+'>'), to: email, subject, text})
-    .catch(e=>console.error("email creator:", e && (e.message||e)));
+  sendMailQuiet({to: email, subject, text}, "creator");
 });
 app.get("/api/creator/claim-token", (req,res)=>{
   const email = readCreatorToken(String(req.query.ct||""));
@@ -726,7 +876,36 @@ app.get("/api/creator/claim-token", (req,res)=>{
   res.json({ok:true, email});
 });
 
-/* ---- stripe: portal del cliente (cambiar plan, tarjeta, cancelar) ---- */
+/* ---- stripe: sincroniza el estado al volver del checkout o del portal ----
+   El webhook es la vía principal; esto cubre el hueco de segundos hasta que llega (o si falló),
+   para que el hotel vea su plan activo nada más pagar. */
+app.post("/api/billing/sync", rateLimit("bsync", 30, 15*60*1000), auth, async (req,res)=>{
+  const s = stripe();
+  if(!s) return res.json({ok:false});
+  try{
+    const cs = String((req.body||{}).cs||"");
+    let subId = req.user.stripe_sub_id;
+    if(/^cs_[A-Za-z0-9_]+$/.test(cs)){
+      const sess = await s.checkout.sessions.retrieve(cs);
+      if(sess && String(sess.client_reference_id)===String(req.user.id) && sess.subscription){
+        subId = typeof sess.subscription==="string" ? sess.subscription : sess.subscription.id;
+        db.prepare("UPDATE users SET stripe_customer_id=COALESCE(?,stripe_customer_id), stripe_sub_id=? WHERE id=?")
+          .run((typeof sess.customer==="string" ? sess.customer : null), subId, req.user.id);
+      }
+    }
+    if(!subId && req.user.stripe_customer_id){
+      const list = await s.subscriptions.list({customer:req.user.stripe_customer_id, status:"all", limit:1});
+      if(list.data[0]) subId = list.data[0].id;
+    }
+    if(subId) await syncSubscriptionById(subId, db.prepare("SELECT * FROM users WHERE id=?").get(req.user.id));
+    res.json({ok:true});
+  }catch(e){
+    console.error("billing sync:", e && (e.message||e));
+    res.status(500).json({error:"stripe"});
+  }
+});
+
+/* ---- stripe: portal del cliente (cambiar plan, tarjeta, facturas, cancelar) ---- */
 app.get("/api/portal", auth, async (req,res)=>{
   const s = stripe();
   if(!s) return res.json({url:null, note:"stripe-no-configurado"});
@@ -735,7 +914,7 @@ app.get("/api/portal", auth, async (req,res)=>{
   try{
     const session = await s.billingPortal.sessions.create({
       customer:req.user.stripe_customer_id,
-      return_url:base+"/panel"
+      return_url:base+"/panel?portal=1"
     });
     res.json({url:session.url});
   }catch(e){
@@ -774,23 +953,118 @@ function wsSend(token, msg){
   }
 }
 
+/* envía a una pantalla lo que le toca: su contenido, o "en pausa" si la cuenta no tiene acceso */
+function sendScreenView(ws, s){
+  if(!ws || ws.readyState!==1 || !s || !s.user_id) return;
+  const locked = screenLocked(s);
+  ws._locked = locked;
+  try{
+    if(locked) ws.send(JSON.stringify({type:"locked"}));
+    else { const st = parseState(s.state); if(st) ws.send(JSON.stringify({type:"state", state:st})); }
+  }catch(e){}
+}
+/* tras un cambio de suscripción: cada pantalla del usuario se pausa o se reanuda al instante */
+function refreshUserScreens(uid){
+  try{
+    db.prepare("SELECT * FROM screens WHERE user_id=?").all(uid).forEach(s=>{
+      const ws = sockets.get(s.token);
+      if(!ws) return;
+      const locked = screenLocked(s);
+      if(locked !== !!ws._locked) sendScreenView(ws, s);
+    });
+  }catch(e){ console.error("refreshUserScreens:", e.message||e); }
+}
+
 wss.on("connection", (ws, req)=>{
   const url = new URL(req.url, "http://x");
   const token = url.searchParams.get("token");
   const s = token && db.prepare("SELECT * FROM screens WHERE token=?").get(token);
-  if(!s){ ws.close(); return; }
+  if(!s){ try{ ws.close(4001, "token-desconocido"); }catch(e){} return; } // la TV pedirá un código nuevo
+  const prev = sockets.get(token);
+  if(prev && prev!==ws){ try{ prev.close(4002, "reemplazada"); }catch(e){} }
   sockets.set(token, ws);
-  db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(now(), s.id);
-  if(s.user_id && s.state){
-    try{ ws.send(JSON.stringify({type:"state", state:JSON.parse(s.state)})); }catch(e){}
-  }
-  ws.on("close", ()=>{ if(sockets.get(token)===ws) sockets.delete(token); });
-  ws.on("message", ()=>{ db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(now(), s.id); });
+  ws.isAlive = true; ws._seen = now();
+  db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(ws._seen, s.id);
+  try{ ws.send(JSON.stringify({type:"hello", v:TV_VERSION})); }catch(e){}
+  sendScreenView(ws, s);
+  const touch = ()=>{ // last_seen como mucho cada 5 min (no una escritura por latido)
+    ws.isAlive = true;
+    const t = now();
+    if(t - ws._seen > 5*60*1000){ ws._seen = t; try{ db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(t, s.id); }catch(e){} }
+  };
+  ws.on("pong", touch);
+  ws.on("message", touch);
+  ws.on("error", ()=>{});
+  ws.on("close", ()=>{
+    if(sockets.get(token)===ws) sockets.delete(token);
+    try{ db.prepare("UPDATE screens SET last_seen=? WHERE id=?").run(now(), s.id); }catch(e){}
+  });
 });
 
-setInterval(()=>{ // latido para mantener conexiones vivas tras proxies
-  wss.clients.forEach(ws=>{ try{ ws.ping(); }catch(e){} });
-}, 30000);
+/* latido: mantiene vivas las conexiones tras proxies y cierra las que ya no responden
+   (una tele desenchufada deja de figurar "en línea" en el panel en ≤1 min) */
+setInterval(()=>{
+  wss.clients.forEach(ws=>{
+    if(ws.isAlive === false){ try{ ws.terminate(); }catch(e){} return; }
+    ws.isAlive = false;
+    try{ ws.ping(); }catch(e){}
+  });
+}, 30000).unref();
+
+/* las pruebas caducan por tiempo (sin evento de Stripe): cada 5 min se revisan las pantallas conectadas */
+setInterval(()=>{
+  sockets.forEach((ws, token)=>{
+    try{
+      const s = db.prepare("SELECT * FROM screens WHERE token=?").get(token);
+      if(s && s.user_id && screenLocked(s) !== !!ws._locked) sendScreenView(ws, s);
+    }catch(e){}
+  });
+}, 5*60*1000).unref();
+
+/* ---------- correos del ciclo de vida (solo si hay email configurado) ----------
+   welcome: al registrarse · t2: faltan ~2 días de prueba · t0: la prueba ha terminado */
+function sendLifecycleMail(u, kind){
+  if(!u || !mailReady()) return;
+  const sent = String(u.mail_sent||"").split(",").filter(Boolean);
+  if(sent.includes(kind)) return;
+  const en = u.lang === "en";
+  const base = process.env.BASE_URL || "https://flappit.com";
+  const panel = base + "/panel";
+  const biz = u.business || (en ? "your business" : "tu negocio");
+  const endDate = new Date(u.trial_until||now()).toLocaleDateString(en ? "en-GB" : "es-ES", {day:"numeric", month:"long"});
+  let subject, text;
+  if(kind==="welcome"){
+    subject = en ? "Your Flappit panel is ready" : "Tu panel Flappit está listo";
+    text = en
+      ? `Welcome to Flappit!\n\nYour 7-day free trial for ${biz} has started. Three steps and your screen is flapping:\n\n1. On the TV, open the browser and go to flappit.com/tv\n2. Scan the QR code with your phone (or type the 4-letter code in your panel)\n3. Write your message and press "Update screen"\n\nYour panel: ${panel}\nStep-by-step setup: ${base}/en/instalacion.html\n\nAny questions? Just reply to this email.\n\n— Flappit`
+      : `¡Bienvenido a Flappit!\n\nYa ha empezado tu prueba gratis de 7 días para ${biz}. Tres pasos y tu pantalla estará girando:\n\n1. En la tele, abre el navegador y entra en flappit.com/tv\n2. Escanea el código QR con el móvil (o escribe el código de 4 letras en tu panel)\n3. Escribe tu mensaje y pulsa «Actualizar pantalla»\n\nTu panel: ${panel}\nInstalación paso a paso: ${base}/instalacion.html\n\n¿Dudas? Responde a este correo y te ayudamos.\n\n— Flappit`;
+  } else if(kind==="t2"){
+    subject = en ? `Your Flappit trial ends on ${endDate}` : `Tu prueba de Flappit termina el ${endDate}`;
+    text = en
+      ? `Your free trial for ${biz} ends on ${endDate}.\n\nTo keep your screens running without interruption, choose your plan (from €15/month, VAT included; cancel anytime):\n${panel}\n\nIf you subscribe now you won't be charged until the trial ends.\n\n— Flappit`
+      : `Tu prueba gratis para ${biz} termina el ${endDate}.\n\nPara que tus pantallas sigan funcionando sin cortes, elige tu plan (desde 15 €/mes, IVA incluido; cancelas cuando quieras):\n${panel}\n\nSi te suscribes ahora, no se te cobra nada hasta que acabe la prueba.\n\n— Flappit`;
+  } else if(kind==="t0"){
+    subject = en ? "Your Flappit screens are paused" : "Tus pantallas Flappit están en pausa";
+    text = en
+      ? `Your free trial for ${biz} has ended, so your screens now show a pause message.\n\nYour content and linked screens are kept: subscribe and everything is back on screen instantly.\n${panel}\n\n— Flappit`
+      : `Tu prueba gratis para ${biz} ha terminado y tus pantallas muestran ahora un aviso de pausa.\n\nTus contenidos y pantallas vinculadas se conservan: suscríbete y todo vuelve a la pantalla al instante.\n${panel}\n\n— Flappit`;
+  } else return;
+  // se marca ANTES de enviar: si el envío falla no se reintenta en bucle (mejor un correo de menos que spam)
+  sent.push(kind);
+  try{ db.prepare("UPDATE users SET mail_sent=? WHERE id=?").run(sent.join(","), u.id); }catch(e){}
+  sendMailQuiet({to:u.email, subject, text}, kind);
+}
+setInterval(()=>{
+  if(!mailReady()) return;
+  const t = now();
+  try{
+    db.prepare(`SELECT * FROM users WHERE is_admin=0 AND sub_status NOT IN ('active','trialing','past_due')
+                AND trial_until BETWEEN ? AND ?`).all(t - 3*86400000, t + 2*86400000).forEach(u=>{
+      if(u.trial_until > t) sendLifecycleMail(u, "t2");
+      else sendLifecycleMail(u, "t0");
+    });
+  }catch(e){ console.error("lifecycle:", e.message||e); }
+}, 60*60*1000).unref();
 
 server.listen(PORT, ()=>{
   console.log("FLAPS backend escuchando en http://localhost:"+PORT);
@@ -804,10 +1078,11 @@ let shuttingDown = false;
 function shutdown(sig){
   if(shuttingDown) return; shuttingDown = true;
   console.log("Apagado limpio ("+sig+")…");
-  try{ wss.clients.forEach(ws=>{ try{ ws.close(); }catch(e){} }); }catch(e){}
+  try{ wss.clients.forEach(ws=>{ try{ ws.close(1012, "reinicio"); }catch(e){} }); }catch(e){}
   try{ wss.close(); }catch(e){}
-  try{ server.close(()=>{ try{ db.close(); }catch(e){} process.exit(0); }); }catch(e){ process.exit(0); }
-  setTimeout(()=>{ try{ db.close(); }catch(e){} process.exit(0); }, 4000).unref(); // red de seguridad
+  const closeDb = ()=>{ try{ db.pragma("wal_checkpoint(TRUNCATE)"); }catch(e){} try{ db.close(); }catch(e){} };
+  try{ server.close(()=>{ closeDb(); process.exit(0); }); }catch(e){ process.exit(0); }
+  setTimeout(()=>{ closeDb(); process.exit(0); }, 4000).unref(); // red de seguridad
 }
 process.on("SIGTERM", ()=>shutdown("SIGTERM"));
 process.on("SIGINT",  ()=>shutdown("SIGINT"));

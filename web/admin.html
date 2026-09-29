@@ -117,18 +117,23 @@ function planName(p){ return p==="uno" ? "1 pantalla" : p==="tres" ? "3 pantalla
 // estado legible + color a partir de la suscripción
 function statusPill(u){
   const s = (u.sub_status||"").toLowerCase();
-  if(s==="active" || s==="trialing") return '<span class="pill green">Activo</span>';
-  if(u.entitled && s==="trial")       return '<span class="pill yellow">En prueba</span>';
-  if(!u.entitled)                     return '<span class="pill red">Prueba caducada</span>';
-  return '<span class="pill">'+ (u.sub_status||"—") +'</span>';
+  if(u.is_admin && !(s==="active"||s==="trialing")) return '<span class="pill">Admin</span>';
+  if(s==="active")                    return u.cancel_at ? '<span class="pill yellow">Activo · se cancela</span>' : '<span class="pill green">Activo</span>';
+  if(s==="trialing")                  return '<span class="pill green">Suscrito · en prueba</span>';
+  if(s==="past_due")                  return '<span class="pill yellow">Pago pendiente</span>';
+  if(u.entitled)                      return '<span class="pill yellow">En prueba</span>';
+  if(s==="canceled")                  return '<span class="pill red">Cancelado</span>';
+  return '<span class="pill red">Prueba caducada</span>';
 }
 // fecha relevante segun estado
 function whenCol(u){
   const s = (u.sub_status||"").toLowerCase();
-  if(s==="active" || s==="trialing") return u.current_period_end ? "Renueva "+fmtDate(u.current_period_end) : "Activa";
-  if(u.entitled && s==="trial")       return "Prueba hasta "+fmtDate(u.trial_until);
-  if(!u.entitled)                     return "Caducó "+fmtDate(u.trial_until);
-  return "—";
+  if(u.cancel_at)                     return "Se cancela "+fmtDate(u.cancel_at);
+  if(s==="trialing")                  return "1.er cobro "+fmtDate(u.current_period_end);
+  if(s==="active" || s==="past_due")  return u.current_period_end ? "Renueva "+fmtDate(u.current_period_end) : "Activa";
+  if(u.entitled)                      return "Prueba hasta "+fmtDate(u.trial_until);
+  if(s==="canceled")                  return "Cancelada";
+  return "Caducó "+fmtDate(u.trial_until);
 }
 
 function showMessage(html){ content.innerHTML = '<div class="msg">'+html+'</div>'; }
@@ -177,8 +182,8 @@ function showLogin(){
 
 function render(users){
   const total = users.length;
-  const activos = users.filter(u=>{ const s=(u.sub_status||"").toLowerCase(); return s==="active"||s==="trialing"; }).length;
-  const prueba  = users.filter(u=> u.entitled && (u.sub_status||"").toLowerCase()==="trial").length;
+  const activos = users.filter(u=>{ const s=(u.sub_status||"").toLowerCase(); return s==="active"||s==="trialing"||s==="past_due"; }).length;
+  const prueba  = users.filter(u=> u.entitled && !["active","trialing","past_due"].includes((u.sub_status||"").toLowerCase())).length;
   const caduca  = users.filter(u=> !u.entitled).length;
   const pantallas = users.reduce((a,u)=> a + (u.screens||0), 0);
 
@@ -211,7 +216,8 @@ function render(users){
       + '<td>'+(u.screens||0)+' / '+(u.screens_limit||1)+'</td>'
       + '<td class="colHide">'+fmtDate(u.created)+'</td>'
       + '<td><button class="act" data-pw="'+u.id+'" data-mail="'+esc(u.email)+'">Contraseña</button>'
-      + '<button class="act" data-scr="'+u.id+'">Pantallas</button></td>'
+      + '<button class="act" data-scr="'+u.id+'">Pantallas</button>'
+      + '<button class="act" data-ext="'+u.id+'" data-mail="'+esc(u.email)+'" title="Alarga la prueba gratis 7 días">+7 días</button></td>'
       + '</tr>';
   }
   html += '</tbody></table></div>';
@@ -278,6 +284,15 @@ async function showScreens(uid){
   }catch(e){ td.innerHTML = 'Error al cargar las pantallas. <button class="act" data-close="'+uid+'">Cerrar</button>'; }
 }
 
+async function extendTrial(uid, email){
+  if(!confirm("¿Alargar 7 días la prueba gratis de "+email+"?")) return;
+  try{
+    const r = await fetch("/api/admin/users/"+uid+"/extend-trial", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({days:7})});
+    if(!r.ok) throw new Error(r.status);
+    load();
+  }catch(e){ alert("No se pudo alargar la prueba (error "+e.message+")."); }
+}
+
 async function unpairScreen(sid, uid){
   if(!confirm("¿Desvincular esta pantalla? La TV pasará a mostrar un código de emparejamiento nuevo.")) return;
   try{
@@ -293,6 +308,7 @@ content.addEventListener("click", (e)=>{
   if(b.dataset.pw)     resetPw(+b.dataset.pw, b.dataset.mail);
   else if(b.dataset.scr)    showScreens(+b.dataset.scr);
   else if(b.dataset.unpair) unpairScreen(+b.dataset.unpair, +b.dataset.uid);
+  else if(b.dataset.ext)    extendTrial(+b.dataset.ext, b.dataset.mail);
   else if(b.dataset.copy){
     const el = document.getElementById("pw"+b.dataset.copy);
     if(el) navigator.clipboard && navigator.clipboard.writeText(el.textContent)

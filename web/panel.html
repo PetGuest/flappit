@@ -101,12 +101,19 @@
   #pairBox{display:none; border-top:1px dashed var(--line); margin-top:2px; padding-top:10px;}
   #pairBox a{color:var(--accent);}
   #pairRow{display:flex; gap:8px;}
-  #pairRow input{width:120px; flex:0 0 auto; text-align:center; background:var(--field); color:var(--text); border:1px solid var(--line);
-    border-radius:var(--r-sm); padding:9px 10px; font-size:15px; text-transform:uppercase;
-    font-family:ui-monospace,monospace; letter-spacing:4px;}
-  #pairRow button{background:var(--accent); color:var(--accent-ink); border:none; border-radius:var(--r-sm);
-    padding:8px 16px; font-weight:800; cursor:pointer;}
-  #pairRow button:hover{filter:brightness(1.06);}
+  #pairRow input{min-width:0; background:var(--field); color:var(--text); border:1px solid var(--line);
+    border-radius:var(--r-sm); padding:9px 10px; font-size:14px;}
+  #pairCode{width:108px; flex:0 0 auto; text-align:center; font-size:16px !important; text-transform:uppercase;
+    font-family:ui-monospace,monospace; letter-spacing:4px; font-weight:700;}
+  #pairName{flex:1;}
+  #pairBtn{width:100%; margin-top:8px; background:var(--accent); color:var(--accent-ink); border:none; border-radius:var(--r-sm);
+    padding:10px 16px; font-weight:800; cursor:pointer; font-size:13px;}
+  #pairBtn:hover{filter:brightness(1.06);}
+  #pairBtn:disabled{opacity:.6; cursor:default;}
+  #pairMsg{min-height:0; margin:6px 0 0;}
+  #pairMsg:empty{display:none;}
+  #pairMsg.err{color:var(--danger);}
+  #pairMsg.ok{color:var(--ok);}
   .cap{font-size:12px; color:var(--muted); margin-top:2px; line-height:1.45;}
 
   #scrTabs{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:2px;}
@@ -247,11 +254,11 @@
   .alnBtn svg, .scrPh svg, .tab svg{margin-right:4px;}
   input[type=range]{accent-color:var(--accent); height:4px; cursor:pointer;}
   input[type=checkbox]{accent-color:var(--accent); width:15px; height:15px; cursor:pointer;}
-  .tab, .alnBtn, .chip, .scrPh, #connectTvBtn, #previewBtn, #pairRow button, #delScr{
+  .tab, .alnBtn, .chip, .scrPh, #connectTvBtn, #previewBtn, #pairBtn, #delScr{
     transition:border-color .18s, box-shadow .18s, transform .12s, background .18s, color .18s, filter .18s;}
   .tab:hover:not(.on):not(.addT), .alnBtn:hover:not(.on):not(#clearBtn), .chip:hover:not(.on), .scrPh:hover:not(.on){
     border-color:#5a6138; background:rgba(255,255,255,0.03);}
-  .tab:active, .chip:active, #connectTvBtn:active, #previewBtn:active, #pairRow button:active{
+  .tab:active, .chip:active, #connectTvBtn:active, #previewBtn:active, #pairBtn:active{
     transform:scale(0.96);}
   input[type=text]:focus, input[type=email]:focus, input[type=password]:focus, input[type=number]:focus{
     outline:none; border-color:var(--accent); box-shadow:0 0 0 1px var(--accent), 0 0 12px rgba(215,224,33,0.2);}
@@ -419,6 +426,85 @@
   #shareModalClose{background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:6px;}
   #shareModalClose:hover{color:var(--text);}
 
+  /* textos legales / notas pequeñas en los modales */
+  .legalNote{font-size:11.5px !important; color:var(--muted); text-align:center; margin:12px 0 0 !important;}
+  .legalNote a, .payNote a{color:var(--accent);}
+  .payNote{font-size:12px !important; color:var(--muted); margin:12px 0 0 !important;}
+  .planNote{font-size:12px !important; color:var(--muted); margin:4px 0 12px !important; line-height:1.5;}
+  .planNote b{color:var(--text);}
+  .planOpt.pref{border-color:var(--accent); box-shadow:0 0 12px rgba(215,224,33,0.16);}
+  .planOpt span small{display:block; font-size:11px; color:var(--muted); text-align:right;}
+
+  /* CTA "Conectar pantalla" en la barra (modo borrador, sin pantalla vinculada) */
+  #connectCta{display:none; align-items:center; margin-left:6px; border:1px solid var(--accent);
+    border-radius:var(--r-sm); padding:6px 15px; cursor:pointer; font-size:12px; font-weight:800;
+    letter-spacing:.6px; font-family:ui-monospace,monospace; text-transform:uppercase;
+    background:transparent; color:var(--accent);}
+  #connectCta:hover{background:rgba(215,224,33,0.08);}
+
+  /* plantillas */
+  #tplWrap{position:fixed; inset:0; background:rgba(2,4,8,0.88); z-index:240; display:none;
+    align-items:center; justify-content:center; padding:18px; backdrop-filter:blur(3px);}
+  #tplBox{width:min(960px,100%); max-height:min(86vh,760px); overflow:auto; background:linear-gradient(180deg,#13160b,var(--panel));
+    border:1px solid var(--line); border-radius:18px; padding:22px 22px 24px; box-shadow:0 24px 70px rgba(0,0,0,0.6);}
+  .tplHead{display:flex; align-items:center; gap:12px;}
+  .tplHead h1{font-size:20px; margin:0;}
+  #tplClose{margin-left:auto; background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px;
+    width:32px; height:30px; cursor:pointer;}
+  #tplClose:hover{color:var(--text); border-color:var(--line-strong);}
+  #tplBox > p{color:var(--muted); font-size:13px; margin:6px 0 14px;}
+  #tplCats{margin-bottom:14px;}
+  #tplGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
+  .tplCard{background:#000; border:1px solid var(--line); border-radius:12px; padding:0; cursor:pointer; text-align:left;
+    overflow:hidden; color:var(--text); transition:border-color .15s, transform .12s, box-shadow .15s;}
+  .tplCard:hover{border-color:var(--accent); box-shadow:0 0 14px rgba(215,224,33,0.16);}
+  .tplCard:active{transform:scale(0.98);}
+  .tplCard .tplPrev{padding:14px 12px; min-height:128px; display:flex; flex-direction:column; justify-content:center; gap:2px;
+    font-family:'Roboto Condensed','Helvetica Neue',Arial,sans-serif; font-size:13px; letter-spacing:2.2px; line-height:1.35;
+    color:#f4f4f0; text-transform:uppercase; white-space:pre; overflow:hidden;
+    background:repeating-linear-gradient(180deg, #121214 0 9px, #19191b 9px 18px);}
+  .tplCard .tplPrev.c{text-align:center;}
+  .tplCard .tplName{display:block; padding:9px 12px; font-size:12.5px; font-weight:700; background:var(--panel-2);
+    border-top:1px solid var(--line); color:var(--text);}
+
+  /* horario de cada contenido */
+  #schedBtn{display:inline-flex; align-items:center; gap:5px; background:var(--field); border:1px solid var(--line);
+    color:var(--muted); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; white-space:nowrap;}
+  #schedBtn svg{margin:0;}
+  #schedBtn.on{color:var(--accent); border-color:rgba(215,224,33,0.5);}
+  #schedBtn:hover{border-color:var(--accent); color:var(--accent);}
+  .tab .tabClock{display:inline-flex; opacity:.8;}
+  .tab .tabClock svg{margin:0;}
+  #schedPop{position:fixed; z-index:230; display:none; width:330px; max-width:calc(100vw - 20px); background:linear-gradient(180deg,#14170c,var(--panel));
+    border:1px solid var(--line-strong); border-radius:14px; padding:14px 16px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.66);}
+  #schedPop > b{display:block; font-size:13.5px; margin-bottom:10px;}
+  .schedModes{display:flex; flex-direction:column; gap:7px; margin-bottom:10px;}
+  .schedModes input{accent-color:var(--accent);}
+  .schedTimes{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .schedTimes input{flex:1; background:var(--field); color:var(--text); border:1px solid var(--line); border-radius:8px;
+    padding:7px 8px; font-size:14px; color-scheme:dark;}
+  #schedDays{flex-wrap:nowrap; gap:6px;}
+  #schedDays .chip{padding:4px 0; width:36px; flex:1 1 0; text-align:center; font-size:12px;}
+  #schedFields.off{opacity:.35; pointer-events:none;}
+  .schedBtns{display:flex; justify-content:flex-end; gap:8px; margin-top:10px;}
+  .schedBtns button{border:1px solid var(--line); background:transparent; color:var(--muted); border-radius:8px;
+    padding:7px 14px; font-size:12.5px; cursor:pointer;}
+  #schedOk{background:var(--accent); color:var(--accent-ink); border-color:transparent; font-weight:800;}
+
+  /* móvil: cabecera compacta */
+  @media(max-width:640px){
+    header{gap:8px; padding:0 10px;}
+    .logo img{height:28px;}
+    header small{display:none;}
+    #userBox{gap:7px;}
+    #userBox .langSel{display:none;}
+    #planInfo{font-size:11.5px; max-width:118px; line-height:1.2;}
+    #userBox button{padding:5px 9px;}
+    #scrMeta{margin-left:0; width:100%; flex-wrap:wrap;}
+    #toolbar .hint{display:none;}
+  }
+
   /* selector de idioma */
   .langSel{display:inline-flex;gap:4px;align-items:center;font-family:ui-monospace,monospace;font-size:12px;}
   .langSel a{color:#9a9aa2;text-decoration:none;padding:2px 7px;border-radius:6px;border:1px solid transparent;line-height:1;cursor:pointer;}
@@ -444,6 +530,7 @@
     <input type="password" id="aPass" placeholder="Mínimo 8 caracteres" data-i18n-ph="authPassPh">
     <div id="authErr"></div>
     <button class="go" id="authGo" data-i18n="authGoLogin">Entrar</button>
+    <p class="legalNote" id="authLegal" data-i18n-html="authLegal">Al crear la cuenta aceptas los <a href="/legal.html#terminos" target="_blank">Términos</a> y la <a href="/legal.html#privacidad" target="_blank">Privacidad</a>.</p>
     <div class="alt" id="authAlt" data-i18n-html="authAltLogin">¿Aún sin cuenta? <a id="authSwitch">Crea una en 30 segundos</a></div>
     <div class="alt" id="authForgotRow"><a id="authForgot" data-i18n="authForgot">¿Has olvidado tu contraseña?</a></div>
   </div>
@@ -465,6 +552,7 @@
     <h1 id="payTitle">Tu prueba ha terminado</h1>
     <p id="payMsg">Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.</p>
     <button class="go" id="payGo" data-i18n="paySubscribe">Suscribirme</button>
+    <p class="payNote" data-i18n-html="payNote">IVA incluido · Sin permanencia · ¿Dudas? <a href="mailto:hello@flappit.com">hello@flappit.com</a></p>
     <div class="alt"><a id="payLogout" data-i18n="logout">Salir</a></div>
   </div>
 </div>
@@ -479,6 +567,7 @@
     </div>
     <button class="planOpt" id="planOptUno"><b data-i18n="planUnoPick">1 pantalla</b><span id="planPriceUno">19 €/mes</span></button>
     <button class="planOpt" id="planOptTres"><b data-i18n="planTresPick">Hasta 3 pantallas</b><span id="planPriceTres">39 €/mes</span></button>
+    <p class="planNote" id="planNote"></p>
     <div class="alt"><a id="planCancel" data-i18n="close">Cerrar</a> · <a href="mailto:hello@flappit.com?subject=Flappit para cadenas" data-i18n="planChain">¿Más pantallas? Escríbenos</a></div>
   </div>
 </div>
@@ -504,6 +593,34 @@
   </div>
 </div>
 
+<div id="tplWrap" role="dialog" aria-modal="true" aria-labelledby="tplTitle">
+  <div id="tplBox">
+    <div class="tplHead">
+      <h1 id="tplTitle" data-i18n="tplTitle">Plantillas</h1>
+      <button id="tplClose" title="Cerrar" data-i18n-title="close">✕</button>
+    </div>
+    <p data-i18n="tplIntro">Elige una y edítala a tu gusto: se añade como una animación nueva.</p>
+    <div class="chips" id="tplCats"></div>
+    <div id="tplGrid"></div>
+  </div>
+</div>
+
+<div id="schedPop" role="dialog" aria-label="Horario">
+  <b data-i18n="schedTitle">¿Cuándo se muestra?</b>
+  <div class="schedModes">
+    <label class="toggle"><input type="radio" name="schedMode" value="always"> <span data-i18n="schedAlways">Siempre</span></label>
+    <label class="toggle"><input type="radio" name="schedMode" value="window"> <span data-i18n="schedWindow">Solo en este horario</span></label>
+  </div>
+  <div id="schedFields">
+    <div class="schedTimes">
+      <input type="time" id="schedFrom" value="07:00"> <span>–</span> <input type="time" id="schedTo" value="11:00">
+    </div>
+    <div class="chips" id="schedDays"></div>
+  </div>
+  <p class="cap" data-i18n="schedHelp">Fuera de su horario, la pantalla salta este contenido. Usa la hora del televisor.</p>
+  <div class="schedBtns"><button id="schedCancel" data-i18n="cancel">Cancelar</button><button id="schedOk" data-i18n="apply">Aplicar</button></div>
+</div>
+
 <div id="layout">
   <aside>
     <div class="card">
@@ -518,9 +635,11 @@
           <b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbelo aquí:
         </p>
         <div id="pairRow">
-          <input id="pairCode" maxlength="4" placeholder="CÓDIGO" data-i18n-ph="pairCodePh">
-          <button id="pairBtn" data-i18n="pairBtn">Vincular</button>
+          <input id="pairCode" maxlength="4" placeholder="CÓDIGO" data-i18n-ph="pairCodePh" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+          <input id="pairName" maxlength="40" placeholder="Nombre (opcional)" data-i18n-ph="pairNamePh" autocomplete="off">
         </div>
+        <button id="pairBtn" data-i18n="pairBtn">Vincular pantalla</button>
+        <p class="cap" id="pairMsg" role="status"></p>
         <p class="cap" style="margin:8px 0 0;" data-i18n-html="pairNoTv">¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.</p>
       </div>
       <p class="cap" id="noTvHint" style="margin-top:8px;" data-i18n="noTvHint">Mientras tanto, trastea cuanto quieras: todo lo que edites queda guardado como borrador.</p>
@@ -606,6 +725,7 @@
       <button class="alnBtn" data-a="right"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M10 12h10M7 18h13"/></svg><span data-i18n="alignRight">Der</span></button>
       <button class="alnBtn" id="clearBtn" data-i18n-title="clearScreenTitle" title="Borra todo el texto de esta pantalla"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8.5L3 14.5a2 2 0 0 1 0-2.8l7-7a2 2 0 0 1 2.8 0l6 6a2 2 0 0 1 0 2.8L15 20"/><path d="M9 11l5 5"/></svg><span data-i18n="clearScreen">Vaciar</span></button>
       <span id="saveDot"></span>
+      <button id="connectCta" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg><span data-i18n="connectCta">Conectar pantalla</span></button>
       <button id="updateBtn" style="display:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg><span data-i18n="updateScreen">Actualizar pantalla</span></button>
       <span class="hint" data-i18n="toolbarHint">Escribe directamente en el panel · Enter = línea siguiente</span>
     </div>
@@ -650,9 +770,9 @@ const I18N = {
     /* paywall */
     payTitleTrial: "Tu prueba ha terminado",
     payTitlePastDue: "Hay un pago pendiente",
-    payMsgTrial: "Suscríbete para seguir emitiendo en tus pantallas. Tus contenidos y pantallas vinculadas se conservan.",
+    payMsgTrial: "Tus pantallas muestran ahora un aviso de pausa. Elige tu plan y vuelven a emitir al instante: tus contenidos y pantallas se conservan.",
     payMsgPastDue: "No hemos podido cobrar tu suscripción. Actualiza el pago para seguir emitiendo. Tus contenidos y pantallas se conservan.",
-    paySubscribe: "Suscribirme",
+    paySubscribe: "Elegir plan",
     /* preview */
     previewBar: "VISTA PREVIA — ASÍ SE VERÁ EN LA TV",
     previewFrameTitle: "Vista previa de la TV",
@@ -662,9 +782,9 @@ const I18N = {
     previewHere: "PREVISUALIZAR AQUÍ",
     connectTv: "CONECTAR MI PANTALLA",
     connectAnotherTv: "CONECTAR OTRA PANTALLA",
-    pairSteps: '<b>1.</b> En el televisor, abre el navegador y entra en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> La pantalla mostrará un <b>código de 4 letras</b>. Escríbelo aquí:',
+    pairSteps: '<b>1.</b> En la tele, abre el navegador y entra en <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> Escanea con el móvil el QR que aparece, o escribe aquí el <b>código de 4 letras</b>:',
     pairCodePh: "CÓDIGO",
-    pairBtn: "Vincular",
+    pairBtn: "Vincular pantalla",
     pairNoTv: '¿No tienes la tele delante? <a href="/tv" target="_blank">Abre la pantalla en una pestaña</a> para probar.',
     noTvHint: "Mientras tanto, trastea cuanto quieras: todo lo que edites queda guardado como borrador.",
     /* tarjeta config */
@@ -760,7 +880,7 @@ const I18N = {
     addPhotoTitle: "Foto",
     addPhotoDesc: "Se muestra a pantalla completa, tal cual. Recomendada: foto de alta resolución en 16:9",
     addFlapTitle: "Foto flapizada",
-    addFlapDesc: "La foto se construye flap a flap (efecto FLAPS). Recomendada: foto de alta resolución en 16:9",
+    addFlapDesc: "La foto se construye casilla a casilla, con efecto split-flap. Recomendada: foto de alta resolución en 16:9",
     addVideoTitle: "Vídeo",
     addVideoDesc: "Se reproduce a pantalla completa",
     uploadingVideo: "Subiendo vídeo…",
@@ -774,9 +894,9 @@ const I18N = {
     planCadena: "cadena",
     planPrefix: "Plan ",
     manageSub: "Gestionar suscripción",
-    subscribe: "Suscribirse",
+    subscribe: "Elegir plan",
     planPickTitle: "Elige tu plan",
-    planPickIntro: "Podrás cambiarlo o cancelarlo cuando quieras.",
+    planPickIntro: "Sin permanencia: cambia de plan o cancela cuando quieras.",
     billMonthly: "Mensual",
     billYearly: "Anual (−20%)",
     planUnoPick: "1 pantalla",
@@ -784,8 +904,8 @@ const I18N = {
     planChain: "¿Más pantallas? Escríbenos",
     priceUnoM: "19 €/mes", priceUnoY: "180 €/año",
     priceTresM: "39 €/mes", priceTresY: "372 €/año",
-    trialDay: "Prueba: {n} día restantes",
-    trialDays: "Prueba: {n} días restantes",
+    trialDay: "Prueba: último día",
+    trialDays: "Prueba: quedan {n} días",
     pastDue: "Pago pendiente",
     trialEnded: "Prueba terminada",
     pricesMissing: "Faltan los precios de Stripe en el servidor.",
@@ -793,6 +913,44 @@ const I18N = {
     noSubToManage: "No hay suscripción que gestionar todavía.",
     portalError: "No se pudo abrir el portal de suscripción.",
     /* tablero por defecto */
+    authIntroPair: "Crea tu cuenta (o entra) para conectar la pantalla {code}.",
+    authErrEmail: "Revisa el correo electrónico: parece que falta algo.",
+    authErrWait: "Demasiados intentos. Espera unos minutos y vuelve a probar.",
+    authLegal: 'Al crear la cuenta aceptas los <a href="/legal.html#terminos" target="_blank">Términos</a> y la <a href="/legal.html#privacidad" target="_blank">Política de privacidad</a>.',
+    payNote: 'IVA incluido · Sin permanencia · ¿Dudas? <a href="mailto:hello@flappit.com">hello@flappit.com</a>',
+    payTitleCanceled: "Tu suscripción ha terminado",
+    payMsgCanceled: "Tus pantallas están en pausa. Reactiva tu plan y vuelven a emitir al instante: tus contenidos se conservan.",
+    pairNamePh: "Nombre (opcional)",
+    pairing: "Vinculando…",
+    pairOk: "¡Pantalla «{n}» conectada! Escribe tu mensaje y pulsa «Actualizar pantalla».",
+    pairAuto: "Conectando la pantalla {code}…",
+    firstScreenName: "Recepción",
+    connectCta: "Conectar pantalla",
+    addTplTitle: "Plantilla",
+    addTplDesc: "Mensajes listos para hotel, restaurante, gimnasio, clínica, tienda…",
+    tplTitle: "Plantillas",
+    tplIntro: "Elige una y edítala a tu gusto: se añade como una animación nueva.",
+    tplAdded: "Plantilla añadida: haz clic en el panel para editarla.",
+    schedTitle: "¿Cuándo se muestra?",
+    schedAlways: "Siempre",
+    schedWindow: "Solo en este horario",
+    schedHelp: "Fuera de su horario, la pantalla salta este contenido (hora del televisor).",
+    schedBtnTitle: "Horario de este contenido",
+    schedDays: ["D","L","M","X","J","V","S"],
+    schedEveryDay: "a diario",
+    cancel: "Cancelar",
+    apply: "Aplicar",
+    updatePayment: "Actualizar pago",
+    firstCharge: "1.er cobro el {d}",
+    cancelsOn: "se cancela el {d}",
+    subCanceled: "Suscripción cancelada",
+    subOk: "¡Listo! Tu plan está activo.",
+    subOkTrial: "¡Listo! Plan activado: el primer cobro será el {d}.",
+    subCancelMsg: "Pago cancelado. Puedes elegir tu plan cuando quieras.",
+    planNoteTrial: "No se cobra nada hasta el <b>{d}</b>, cuando termina tu prueba.<br>IVA incluido · Factura con los datos de tu empresa.",
+    planNoteNow: "IVA incluido · Factura con los datos de tu empresa.",
+    perMonth: "{p} €/mes",
+    adminLabel: "Admin",
     boardWelcome: "BIENVENIDOS",
     boardTo: "A",
     boardBiz: "SU NEGOCIO"
@@ -825,9 +983,9 @@ const I18N = {
     authForgotWait: "Too many attempts. Wait a few minutes and try again.",
     payTitleTrial: "Your trial has ended",
     payTitlePastDue: "There's a payment pending",
-    payMsgTrial: "Subscribe to keep broadcasting on your screens. Your content and linked screens are kept.",
+    payMsgTrial: "Your screens now show a pause message. Choose your plan and they're back on air instantly: your content and screens are kept.",
     payMsgPastDue: "We couldn't charge your subscription. Update your payment to keep broadcasting. Your content and screens are kept.",
-    paySubscribe: "Subscribe",
+    paySubscribe: "Choose a plan",
     previewBar: "PREVIEW — THIS IS HOW IT WILL LOOK ON THE TV",
     previewFrameTitle: "TV preview",
     close: "Close",
@@ -835,9 +993,9 @@ const I18N = {
     previewHere: "PREVIEW HERE",
     connectTv: "CONNECT MY SCREEN",
     connectAnotherTv: "CONNECT ANOTHER SCREEN",
-    pairSteps: '<b>1.</b> On the TV, open the browser and go to <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> The screen will show a <b>4-letter code</b>. Type it here:',
+    pairSteps: '<b>1.</b> On the TV, open the browser and go to <b style="color:var(--accent);">flappit.com/tv</b><br><b>2.</b> Scan the QR code with your phone, or type the <b>4-letter code</b> here:',
     pairCodePh: "CODE",
-    pairBtn: "Link",
+    pairBtn: "Link screen",
     pairNoTv: 'No TV in front of you? <a href="/tv" target="_blank">Open the screen in a tab</a> to try it.',
     noTvHint: "In the meantime, play around all you like: everything you edit is saved as a draft.",
     cardConfig: "Set up the panel",
@@ -923,7 +1081,7 @@ const I18N = {
     addPhotoTitle: "Photo",
     addPhotoDesc: "Shown full-screen, as is. Best: high-resolution photo, 16:9",
     addFlapTitle: "Flapized photo",
-    addFlapDesc: "The photo is built flap by flap (FLAPS effect). Best: high-resolution photo, 16:9",
+    addFlapDesc: "The photo is built tile by tile, split-flap style. Best: high-resolution photo, 16:9",
     addVideoTitle: "Video",
     addVideoDesc: "Plays full-screen",
     uploadingVideo: "Uploading video…",
@@ -935,9 +1093,9 @@ const I18N = {
     planCadena: "chain",
     planPrefix: "Plan ",
     manageSub: "Manage subscription",
-    subscribe: "Subscribe",
+    subscribe: "Choose a plan",
     planPickTitle: "Choose your plan",
-    planPickIntro: "You can change or cancel it anytime.",
+    planPickIntro: "No commitment: switch plans or cancel anytime.",
     billMonthly: "Monthly",
     billYearly: "Yearly (−20%)",
     planUnoPick: "1 screen",
@@ -945,7 +1103,7 @@ const I18N = {
     planChain: "Need more screens? Write to us",
     priceUnoM: "€19/month", priceUnoY: "€180/year",
     priceTresM: "€39/month", priceTresY: "€372/year",
-    trialDay: "Trial: {n} day left",
+    trialDay: "Trial: last day",
     trialDays: "Trial: {n} days left",
     pastDue: "Payment pending",
     trialEnded: "Trial ended",
@@ -953,6 +1111,44 @@ const I18N = {
     paymentsNotConfigured: "Payments are not set up on the server yet.",
     noSubToManage: "There's no subscription to manage yet.",
     portalError: "The subscription portal could not be opened.",
+    authIntroPair: "Create your account (or sign in) to connect screen {code}.",
+    authErrEmail: "Check the email address: something seems to be missing.",
+    authErrWait: "Too many attempts. Wait a few minutes and try again.",
+    authLegal: 'By creating an account you accept the <a href="/en/legal.html#terminos" target="_blank">Terms</a> and the <a href="/en/legal.html#privacidad" target="_blank">Privacy policy</a>.',
+    payNote: 'VAT included · No commitment · Questions? <a href="mailto:hello@flappit.com">hello@flappit.com</a>',
+    payTitleCanceled: "Your subscription has ended",
+    payMsgCanceled: "Your screens are paused. Reactivate your plan and they're back on air instantly: your content is kept.",
+    pairNamePh: "Name (optional)",
+    pairing: "Linking…",
+    pairOk: "Screen \u201c{n}\u201d connected! Write your message and press \u201cUpdate screen\u201d.",
+    pairAuto: "Connecting screen {code}…",
+    firstScreenName: "Reception",
+    connectCta: "Connect screen",
+    addTplTitle: "Template",
+    addTplDesc: "Ready-made messages for hotels, restaurants, gyms, clinics, shops…",
+    tplTitle: "Templates",
+    tplIntro: "Pick one and make it yours: it's added as a new animation.",
+    tplAdded: "Template added: click the panel to edit it.",
+    schedTitle: "When is it shown?",
+    schedAlways: "Always",
+    schedWindow: "Only at these times",
+    schedHelp: "Outside its time window, the screen skips this content (TV's local time).",
+    schedBtnTitle: "Schedule for this content",
+    schedDays: ["S","M","T","W","T","F","S"],
+    schedEveryDay: "daily",
+    cancel: "Cancel",
+    apply: "Apply",
+    updatePayment: "Update payment",
+    firstCharge: "first charge {d}",
+    cancelsOn: "cancels on {d}",
+    subCanceled: "Subscription canceled",
+    subOk: "Done! Your plan is active.",
+    subOkTrial: "Done! Plan activated: your first charge will be on {d}.",
+    subCancelMsg: "Payment canceled. You can choose your plan anytime.",
+    planNoteTrial: "Nothing is charged until <b>{d}</b>, when your trial ends.<br>VAT included · Invoice with your company details.",
+    planNoteNow: "VAT included · Invoice with your company details.",
+    perMonth: "€{p}/month",
+    adminLabel: "Admin",
     boardWelcome: "WELCOME",
     boardTo: "TO",
     boardBiz: "YOUR BUSINESS"
@@ -975,12 +1171,15 @@ document.addEventListener("click", function(e){
   var lang = a.getAttribute("data-setlang");
   if(lang===LANG) return;
   try{ localStorage.setItem("flappitLang", lang); }catch(err){}
-  location.reload();
+  const done = ()=>location.reload();
+  if(typeof ME!=="undefined" && ME){
+    fetch("/api/me/lang",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({lang})}).then(done,done);
+  } else done();
 });
 applyLang();
 
 /* ================= constantes compartidas ================= */
-const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%";
+const CHARSET = " ABCDEFGHIJKLMNOPQRSTUVWXYZÑ0123456789.,!?¡¿:'+-&@#€%/()=*\"$;";
 const LEN = CHARSET.length;
 const CELL_AR = 0.70;
 
@@ -996,13 +1195,12 @@ function defaultState(biz){
   return {
     messages: [
       {secs:15, lines:[
+        {text:"", align:"center"}, {text:"", align:"center"}, {text:"", align:"center"},
         {text:"", align:"center"},
         {text:t("boardWelcome"), align:"center"},
         {text:t("boardTo"), align:"center"},
         {text:(biz||t("boardBiz")).toUpperCase().slice(0,24), align:"center"},
-        {text:"", align:"center"},
-        {text:"", align:"center"},
-        {text:"", align:"center"}
+        {text:"", align:"center"}, {text:"", align:"center"}, {text:"", align:"center"}, {text:"", align:"center"}
       ]}
     ],
     trans: 5, cols: 33, rows: 11, align: "center", format: "16:9",
@@ -1065,7 +1263,11 @@ function setAuthMode(m){
   document.getElementById("authTitle").textContent = m==="login" ? t("authTitleLogin") : t("authTitleRegister");
   document.getElementById("fBizRow").style.display = m==="login" ? "none" : "block";
   document.getElementById("authGo").textContent = m==="login" ? t("authGoLogin") : t("authGoRegister");
-  document.getElementById("authIntro").textContent = m==="login" ? t("authIntro") : t("authIntroRegister");
+  const pc = pendingPairCode();
+  document.getElementById("authIntro").textContent = pc
+    ? t("authIntroPair").replace("{code}", pc)
+    : (m==="login" ? t("authIntro") : t("authIntroRegister"));
+  document.getElementById("authLegal").style.display = m==="login" ? "none" : "";
   document.getElementById("authAlt").innerHTML = m==="login"
     ? t("authAltLogin")
     : t("authAltRegister");
@@ -1074,29 +1276,48 @@ function setAuthMode(m){
   document.getElementById("authSwitch").addEventListener("click",
     ()=>setAuthMode(authMode==="login"?"register":"login"));
 }
+/* código de vinculación que llega en la URL (QR de la tele: /panel?pair=ABCD) */
+function pendingPairCode(){
+  try{ const c = (new URLSearchParams(location.search).get("pair")||"").toUpperCase().replace(/[^A-Z]/g,""); return c.length===4 ? c : ""; }
+  catch(e){ return ""; }
+}
 document.getElementById("authSwitch").addEventListener("click", ()=>setAuthMode("register"));
-document.getElementById("authGo").addEventListener("click", async ()=>{
+let authBusy = false;
+async function submitAuth(){
+  if(authBusy) return;
   const email = document.getElementById("aMail").value.trim();
   const pass = document.getElementById("aPass").value;
   const biz = document.getElementById("aBiz").value.trim();
   const err = document.getElementById("authErr");
-  err.textContent = "";
+  const go = document.getElementById("authGo");
+  err.textContent = ""; err.style.color = "";
+  if(authMode==="register" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ err.textContent = t("authErrEmail"); return; }
+  if(authMode==="register" && pass.length<8){ err.textContent = t("authErrRegister"); return; }
+  authBusy = true; go.disabled = true;
   try{
     if(authMode==="login") await api("POST","/api/login",{email,password:pass});
     else{
       /* respeta el plan elegido en la landing (/panel?plan=uno&bill=m) */
       const q = new URLSearchParams(location.search);
-      await api("POST","/api/register",{email,password:pass,business:biz,
+      await api("POST","/api/register",{email,password:pass,business:biz,lang:LANG,
         plan:q.get("plan")||undefined, bill:q.get("bill")||undefined});
     }
     try{ localStorage.setItem("flappitKnown","1"); }catch(e){}
     location.reload();
   }catch(e){
-    err.textContent = authMode==="login"
-      ? t("authErrLogin")
-      : (e.data && e.data.error==="email-existe" ? t("authErrEmailExists") : t("authErrRegister"));
+    const code = e.data && e.data.error;
+    err.textContent = e.status===429 ? t("authErrWait")
+      : authMode==="login" ? t("authErrLogin")
+      : code==="email-existe" ? t("authErrEmailExists")
+      : code==="email-invalido" ? t("authErrEmail")
+      : t("authErrRegister");
+    authBusy = false; go.disabled = false;
   }
-});
+}
+document.getElementById("authGo").addEventListener("click", submitAuth);
+["aBiz","aMail","aPass"].forEach(id=>document.getElementById(id).addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); submitAuth(); }
+}));
 /* "olvidé mi contraseña": pide el enlace por email; nunca revela si la cuenta existe */
 document.getElementById("authForgot").addEventListener("click", async ()=>{
   const email = document.getElementById("aMail").value.trim();
@@ -1130,7 +1351,9 @@ const IC = {
   photo:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg>',
   flap:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 12h18"/><path d="M8 5v14M16 5v14"/></svg>',
   video:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="14" height="12" rx="2"/><path d="M16.5 10l5-2.5v9l-5-2.5z"/></svg>',
-  text:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M5 6V5M12 6v13M9 19h6"/></svg>'
+  text:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M5 6V5M12 6v13M9 19h6"/></svg>',
+  tpl:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  clock:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
 };
 
 async function loadScreens(){
@@ -1216,26 +1439,60 @@ window.addEventListener("message", e=>{
   if(e.data && e.data.type==="previewReady") pushPreview();
 });
 
+function openPairBox(focus){
+  const box = document.getElementById("pairBox");
+  box.style.display = "block";
+  const nm = document.getElementById("pairName");
+  if(nm && !nm.value) nm.placeholder = SCREENS.length ? t("newScreenFallback")+" "+(SCREENS.length+1) : t("pairNamePh");
+  if(focus!==false){
+    box.scrollIntoView({block:"nearest", behavior:"smooth"});
+    document.getElementById(document.getElementById("pairCode").value.length===4 ? "pairName" : "pairCode").focus();
+  }
+}
 document.getElementById("connectTvBtn").addEventListener("click", ()=>{
   const box = document.getElementById("pairBox");
-  box.style.display = box.style.display==="block" ? "none" : "block";
-  if(box.style.display==="block") document.getElementById("pairCode").focus();
+  if(box.style.display==="block") box.style.display = "none";
+  else openPairBox();
 });
+document.getElementById("connectCta").addEventListener("click", ()=>openPairBox());
 
-document.getElementById("pairBtn").addEventListener("click", async ()=>{
-  const code = document.getElementById("pairCode").value.trim().toUpperCase();
-  if(code.length!==4) return alert(t("codeIs4"));
+function pairMsg(text, kind){
+  const el = document.getElementById("pairMsg");
+  el.textContent = text||""; el.className = "cap"+(kind?" "+kind:"");
+}
+/* vincula una pantalla por su código; el nombre es opcional (se puede renombrar luego) */
+async function doPair(code, name){
+  code = String(code||"").toUpperCase().replace(/[^A-Z]/g,"");
+  if(code.length!==4){ pairMsg(t("codeIs4"), "err"); return false; }
+  const btn = document.getElementById("pairBtn");
+  btn.disabled = true; pairMsg(t("pairing"));
   try{
-    const name = prompt(t("newScreenNamePrompt"), t("newScreenDefault")) || t("newScreenFallback");
-    const r = await api("POST","/api/pair",{code, name});
+    const nm = (name||"").trim() || (SCREENS.length ? t("newScreenFallback")+" "+(SCREENS.length+1) : t("firstScreenName"));
+    const r = await api("POST","/api/pair",{code, name:nm});
     document.getElementById("pairCode").value = "";
+    document.getElementById("pairName").value = "";
     await loadScreens();
-    selectScreen(r.id);
+    await selectScreen(r.id);
+    pairMsg(t("pairOk").replace("{n}", r.name||nm), "ok");
+    const done = toast(t("pairOk").replace("{n}", r.name||nm)); setTimeout(done, 5000);
+    return true;
   }catch(e){
-    if(e.data && e.data.error==="limite-plan")
-      alert(t("planLimit").replace("{n}", e.data.limit));
-    else alert(t("codeNotFound"));
-  }
+    if(e.status===402){ pairMsg(""); return false; }
+    pairMsg(e.data && e.data.error==="limite-plan"
+      ? t("planLimit").replace("{n}", e.data.limit)
+      : (e.status===429 ? t("authErrWait") : t("codeNotFound")), "err");
+    return false;
+  }finally{ btn.disabled = false; }
+}
+document.getElementById("pairBtn").addEventListener("click", ()=>{
+  doPair(document.getElementById("pairCode").value, document.getElementById("pairName").value);
+});
+["pairCode","pairName"].forEach(id=>document.getElementById(id).addEventListener("keydown", e=>{
+  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("pairBtn").click(); }
+}));
+document.getElementById("pairCode").addEventListener("input", function(){
+  this.value = this.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,4);
+  if(this.value.length===4) document.getElementById("pairName").focus();
 });
 setInterval(()=>{ if(ME) loadScreens().catch(()=>{}); }, 20000);
 
@@ -1395,6 +1652,8 @@ async function publish(){
 function updatePubBtn(){
   const b = document.getElementById("updateBtn");
   if(!b) return;
+  const cc = document.getElementById("connectCta");
+  if(cc) cc.style.display = (!curScreen && S) ? "inline-flex" : "none";
   b.style.display = curScreen ? "inline-flex" : "none";
   b.classList.toggle("dirty", dirty);
   b.disabled = !dirty;
@@ -1842,6 +2101,10 @@ function renderTabs(){
     else if(m.type==="video") lab.innerHTML = IC.video+t("tabVideo").replace("{n}", i+1);
     else                      lab.textContent = t("tabScreen").replace("{n}", i+1);
     tb.appendChild(lab);
+    if(m.sched && m.sched.from && m.sched.to && m.sched.from!==m.sched.to){
+      const ck = document.createElement("span"); ck.className = "tabClock"; ck.innerHTML = IC.clock;
+      ck.title = schedLabel(m.sched); tb.appendChild(ck);
+    }
     tb.addEventListener("click", ()=>{ selScr=i; selLine=-1; buildBoard(); });
     // X de borrar, integrada en cada pestaña (así se entiende qué se elimina)
     const x = document.createElement("span");
@@ -1904,6 +2167,15 @@ function renderTabs(){
     meta.appendChild(mkStep(mIn)); meta.appendChild(mLbl);
     meta.appendChild(mkStep(sIn)); meta.appendChild(sLbl);
   }
+  // horario (programación por franjas)
+  const sb = document.createElement("button");
+  sb.id = "schedBtn"; sb.type = "button"; sb.title = t("schedBtnTitle");
+  const has = !!(cur().sched && cur().sched.from && cur().sched.to && cur().sched.from!==cur().sched.to);
+  sb.className = has ? "on" : "";
+  sb.innerHTML = IC.clock + "<span></span>";
+  sb.querySelector("span").textContent = schedLabel(cur().sched);
+  sb.addEventListener("click", e=>{ e.stopPropagation(); openSched(sb); });
+  meta.appendChild(sb);
   tabs.appendChild(meta);
 }
 
@@ -1941,6 +2213,7 @@ function openAddMenu(anchor){
   item(IC.text, t("addMsgTitle"), t("addMsgDesc"), ()=>{
     S.messages.push({secs:20, lines:[]}); gotoLast();
   });
+  item(IC.tpl, t("addTplTitle"), t("addTplDesc"), openTemplates);
   const sep = document.createElement("div"); sep.className = "sep"; menu.appendChild(sep);
   item(IC.photo, t("addPhotoTitle"), t("addPhotoDesc"), ()=>{
     pickFile("image/*", f=> loadPhotoData(f, 1920, 0.82, url=>{
@@ -1968,6 +2241,200 @@ function openAddMenu(anchor){
   menu.style.left = Math.max(10, Math.min(r.left, window.innerWidth - mw - 10))+"px";
   menu.style.top  = Math.min(r.bottom+6, window.innerHeight - mh - 10)+"px";
 }
+
+/* ---------- plantillas por sector ----------
+   Líneas cortas (≤ 23 letras) para que quepan en cualquier formato; si el tablero es más
+   estrecho (tótem 9:16) se reparten solas en más líneas. {BIZ} = nombre del negocio. */
+const TPL = {
+  es:[
+    {cat:"hotel", name:"Bienvenida", lines:["BIENVENIDOS A","{BIZ}","","FELIZ ESTANCIA"]},
+    {cat:"hotel", name:"Huésped especial", lines:["BIENVENIDA","FAMILIA GARCÍA","","HABITACIÓN 305"]},
+    {cat:"hotel", name:"Desayuno", lines:["DESAYUNO BUFFET","","07:00 - 10:30","RESTAURANTE PLANTA 0"], sched:{from:"06:00",to:"10:30"}},
+    {cat:"hotel", name:"Wi-Fi", lines:["WIFI GRATIS","","RED: HOTEL-GUEST","CLAVE: BIENVENIDO"]},
+    {cat:"hotel", name:"Agenda del día", align:"left", lines:["HOY EN EL HOTEL","","10:00 YOGA EN LA TERRAZA","18:00 CATA DE VINOS","21:00 MÚSICA EN DIRECTO"]},
+    {cat:"hotel", name:"Check-out", lines:["CHECK-OUT","HASTA LAS 12:00","","CONSIGNA GRATUITA","EN RECEPCIÓN"]},
+    {cat:"rest", name:"Menú del día", lines:["MENÚ DEL DÍA","","CREMA DE CALABAZA","ARROZ NEGRO","TARTA DE QUESO","","14,90€ BEBIDA INCLUIDA"], sched:{from:"12:30",to:"16:00"}},
+    {cat:"rest", name:"Happy hour", lines:["HAPPY HOUR","","18:00 - 20:00","2X1 EN CÓCTELES"], sched:{from:"17:00",to:"20:00"}},
+    {cat:"rest", name:"Plato estrella", lines:["HOY RECOMENDAMOS","","PULPO A LA BRASA","CON PARMENTIER"]},
+    {cat:"rest", name:"Carta de cafés", align:"left", lines:["NUESTROS CAFÉS","","ESPRESSO        1,80€","CORTADO         1,90€","CAPPUCCINO      2,80€","FLAT WHITE      3,20€"]},
+    {cat:"gym", name:"Clases de hoy", align:"left", lines:["CLASES DE HOY","","07:30 SPINNING","09:00 PILATES","18:00 CROSS TRAINING","19:30 YOGA"]},
+    {cat:"gym", name:"Reto del mes", lines:["RETO DEL MES","","100 KM EN BICI","","APÚNTATE EN RECEPCIÓN"]},
+    {cat:"gym", name:"Motivación", lines:["HOY ES UN","BUEN DÍA","PARA SUPERARTE"]},
+    {cat:"clinic", name:"Turno", lines:["TURNO","","A 042","","CONSULTA 3"]},
+    {cat:"clinic", name:"Bienvenida", lines:["BIENVENIDOS","","REGISTRO DE LLEGADA","EN RECEPCIÓN"]},
+    {cat:"clinic", name:"Horario", lines:["HORARIO","","L-V 09:00 - 20:00","SÁB 10:00 - 14:00"]},
+    {cat:"shop", name:"Rebajas", lines:["REBAJAS","","HASTA -50%","EN TODA LA TIENDA"]},
+    {cat:"shop", name:"Novedad", lines:["NUEVA COLECCIÓN","OTOÑO 2026","","YA DISPONIBLE"]},
+    {cat:"shop", name:"Oferta flash", lines:["OFERTA FLASH","","SOLO HOY","3X2 EN TODO"]},
+    {cat:"office", name:"Bienvenida visita", lines:["BIENVENIDOS","","EQUIPO DE ACME","","SALA ATLÁNTICO"]},
+    {cat:"office", name:"Agenda", align:"left", lines:["AGENDA DE HOY","","09:30 COMITÉ   SALA A","12:00 FORMACIÓN SALA B","16:00 KEYNOTE  AUDITORIO"]},
+    {cat:"office", name:"Cuenta atrás", lines:["LANZAMIENTO","","FALTAN 10 DÍAS"]}
+  ],
+  en:[
+    {cat:"hotel", name:"Welcome", lines:["WELCOME TO","{BIZ}","","ENJOY YOUR STAY"]},
+    {cat:"hotel", name:"VIP guest", lines:["WELCOME","THE SMITH FAMILY","","ROOM 305"]},
+    {cat:"hotel", name:"Breakfast", lines:["BREAKFAST BUFFET","","07:00 - 10:30","RESTAURANT GROUND FLOOR"], sched:{from:"06:00",to:"10:30"}},
+    {cat:"hotel", name:"Wi-Fi", lines:["FREE WIFI","","NETWORK: HOTEL-GUEST","PASSWORD: WELCOME"]},
+    {cat:"hotel", name:"Today's agenda", align:"left", lines:["TODAY AT THE HOTEL","","10:00 ROOFTOP YOGA","18:00 WINE TASTING","21:00 LIVE MUSIC"]},
+    {cat:"hotel", name:"Check-out", lines:["CHECK-OUT","UNTIL 12:00","","FREE LUGGAGE STORAGE","AT RECEPTION"]},
+    {cat:"rest", name:"Lunch menu", lines:["LUNCH MENU","","PUMPKIN SOUP","SEAFOOD PAELLA","CHEESECAKE","","€14.90 DRINK INCLUDED"], sched:{from:"12:30",to:"16:00"}},
+    {cat:"rest", name:"Happy hour", lines:["HAPPY HOUR","","18:00 - 20:00","2 FOR 1 COCKTAILS"], sched:{from:"17:00",to:"20:00"}},
+    {cat:"rest", name:"Chef's special", lines:["TODAY'S SPECIAL","","GRILLED OCTOPUS","WITH POTATO PUREE"]},
+    {cat:"rest", name:"Coffee menu", align:"left", lines:["OUR COFFEE","","ESPRESSO        €1.80","CORTADO         €1.90","CAPPUCCINO      €2.80","FLAT WHITE      €3.20"]},
+    {cat:"gym", name:"Today's classes", align:"left", lines:["TODAY'S CLASSES","","07:30 SPINNING","09:00 PILATES","18:00 CROSS TRAINING","19:30 YOGA"]},
+    {cat:"gym", name:"Monthly challenge", lines:["MONTHLY CHALLENGE","","100 KM ON THE BIKE","","SIGN UP AT RECEPTION"]},
+    {cat:"gym", name:"Motivation", lines:["TODAY IS A","GOOD DAY","TO BEAT YOURSELF"]},
+    {cat:"clinic", name:"Queue number", lines:["NOW SERVING","","A 042","","ROOM 3"]},
+    {cat:"clinic", name:"Welcome", lines:["WELCOME","","PLEASE CHECK IN","AT RECEPTION"]},
+    {cat:"clinic", name:"Opening hours", lines:["OPENING HOURS","","MON-FRI 09:00 - 20:00","SAT 10:00 - 14:00"]},
+    {cat:"shop", name:"Sale", lines:["SALE","","UP TO -50%","STORE-WIDE"]},
+    {cat:"shop", name:"New arrivals", lines:["NEW COLLECTION","AUTUMN 2026","","OUT NOW"]},
+    {cat:"shop", name:"Flash deal", lines:["FLASH DEAL","","TODAY ONLY","3 FOR 2 ON EVERYTHING"]},
+    {cat:"office", name:"Visitor welcome", lines:["WELCOME","","ACME TEAM","","ATLANTIC ROOM"]},
+    {cat:"office", name:"Agenda", align:"left", lines:["TODAY'S AGENDA","","09:30 BOARD    ROOM A","12:00 TRAINING ROOM B","16:00 KEYNOTE  AUDITORIUM"]},
+    {cat:"office", name:"Countdown", lines:["LAUNCH","","10 DAYS TO GO"]}
+  ]
+};
+const TPL_CATS = {
+  es:{all:"Todas", hotel:"Hotel", rest:"Restaurante y bar", gym:"Gimnasio", clinic:"Clínica", shop:"Tienda", office:"Oficina y eventos"},
+  en:{all:"All", hotel:"Hotel", rest:"Restaurant & bar", gym:"Gym", clinic:"Clinic", shop:"Shop", office:"Office & events"}
+};
+let tplCat = "all";
+function tplLines(tp){
+  const biz = normalize((ME && ME.business) || (LANG==="en" ? "YOUR BUSINESS" : "TU NEGOCIO")).trim().slice(0, 23);
+  return tp.lines.map(l=>l.replace("{BIZ}", biz));
+}
+/* encaja las líneas de una plantilla en el tablero actual: parte las largas y centra en vertical */
+function fitTemplate(tp){
+  const cols = S.cols, rows = linesPer(S), align = tp.align || "center";
+  const out = [];
+  tplLines(tp).forEach(line=>{
+    const n = normalize(line);
+    if(n.length <= cols){ out.push(line); return; }
+    let cur = "";
+    line.split(/\s+/).forEach(w=>{
+      if(normalize(w).length > cols) w = w.slice(0, cols);
+      if(!cur) cur = w;
+      else if(normalize(cur+" "+w).length <= cols) cur += " "+w;
+      else { out.push(cur); cur = w; }
+    });
+    if(cur) out.push(cur);
+  });
+  while(out.length > rows){ const i = out.lastIndexOf(""); if(i>=0) out.splice(i,1); else out.pop(); }
+  const top = Math.max(0, Math.floor((rows - out.length)/2));
+  const lines = [];
+  for(let i=0;i<rows;i++){
+    let txt = (i>=top && i<top+out.length) ? out[i-top] : "";
+    if(align==="left" && txt && normalize(txt).length < cols) txt = " "+txt; // una casilla de margen
+    lines.push({text:txt, align});
+  }
+  return lines;
+}
+function renderTemplates(){
+  const cats = TPL_CATS[LANG] || TPL_CATS.es;
+  const cb = document.getElementById("tplCats");
+  cb.innerHTML = "";
+  Object.keys(cats).forEach(k=>{
+    const c = document.createElement("button");
+    c.className = "chip"+(k===tplCat?" on":""); c.textContent = cats[k];
+    c.addEventListener("click", ()=>{ tplCat = k; renderTemplates(); });
+    cb.appendChild(c);
+  });
+  const grid = document.getElementById("tplGrid");
+  grid.innerHTML = "";
+  (TPL[LANG] || TPL.es).filter(tp=>tplCat==="all" || tp.cat===tplCat).forEach(tp=>{
+    const card = document.createElement("button");
+    card.className = "tplCard";
+    const pv = document.createElement("div");
+    pv.className = "tplPrev"+(tp.align==="left" ? "" : " c");
+    pv.textContent = tplLines(tp).map(l=>normalize(l)).join("\n");
+    const nm = document.createElement("span");
+    nm.className = "tplName";
+    nm.textContent = tp.name + (tp.sched ? "  ·  "+tp.sched.from+"–"+tp.sched.to : "");
+    card.appendChild(pv); card.appendChild(nm);
+    card.addEventListener("click", ()=>{
+      const m = {secs:20, lines:fitTemplate(tp)};
+      if(tp.sched) m.sched = {from:tp.sched.from, to:tp.sched.to, days:[0,1,2,3,4,5,6]};
+      S.messages.push(m);
+      closeTemplates();
+      gotoLast();
+      const done = toast(t("tplAdded")); setTimeout(done, 3500);
+    });
+    grid.appendChild(card);
+  });
+}
+function openTemplates(){
+  if(!S) return;
+  renderTemplates();
+  document.getElementById("tplWrap").style.display = "flex";
+}
+function closeTemplates(){ document.getElementById("tplWrap").style.display = "none"; }
+document.getElementById("tplClose").addEventListener("click", closeTemplates);
+document.getElementById("tplWrap").addEventListener("click", e=>{ if(e.target.id==="tplWrap") closeTemplates(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeTemplates(); closeSched(); } });
+
+/* ---------- horario de cada contenido ---------- */
+function schedLabel(sc){
+  if(!sc || !sc.from || !sc.to || sc.from===sc.to) return t("schedAlways");
+  const d = sc.days && sc.days.length && sc.days.length<7
+    ? " · " + [1,2,3,4,5,6,0].filter(x=>sc.days.indexOf(x)>=0).map(x=>t("schedDays")[x]).join("")
+    : "";
+  return sc.from+"–"+sc.to+d;
+}
+let schedDraftDays = [0,1,2,3,4,5,6];
+function renderSchedDays(){
+  const box = document.getElementById("schedDays");
+  box.innerHTML = "";
+  [1,2,3,4,5,6,0].forEach(d=>{
+    const c = document.createElement("button");
+    c.type = "button";
+    c.className = "chip"+(schedDraftDays.indexOf(d)>=0 ? " on" : "");
+    c.textContent = t("schedDays")[d];
+    c.addEventListener("click", ()=>{
+      const i = schedDraftDays.indexOf(d);
+      if(i>=0){ if(schedDraftDays.length>1) schedDraftDays.splice(i,1); } else schedDraftDays.push(d);
+      renderSchedDays();
+    });
+    box.appendChild(c);
+  });
+}
+function schedModeSync(){
+  const win = document.querySelector('input[name=schedMode][value=window]').checked;
+  document.getElementById("schedFields").classList.toggle("off", !win);
+}
+document.querySelectorAll('input[name=schedMode]').forEach(r=>r.addEventListener("change", schedModeSync));
+function openSched(anchor){
+  const m = cur(); if(!m) return;
+  const sc = m.sched;
+  const on = !!(sc && sc.from && sc.to && sc.from!==sc.to);
+  document.querySelector('input[name=schedMode][value='+(on?"window":"always")+']').checked = true;
+  document.getElementById("schedFrom").value = on ? sc.from : "07:00";
+  document.getElementById("schedTo").value = on ? sc.to : "11:00";
+  schedDraftDays = on && sc.days && sc.days.length ? sc.days.slice() : [0,1,2,3,4,5,6];
+  renderSchedDays(); schedModeSync();
+  const pop = document.getElementById("schedPop");
+  pop.style.display = "block";
+  const r = anchor.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = Math.max(10, Math.min(r.right - pw, window.innerWidth - pw - 10))+"px";
+  pop.style.top = Math.max(10, Math.min(r.bottom + 6, window.innerHeight - ph - 10))+"px";
+}
+function closeSched(){ const p = document.getElementById("schedPop"); if(p) p.style.display = "none"; }
+document.getElementById("schedCancel").addEventListener("click", closeSched);
+document.getElementById("schedOk").addEventListener("click", ()=>{
+  const m = cur(); if(!m) return closeSched();
+  const win = document.querySelector('input[name=schedMode][value=window]').checked;
+  const from = document.getElementById("schedFrom").value, to = document.getElementById("schedTo").value;
+  if(win && /^\d{2}:\d{2}$/.test(from) && /^\d{2}:\d{2}$/.test(to) && from!==to){
+    m.sched = {from, to, days: schedDraftDays.slice().sort()};
+  } else delete m.sched;
+  closeSched();
+  renderTabs(); push();
+});
+document.addEventListener("mousedown", e=>{
+  const p = document.getElementById("schedPop");
+  if(p && p.style.display==="block" && !p.contains(e.target) && !(e.target.closest && e.target.closest("#schedBtn"))) closeSched();
+});
 
 /* ---------- controles laterales ---------- */
 function syncControls(){
@@ -2445,27 +2912,46 @@ document.getElementById("shareShare").addEventListener("click", async ()=>{
 
 /* ================= suscripción ================= */
 const PLAN_LABEL = {uno:t("planUno"), tres:t("planTres"), cadena:t("planCadena")};
+function fmtDate(ms){
+  try{ return new Date(ms).toLocaleDateString(LANG==="en" ? "en-GB" : "es-ES", {day:"numeric", month:"short"}); }
+  catch(e){ return ""; }
+}
 function renderSub(){
   if(!ME) return;
   const info = document.getElementById("planInfo");
   const btn = document.getElementById("subBtn");
   info.className = ""; btn.className = ""; btn.style.display = "none"; btn.onclick = null;
+  info.textContent = ""; info.title = "";
   const st = ME.sub_status;
-  if(st==="active" || st==="trialing"){
-    info.textContent = t("planPrefix")+(PLAN_LABEL[ME.plan]||ME.plan);
+  const planTxt = t("planPrefix")+(PLAN_LABEL[ME.plan]||ME.plan);
+  if(ME.is_admin && !(st==="active" || st==="trialing" || st==="past_due")){
+    info.innerHTML = '<a href="/admin" style="color:var(--accent);">'+t("adminLabel")+'</a>';
+    hidePaywall();
+    return;
+  }
+  if(st==="past_due"){ // cobro fallido: sigue emitiendo mientras Stripe reintenta; que actualice la tarjeta
+    info.textContent = t("pastDue"); info.className = "warn";
+    if(ME.has_customer){ btn.textContent = t("updatePayment"); btn.style.display = "inline-block"; btn.onclick = openPortal; }
+    hidePaywall();
+  } else if(st==="active" || st==="trialing"){
+    let extra = "";
+    if(ME.cancel_at) extra = " · "+t("cancelsOn").replace("{d}", fmtDate(ME.cancel_at));
+    else if(st==="trialing" && ME.current_period_end) extra = " · "+t("firstCharge").replace("{d}", fmtDate(ME.current_period_end));
+    info.textContent = planTxt + extra;
+    if(ME.cancel_at) info.className = "warn";
     if(ME.has_customer){
       btn.textContent = t("manageSub"); btn.className = "ghost";
       btn.style.display = "inline-block"; btn.onclick = openPortal;
     }
     hidePaywall();
-  } else if(ME.entitled){ // prueba vigente
+  } else if(ME.entitled){ // prueba gratuita vigente
     const d = Math.max(0, Math.ceil((ME.trial_until - Date.now())/86400000));
-    info.textContent = (d===1?t("trialDay"):t("trialDays")).replace("{n}", d);
-    if(d<=5) info.className = "warn";
+    info.textContent = (d<=1?t("trialDay"):t("trialDays")).replace("{n}", d);
+    if(d<=2) info.className = "warn";
     btn.textContent = t("subscribe"); btn.style.display = "inline-block"; btn.onclick = startCheckout;
     hidePaywall();
-  } else { // sin acceso: prueba caducada, pago pendiente o cancelada
-    info.textContent = st==="past_due" ? t("pastDue") : t("trialEnded");
+  } else { // sin acceso: prueba caducada o suscripción cancelada
+    info.textContent = st==="canceled" ? t("subCanceled") : t("trialEnded");
     info.className = "warn";
     btn.textContent = t("subscribe"); btn.style.display = "inline-block"; btn.onclick = startCheckout;
     showPaywall(st);
@@ -2476,22 +2962,38 @@ let pickBill = "m";
 function renderPlanPrices(){
   document.getElementById("billM").classList.toggle("on", pickBill==="m");
   document.getElementById("billY").classList.toggle("on", pickBill==="y");
-  document.getElementById("planPriceUno").textContent = pickBill==="m" ? t("priceUnoM") : t("priceUnoY");
-  document.getElementById("planPriceTres").textContent = pickBill==="m" ? t("priceTresM") : t("priceTresY");
+  const set = (id, main, perMonth)=>{
+    const el = document.getElementById(id);
+    el.textContent = main;
+    if(perMonth){ const sm = document.createElement("small"); sm.textContent = t("perMonth").replace("{p}", perMonth); el.appendChild(sm); }
+  };
+  set("planPriceUno", pickBill==="m" ? t("priceUnoM") : t("priceUnoY"), pickBill==="y" ? "15" : "");
+  set("planPriceTres", pickBill==="m" ? t("priceTresM") : t("priceTresY"), pickBill==="y" ? "31" : "");
+  document.getElementById("planOptUno").classList.toggle("pref", !!ME && ME.plan==="uno");
+  document.getElementById("planOptTres").classList.toggle("pref", !!ME && ME.plan!=="uno");
+  const note = document.getElementById("planNote");
+  const left = ME && ME.trial_until ? ME.trial_until - Date.now() : 0;
+  note.innerHTML = left > 49*3600*1000 ? t("planNoteTrial").replace("{d}", fmtDate(ME.trial_until)) : t("planNoteNow");
 }
 function startCheckout(){
   pickBill = (ME && ME.bill==="y") ? "y" : "m";
   renderPlanPrices();
   document.getElementById("planWrap").style.display = "flex";
 }
+let checkoutBusy = false;
 async function launchCheckout(plan){
+  if(checkoutBusy) return;
+  checkoutBusy = true;
+  document.querySelectorAll(".planOpt").forEach(b=>b.disabled = true);
   try{
-    const r = await api("GET","/api/subscribe?plan="+plan+"&bill="+pickBill);
+    const r = await api("GET","/api/subscribe?plan="+plan+"&bill="+pickBill+"&lang="+LANG);
     if(r.url){ location.href = r.url; return; }
     alert(r.note==="precio-no-configurado"
       ? t("pricesMissing")
       : t("paymentsNotConfigured"));
-  }catch(e){}
+  }catch(e){ if(e.status && e.status!==402) alert(t("portalError")); }
+  checkoutBusy = false;
+  document.querySelectorAll(".planOpt").forEach(b=>b.disabled = false);
 }
 document.getElementById("billM").addEventListener("click", ()=>{ pickBill="m"; renderPlanPrices(); });
 document.getElementById("billY").addEventListener("click", ()=>{ pickBill="y"; renderPlanPrices(); });
@@ -2507,10 +3009,10 @@ async function openPortal(){
 }
 function showPaywall(st){
   document.getElementById("payTitle").textContent =
-    st==="past_due" ? t("payTitlePastDue") : t("payTitleTrial");
+    st==="past_due" ? t("payTitlePastDue") : st==="canceled" ? t("payTitleCanceled") : t("payTitleTrial");
   document.getElementById("payMsg").textContent = st==="past_due"
     ? t("payMsgPastDue")
-    : t("payMsgTrial");
+    : st==="canceled" ? t("payMsgCanceled") : t("payMsgTrial");
   document.getElementById("payGo").onclick =
     (st==="past_due" && ME && ME.has_customer) ? openPortal : startCheckout;
   document.getElementById("payWrap").style.display = "flex";
@@ -2522,13 +3024,45 @@ document.getElementById("payLogout").addEventListener("click", async ()=>{
 });
 
 /* ================= arranque ================= */
-(async function init(){
+function cleanUrl(keys){
   try{
+    const u = new URL(location.href);
+    keys.forEach(k=>u.searchParams.delete(k));
+    history.replaceState(null, "", u.pathname + (u.search || "") + u.hash);
+  }catch(e){}
+}
+(async function init(){
+  const q = new URLSearchParams(location.search);
+  try{
+    // vuelta del checkout o del portal de Stripe: sincroniza el estado antes de pintar
+    if(q.get("sub")==="ok" || q.get("portal")){
+      try{ await fetch("/api/billing/sync", {method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({cs:q.get("cs")||""})}); }catch(e){}
+    }
     ME = await api("GET","/api/me");
     document.getElementById("bizName").textContent = ME.business || ME.email;
     renderSub();
     await loadScreens();
-  }catch(e){ /* showAuth ya se ha lanzado */ }
+  }catch(e){ return; /* showAuth ya se ha lanzado */ }
+  if(q.get("sub")==="ok"){
+    const msg = ME.sub_status==="trialing" && ME.current_period_end
+      ? t("subOkTrial").replace("{d}", fmtDate(ME.current_period_end)) : t("subOk");
+    const done = toast(msg); setTimeout(done, 6000);
+  } else if(q.get("sub")==="cancel"){
+    const done = toast(t("subCancelMsg")); setTimeout(done, 5000);
+  }
+  cleanUrl(["sub","cs","portal","plan","bill"]);
+  // QR de la tele: /panel?pair=ABCD → se vincula directamente
+  const pc = pendingPairCode();
+  if(pc){
+    cleanUrl(["pair"]);
+    if(ME.entitled){
+      openPairBox(false);
+      document.getElementById("pairCode").value = pc;
+      pairMsg(t("pairAuto").replace("{code}", pc));
+      doPair(pc, "");
+    }
+  }
 })();
 </script>
 </body>
